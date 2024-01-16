@@ -1,0 +1,14 @@
+name: Build with Gradle
+description: A collection of actions for building Gradle projects, as well as generating a dependency graph via Dependency Submission.
+
+runs:
+  using: "composite"
+  steps:
+  - name: Setup Gradle
+    uses: gradle/gradle-build-action@main
+    with:
+      cache-read-only: true
+
+branding:
+  icon: 'box'
+  color: 'gray-dark'
