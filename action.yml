@@ -4,10 +4,10 @@ description: A collection of actions for building Gradle projects, as well as ge
 runs:
   using: "composite"
   steps:
-  - name: Setup Gradle
-    uses: gradle/gradle-build-action@main
-    with:
-      cache-read-only: true
+  - run: |
+      echo "::error::The path 'gradle/actions' is not a valid action. Please use 'gradle/actions/setup-gradle' or 'gradle/actions/dependency-submission'."
+      exit 1
+    shell: bash
 
 branding:
   icon: 'box'

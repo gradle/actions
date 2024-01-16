@@ -1,0 +1,34 @@
+name: Gradle Dependency Submission
+description: Generates a dependency graph for a Gradle project and submits it via the Dependency Submission API
+
+inputs:
+  gradle-version:
+    description: |
+      Gradle version to use. If specified, this Gradle version will be downloaded, added to the PATH and used for invoking Gradle.
+      If not provided, it is assumed that the project uses the Gradle Wrapper.
+    required: false
+  build-root-directory:
+    description: Path to the root directory of the build. Default is the root of the GitHub workspace.
+    required: false
+  cache-encryption-key:
+    description: |
+      A base64 encoded AES key used to encrypt the configuration-cache data. The key is exported as 'GRADLE_ENCRYPTION_KEY' for later steps. 
+      A suitable key can be generated with `openssl rand -base64 16`.
+      Configuration-cache data will not be saved/restored without an encryption key being provided.
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - uses: gradle/gradle-build-action@main
+      with:
+        dependency-graph: generate-and-submit
+        dependency-graph-continue-on-failure: false
+        gradle-version: ${{ inputs.gradle-version }}
+        build-root-directory: ${{ inputs.build-root-directory }}
+        cache-encryption-key: ${{ inputs.cache-encryption-key }}
+        arguments: |
+          --no-configure-on-demand
+          --dependency-verification=off
+          --stacktrace
+          :ForceDependencyResolutionPlugin_resolveAllDependencies

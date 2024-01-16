@@ -1,0 +1,25 @@
+name: Smoke test setup-gradle
+
+on:
+  workflow_dispatch:
+  push:
+
+env:
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  test-setup-gradle:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Checkout gradle-build-action for samples
+      uses: actions/checkout@v4
+      with:
+        repository: gradle/gradle-build-action
+        path: gradle-build-action
+    - name: Setup Gradle
+      uses: ./setup-gradle
+    - name: Build groovy-dsl project
+      working-directory: gradle-build-action/.github/workflow-samples/groovy-dsl
+      run: ./gradlew assemble
