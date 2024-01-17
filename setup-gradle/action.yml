@@ -105,7 +105,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - uses: gradle/gradle-build-action@main
+    - uses: gradle/gradle-build-action@v3-beta
       with:
         gradle-version: ${{ inputs.gradle-version }}
         cache-disabled: ${{ inputs.cache-disabled }}

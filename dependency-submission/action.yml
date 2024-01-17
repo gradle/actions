@@ -20,7 +20,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: gradle/gradle-build-action@main
+    - uses: gradle/gradle-build-action@v3-beta
       with:
         dependency-graph: generate-and-submit
         dependency-graph-continue-on-failure: false
