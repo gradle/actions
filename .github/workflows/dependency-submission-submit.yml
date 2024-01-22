@@ -1,0 +1,23 @@
+name: Test dependency-submission submit
+
+on:
+  workflow_run:
+    workflows: ['Test dependency-submission save']
+    types: [completed]
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  dependency-submission-submit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download and submit dependency graph
+      uses: ./dependency-submission
+      with:
+        dependency-graph-action: download-and-submit

@@ -1,4 +1,4 @@
-name: Smoke test setup-gradle
+name: Test setup-gradle
 
 on:
   workflow_dispatch:
