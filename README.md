@@ -2,7 +2,7 @@
 
 This repository contains a set of GitHub Actions that are useful for building Gradle projects on GitHub.
 
-## `gradle/actions/setup-gradle`
+## The `setup-gradle` action
 
 A simple wrapper around `gradle/gradle-build-action`, removing the deprecated `arguments` parameter (and thus removing the ability to _execute_ gradle).
 The intention is to eventually deprecate `gradle-build-action` with this being the replacement.
@@ -28,18 +28,22 @@ jobs:
       run: ./gradlew build
 ```
 
-## `gradle/actions/dependency-submission`
+See the [`gradle-build-action` documentation](https://github.com/gradle/gradle-build-action/blob/main/README.md) for a full description of this action.
 
-Generates and submits a dependency graph for a Gradle project. This action is designed to be used in a standalone workflow.
-The intention is to provide a simple, standardised way to enable Dependency Graph support for Gradle repositories,
-with a long-term goal of having this functionality enabled by default for Gradle projects on GitHub.
+## The `dependency-submission` action
 
-### Example usage
+Generates and submits a dependency graph for a Gradle project, allowing GitHub to alert about reported vulnerabilities in your project dependencies.
+
+
+The following workflow will generate a dependency graph for a Gradle project and submit it immediately to the repository via the
+Dependency Submission API. For most projects, this default configuration should be all that you need.
+
+Simply add this as a new workflow file to your repository (eg `.github/workflows/dependency-submission.yml`).
+
 ```yaml
 name: Dependency Submission
 
 on:
-  workflow_dispatch:
   push:
     branches:
     - main
@@ -56,3 +60,5 @@ jobs:
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v0
 ```
+
+See the [full action documentation](dependency-submission/README.md) for more advanced usage scenarios.
