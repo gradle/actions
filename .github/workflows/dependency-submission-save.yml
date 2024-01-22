@@ -25,6 +25,6 @@ jobs:
       uses: ./dependency-submission
       with:
         build-root-directory: gradle-build-action/.github/workflow-samples/groovy-dsl
-        dependency-graph-action: generate-and-upload
+        dependency-graph-action: generate-and-save
       env:
         GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository

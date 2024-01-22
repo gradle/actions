@@ -20,4 +20,4 @@ jobs:
     - name: Download and submit dependency graph
       uses: ./dependency-submission
       with:
-        dependency-graph-action: download-and-submit
+        dependency-graph-action: retrieve-and-submit
