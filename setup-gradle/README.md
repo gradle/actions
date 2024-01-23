@@ -8,9 +8,7 @@ The intention is to eventually deprecate `gradle-build-action` with this being t
 ```yaml
 name: Build
 
-on:
-  workflow_dispatch:
-  push:
+on: [ push ]
 
 jobs:
   build:

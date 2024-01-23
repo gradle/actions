@@ -12,9 +12,7 @@ The intention is to eventually deprecate `gradle-build-action` with this being t
 ```yaml
 name: Build
 
-on:
-  workflow_dispatch:
-  push:
+on: [ push ]
 
 jobs:
   build:
@@ -43,10 +41,7 @@ Simply add this as a new workflow file to your repository (eg `.github/workflows
 ```yaml
 name: Dependency Submission
 
-on:
-  push:
-    branches:
-    - main
+on: [ push ]
 
 permissions:
   contents: write

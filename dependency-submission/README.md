@@ -14,10 +14,7 @@ Simply add this as a new workflow file to your repository (eg `.github/workflows
 ```yaml
 name: Dependency Submission
 
-on:
-  push:
-    branches:
-    - main
+on: [ push ]
 
 permissions:
   contents: write
@@ -41,10 +38,7 @@ See the example below for a summary, and the [Action Metadata file](../dependenc
 ```yaml
 name: Dependency Submission with advanced config
 
-on:
-  push:
-    branches:
-    - main
+on: [ push ]
 
 permissions:
   contents: read
@@ -82,8 +76,7 @@ Example of a pull request workflow that executes a build for a pull request and 
 ```yaml
 name: Dependency review for pull requests
 
-on:
-  pull_request:
+on: [ pull_request ]
 
 permissions:
   contents: write
@@ -121,8 +114,7 @@ Because of this restriction, we require 2 separate workflows in order to generat
 ```yaml
 name: Generate and save dependency graph
 
-on:
-  pull_request:
+on: [ pull_request ]
 
 permissions:
   contents: read # 'write' permission is not available
@@ -171,8 +163,8 @@ Here's an example of a separate "Dependency Review" workflow that will wait for 
 
 ```yaml
 name: dependency-review
-on:
-  pull_request:
+
+on: [ pull_request ]
 
 permissions:
   contents: read
