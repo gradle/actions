@@ -31,7 +31,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
     - name: List detected toolchains
       shell: bash
       working-directory: .github/workflow-samples/groovy-dsl
@@ -70,7 +70,7 @@ jobs:
         distribution: 'temurin'
         java-version: '16'
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
     - name: List detected toolchains
       shell: bash
       working-directory: .github/workflow-samples/groovy-dsl

@@ -30,7 +30,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
     - name: Build using Gradle wrapper
@@ -50,7 +50,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
     - name: Execute Gradle build with --offline
@@ -70,7 +70,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
     - name: Execute Gradle build and verify tasks from cache
@@ -90,7 +90,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle with no extracted cache entries restored
-      uses: ./
+      uses: ./setup-gradle
       env: 
         GRADLE_BUILD_ACTION_SKIP_RESTORE: "generated-gradle-jars|wrapper-zips|java-toolchains|instrumented-jars|dependencies|kotlin-dsl"
       with:
@@ -118,7 +118,7 @@ jobs:
         touch ~/.gradle/gradle.properties
         touch ~/.gradle/caches/dummy.txt
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
         cache-overwrite-existing: true

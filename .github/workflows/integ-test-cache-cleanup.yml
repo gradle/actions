@@ -29,7 +29,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
     - name: Build with 3.1
@@ -49,7 +49,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false
         gradle-home-cache-cleanup: true
@@ -69,7 +69,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
     - name: Report Gradle User Home

@@ -29,7 +29,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         # Add "enterprise" to main cache entry but omit "notifications"
@@ -57,7 +57,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         # Use the same configuration as used in the seed build
         gradle-home-cache-includes: |
@@ -83,7 +83,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-disabled: true
     - name: Run Gradle build
@@ -108,7 +108,7 @@ jobs:
     - name: Create dummy Gradle User Home
       run: mkdir -p ~/.gradle/caches
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
     - name: Run Gradle build
       id: gradle
       working-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
@@ -134,7 +134,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-write-only: true
     - name: Build using Gradle wrapper
@@ -155,7 +155,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
     - name: Execute Gradle build with --offline

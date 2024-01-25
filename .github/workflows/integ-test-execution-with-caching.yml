@@ -29,7 +29,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Execute Gradle build
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         build-root-directory: .github/workflow-samples/groovy-dsl
@@ -48,7 +48,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Execute Gradle build
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
         build-root-directory: .github/workflow-samples/groovy-dsl

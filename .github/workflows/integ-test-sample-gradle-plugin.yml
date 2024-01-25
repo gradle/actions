@@ -29,7 +29,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
     - name: Build gradle-plugin project
@@ -48,7 +48,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
     - name: Build gradle-plugin project

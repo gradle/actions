@@ -29,7 +29,7 @@ jobs:
         java-version: 11
         distribution: temurin
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
     - name: Build using Gradle wrapper
@@ -52,7 +52,7 @@ jobs:
         java-version: 11
         distribution: temurin
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: true
     - name: Execute Gradle build with --offline

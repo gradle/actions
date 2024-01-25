@@ -45,7 +45,7 @@ jobs:
         java-version: 8
     - name: Setup Gradle
       id: setup-gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         gradle-version: ${{ matrix.gradle }}
@@ -77,7 +77,7 @@ jobs:
         java-version: 8
     - name: Setup Gradle
       id: setup-gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         gradle-version: ${{ matrix.gradle }}

@@ -20,7 +20,7 @@ jobs:
         npm run build
       working-directory: sources
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
     - name: Build kotlin-dsl project
       working-directory: .github/workflow-samples/kotlin-dsl
       run: ./gradlew assemble
@@ -55,7 +55,7 @@ jobs:
         npm run build
       working-directory: sources
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         add-job-summary: on-failure
     - name: Build kotlin-dsl project
@@ -83,7 +83,7 @@ jobs:
         mkdir ~/.gradle/caches
         touch ~/.gradle/caches/dummy.txt
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
     - name: Run build
       working-directory: .github/workflow-samples/groovy-dsl
       run: ./gradlew assemble

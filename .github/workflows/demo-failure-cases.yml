@@ -11,7 +11,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Test build failure
-      uses: ./
+      uses: ./setup-gradle
       continue-on-error: true
       with:
         build-root-directory: .github/workflow-samples/kotlin-dsl
@@ -23,7 +23,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Test wrapper missing
-      uses: ./
+      uses: ./setup-gradle
       continue-on-error: true
       with:
         build-root-directory: .github/workflow-samples/no-wrapper
@@ -35,7 +35,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Test bad config value
-      uses: ./
+      uses: ./setup-gradle
       continue-on-error: true
       with:
         build-root-directory: .github/workflow-samples/no-wrapper

@@ -34,7 +34,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Setup Gradle with v6.9
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         gradle-version: 6.9
@@ -42,14 +42,14 @@ jobs:
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=6.9"
     - name: Setup Gradle with v7.1.1
-      uses: ./
+      uses: ./setup-gradle
       with:
         gradle-version: 7.1.1
     - name: Test uses Gradle v7.1.1
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=7.1.1"
     - name: Setup Gradle with release-candidate
-      uses: ./
+      uses: ./setup-gradle
       with:
         gradle-version: release-candidate
     - name: Test use release-candidate
@@ -57,7 +57,7 @@ jobs:
       run: gradle help
     - name: Setup Gradle with current
       id: gradle-current
-      uses: ./
+      uses: ./setup-gradle
       with:
         gradle-version: current
     - name: Check current version output parameter
@@ -92,7 +92,7 @@ jobs:
         java-version: 8
     - name: Setup Gradle
       id: setup-gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         gradle-version: ${{ matrix.gradle }}

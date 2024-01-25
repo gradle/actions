@@ -34,14 +34,14 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Test use defined Gradle version
-      uses: ./
+      uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         gradle-version: 6.9
         build-root-directory: .github/workflow-samples/no-wrapper
         arguments: help -DgradleVersionCheck=6.9
     - name: Test use Gradle version alias
-      uses: ./
+      uses: ./setup-gradle
       with:
         gradle-version: release-candidate
         build-root-directory: .github/workflow-samples/no-wrapper
@@ -71,7 +71,7 @@ jobs:
         distribution: temurin
         java-version: 8
     - name: Run Gradle build
-      uses: ./
+      uses: ./setup-gradle
       id: gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches

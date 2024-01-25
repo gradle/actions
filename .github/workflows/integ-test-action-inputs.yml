@@ -29,7 +29,7 @@ jobs:
     - name: Download distribution if required
       uses: ./.github/actions/download-dist
     - name: Invoke with multi-line arguments
-      uses: ./
+      uses: ./setup-gradle
       with:
         build-root-directory: .github/workflow-samples/groovy-dsl
         arguments: |

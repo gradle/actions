@@ -13,7 +13,7 @@ jobs:
     - name: Checkout project sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         add-job-summary-as-pr-comment: always
     - name: Run build with Gradle wrapper
@@ -27,7 +27,7 @@ jobs:
     - name: Checkout project sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         add-job-summary-as-pr-comment: on-failure
     - name: Run build with Gradle wrapper
@@ -41,7 +41,7 @@ jobs:
     - name: Checkout project sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: ./
+      uses: ./setup-gradle
       with:
         add-job-summary-as-pr-comment: on-failure
     - name: Run build with Gradle wrapper
