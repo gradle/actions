@@ -35,7 +35,7 @@ runs:
   steps:
     - name: Generate and submit dependency graph
       if: ${{ inputs.dependency-graph-action == 'generate-and-submit' }}
-      uses: gradle/gradle-build-action@v3-beta
+      uses: gradle/actions/setup-gradle@v3-beta
       with:
         dependency-graph: 'generate-and-submit'
         dependency-graph-continue-on-failure: false
@@ -49,7 +49,7 @@ runs:
           :ForceDependencyResolutionPlugin_resolveAllDependencies
     - name: Generate and save dependency graph
       if: ${{ inputs.dependency-graph-action == 'generate-and-save' }}
-      uses: gradle/gradle-build-action@v3-beta
+      uses: gradle/actions/setup-gradle@v3-beta
       with:
         dependency-graph: generate-and-upload
         dependency-graph-continue-on-failure: false
@@ -63,7 +63,7 @@ runs:
           :ForceDependencyResolutionPlugin_resolveAllDependencies
     - name: Download and submit dependency graph
       if: ${{ inputs.dependency-graph-action == 'retrieve-and-submit' }}
-      uses: gradle/gradle-build-action@v3-beta
+      uses: gradle/actions/setup-gradle@v3-beta
       with:
         dependency-graph: download-and-submit
         dependency-graph-continue-on-failure: false
