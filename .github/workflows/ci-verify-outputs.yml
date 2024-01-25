@@ -10,6 +10,7 @@ on:
       - main
       - release/**
       - dependabot/**
+      - gradle-build-action
 
 jobs:
   check:
