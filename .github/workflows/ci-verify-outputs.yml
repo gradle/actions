@@ -26,6 +26,7 @@ jobs:
         node -v
         npm install
         npm run build
+      working-directory: sources
 
     - name: Compare the expected and actual dist/ directories
       run: |

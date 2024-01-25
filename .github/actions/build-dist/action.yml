@@ -13,6 +13,7 @@ runs:
         node -v
         npm install
         npm run build
+      working-directory: sources
     - name: Upload distribution
       uses: actions/upload-artifact@v4
       with:

@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/ci-init-script-check.yml'
-      - 'src/resources/init-scripts/**'
-      - 'test/init-scripts/**'
+      - 'sources/src/resources/init-scripts/**'
+      - 'sources/test/init-scripts/**'
   workflow_dispatch:
 
 jobs:
@@ -22,5 +22,5 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2.12.0 # Use a released version to avoid breakages
     - name: Run integration tests
-      working-directory: test/init-scripts
+      working-directory: sources/test/init-scripts
       run: ./gradlew check

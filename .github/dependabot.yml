@@ -64,7 +64,7 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "gradle"
-    directory: "test/init-scripts"
+    directory: "sources/test/init-scripts"
     registries:
       - gradle-plugin-portal
     schedule:

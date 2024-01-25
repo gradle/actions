@@ -18,6 +18,7 @@ jobs:
       run: |
         npm install
         npm run build
+      working-directory: sources
     - name: Setup Gradle
       uses: ./
     - name: Build kotlin-dsl project
@@ -52,6 +53,7 @@ jobs:
       run: |
         npm install
         npm run build
+      working-directory: sources
     - name: Setup Gradle
       uses: ./
       with:
@@ -73,6 +75,7 @@ jobs:
       run: |
         npm install
         npm run build
+      working-directory: sources
     - name: Pre-create Gradle User Home
       shell: bash
       run: |
