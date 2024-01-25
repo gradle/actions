@@ -16,14 +16,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Checkout gradle-build-action for samples
-      uses: actions/checkout@v4
-      with:
-        repository: gradle/gradle-build-action
-        path: gradle-build-action
     - name: Generate and submit dependencies
       uses: ./dependency-submission
       with:
-        build-root-directory: gradle-build-action/.github/workflow-samples/groovy-dsl
+        build-root-directory: .github/workflow-samples/groovy-dsl
       env:
         GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository

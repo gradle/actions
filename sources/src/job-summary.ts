@@ -40,7 +40,7 @@ async function addPRComment(jobSummary: string): Promise<void> {
     const pull_request_number = context.payload.pull_request.number
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
-    const prComment = `<h3>Job Summary for gradle-build-action</h3>
+    const prComment = `<h3>Job Summary for Gradle</h3>
 <h5>${github.context.workflow} :: <em>${github.context.job}</em></h5>
 
 ${jobSummary}`

@@ -11,7 +11,7 @@ import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './cach
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 
-export const META_FILE_DIR = '.gradle-build-action'
+export const META_FILE_DIR = '.setup-gradle'
 
 export class GradleStateCache {
     private cacheName: string
@@ -185,7 +185,7 @@ export class GradleStateCache {
 
     private initializeGradleUserHome(): void {
         // Create a directory for storing action metadata
-        const actionCacheDir = path.resolve(this.gradleUserHome, '.gradle-build-action')
+        const actionCacheDir = path.resolve(this.gradleUserHome, META_FILE_DIR)
         fs.mkdirSync(actionCacheDir, {recursive: true})
 
         this.copyInitScripts()
@@ -199,11 +199,11 @@ export class GradleStateCache {
         const initScriptsDir = path.resolve(this.gradleUserHome, 'init.d')
         fs.mkdirSync(initScriptsDir, {recursive: true})
         const initScriptFilenames = [
-            'gradle-build-action.build-result-capture.init.gradle',
-            'gradle-build-action.build-result-capture-service.plugin.groovy',
-            'gradle-build-action.github-dependency-graph.init.gradle',
-            'gradle-build-action.github-dependency-graph-gradle-plugin-apply.groovy',
-            'gradle-build-action.inject-develocity.init.gradle'
+            'gradle-actions.build-result-capture.init.gradle',
+            'gradle-actions.build-result-capture-service.plugin.groovy',
+            'gradle-actions.github-dependency-graph.init.gradle',
+            'gradle-actions.github-dependency-graph-gradle-plugin-apply.groovy',
+            'gradle-actions.inject-develocity.init.gradle'
         ]
         for (const initScriptFilename of initScriptFilenames) {
             const initScriptContent = this.readResourceFileAsString('init-scripts', initScriptFilename)

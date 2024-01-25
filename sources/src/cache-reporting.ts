@@ -116,7 +116,7 @@ export function generateCachingReport(listener: CacheListener): string {
 
     return `
 <details>
-<summary><h4>Caching for gradle-build-action was ${listener.cacheStatus} - expand for details</h4></summary>
+<summary><h4>Caching for Gradle actions was ${listener.cacheStatus} - expand for details</h4></summary>
 ${renderEntryTable(entries)}
 
 <h5>Cache Entry Details</h5>

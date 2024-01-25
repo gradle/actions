@@ -5,7 +5,7 @@ import org.gradle.util.GradleVersion
 import static org.junit.Assume.assumeTrue
 
 class TestDependencyGraph extends BaseInitScriptTest {
-    def initScript = 'gradle-build-action.github-dependency-graph.init.gradle'
+    def initScript = 'gradle-actions.github-dependency-graph.init.gradle'
 
     static final TestGradleVersion GRADLE_5_1 = new TestGradleVersion(GradleVersion.version('5.1.1'), 8, 12)
     static final TestGradleVersion GRADLE_7_0 = new TestGradleVersion(GradleVersion.version('7.0.1'), 8, 12)

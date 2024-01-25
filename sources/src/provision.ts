@@ -169,7 +169,7 @@ async function httpGetGradleVersions(url: string): Promise<GradleVersionInfo[]> 
 }
 
 async function httpGetString(url: string): Promise<string> {
-    const httpClient = new httpm.HttpClient('gradle/gradle-build-action')
+    const httpClient = new httpm.HttpClient('gradle/actions')
     const response = await httpClient.get(url)
     return response.readBody()
 }

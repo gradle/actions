@@ -1,5 +1,5 @@
 {
-  "name": "gradle-build-action",
+  "name": "gradle-actions",
   "version": "1.0.0",
   "private": true,
   "description": "Execute Gradle Build",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gradle/gradle-build-action.git"
+    "url": "git+https://github.com/gradle/actions.git"
   },
   "keywords": [
     "github",

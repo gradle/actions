@@ -82,7 +82,7 @@ def captureUsingBuildFinished(gradle, invocationId) {
 
 def captureUsingBuildService(settings, invocationId) {
     gradle.ext.invocationId = invocationId
-    apply from: 'gradle-build-action.build-result-capture-service.plugin.groovy'
+    apply from: 'gradle-actions.build-result-capture-service.plugin.groovy'
 }
 
 class BuildResults {
@@ -137,7 +137,7 @@ class BuildResults {
             }
 
         } catch (Exception e) {
-            println "\ngradle-build-action failed to write build-results file. Will continue.\n> ${e.getLocalizedMessage()}"
+            println "\ngradle action failed to write build-results file. Will continue.\n> ${e.getLocalizedMessage()}"
         }
     }
 }

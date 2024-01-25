@@ -5,7 +5,7 @@ import org.gradle.util.GradleVersion
 // Can't use settingsEvaluated since this script is applied inside a settingsEvaluated handler
 // But projectsEvaluated is good enough, since the build service won't catch configuration failures anyway
 projectsEvaluated {
-    def projectTracker = gradle.sharedServices.registerIfAbsent("gradle-build-action-buildResultsRecorder", BuildResultsRecorder, { spec ->
+    def projectTracker = gradle.sharedServices.registerIfAbsent("gradle-action-buildResultsRecorder", BuildResultsRecorder, { spec ->
         spec.getParameters().getRootProjectName().set(gradle.rootProject.name)
         spec.getParameters().getRootProjectDir().set(gradle.rootProject.rootDir.absolutePath)
         spec.getParameters().getRequestedTasks().set(gradle.startParameter.taskNames.join(" "))
@@ -59,7 +59,7 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
                 buildResultsFile << groovy.json.JsonOutput.toJson(buildResults)
             }
         } catch (Exception e) {
-            println "\ngradle-build-action failed to write build-results file. Will continue.\n> ${e.getLocalizedMessage()}"
+            println "\ngradle action failed to write build-results file. Will continue.\n> ${e.getLocalizedMessage()}"
         }
     }
 }

@@ -56,7 +56,7 @@ def DEVELOCITY_PLUGIN_ID = 'com.gradle.enterprise'
 def DEVELOCITY_PLUGIN_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin'
 def DEVELOCITY_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
 def CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = 'CI auto injection'
-def CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE = 'gradle-build-action'
+def CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE = 'gradle-actions'
 def CCUD_PLUGIN_ID = 'com.gradle.common-custom-user-data-gradle-plugin'
 def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
