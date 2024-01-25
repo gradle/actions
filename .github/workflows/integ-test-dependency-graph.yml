@@ -1,0 +1,148 @@
+name: Test dependency graph
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      download-dist:
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  DOWNLOAD_DIST: ${{ inputs.download-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-graph-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  groovy-generate:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle for dependency-graph generate
+      uses: ./setup-gradle
+      with:
+        dependency-graph: generate-and-upload
+    - name: Run gradle build
+      run: ./gradlew build
+      working-directory: .github/workflow-samples/groovy-dsl
+
+  kotlin-generate:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle for dependency-graph generate
+      uses: ./setup-gradle
+      with:
+        dependency-graph: generate-and-submit
+    - name: Run gradle build
+      run: ./gradlew build
+      working-directory: .github/workflow-samples/kotlin-dsl
+  
+  submit:
+    needs: [groovy-generate]
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Submit dependency graphs
+      uses: ./setup-gradle
+      with:
+        dependency-graph: download-and-submit
+
+  multiple-builds:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle for dependency-graph generate
+      uses: ./setup-gradle
+      with:
+        dependency-graph: generate-and-submit
+    - id: gradle-assemble
+      run: ./gradlew assemble
+      working-directory: .github/workflow-samples/groovy-dsl
+    - id: gradle-build
+      run: ./gradlew build
+      working-directory: .github/workflow-samples/groovy-dsl
+    - id: gradle-build-again
+      run: ./gradlew build
+      working-directory: .github/workflow-samples/groovy-dsl
+    - name: Check generated dependency graphs
+      shell: bash
+      run: |
+        echo "gradle-assemble report file: ${{ steps.gradle-assemble.outputs.dependency-graph-file }}"
+        echo "gradle-build report file: ${{ steps.gradle-build.outputs.dependency-graph-file }}"
+        echo "gradle-build-again report file: ${{ steps.gradle-build-again.outputs.dependency-graph-file }}"
+        ls -l dependency-graph-reports
+        if [ ! -e "${{ steps.gradle-assemble.outputs.dependency-graph-file }}" ]; then
+            echo "Did not find gradle-assemble dependency graph file"
+            exit 1
+        fi
+        if [ ! -e "${{ steps.gradle-build.outputs.dependency-graph-file }}" ]; then
+            echo "Did not find gradle-build dependency graph files"
+            exit 1
+        fi
+        if [ ! -e "${{ steps.gradle-build-again.outputs.dependency-graph-file }}" ]; then
+            echo "Did not find gradle-build-again dependency graph files"
+            exit 1
+        fi
+        
+  config-cache:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle for dependency-graph generate
+      uses: ./setup-gradle
+      with:
+        dependency-graph: generate-and-submit
+    - id: config-cache-store
+      run: ./gradlew assemble --configuration-cache
+      working-directory: .github/workflow-samples/groovy-dsl
+    - name: Check and delete generated dependency graph
+      shell: bash
+      run: |
+        if [ ! -e "${{ steps.config-cache-store.outputs.dependency-graph-file }}" ]; then
+            echo "Did not find config-cache-store dependency graph files"
+            exit 1
+        fi
+        rm ${{ steps.config-cache-store.outputs.dependency-graph-file }}
+    - id: config-cache-reuse
+      run: ./gradlew assemble --configuration-cache
+      working-directory: .github/workflow-samples/groovy-dsl
+    - name: Check no dependency graph is generated
+      shell: bash
+      run: |
+        if [ ! -z "$(ls -A dependency-graph-reports)" ]; then
+            echo "Expected no dependency graph files to be generated"
+            ls -l dependency-graph-reports
+            exit 1
+        fi        

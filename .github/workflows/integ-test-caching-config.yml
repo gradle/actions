@@ -1,0 +1,164 @@
+name: Test caching configuration
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      download-dist:
+        type: boolean
+        default: false
+
+env:
+  DOWNLOAD_DIST: ${{ inputs.download-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: action-inputs-caching-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  seed-build:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: false # For testing, allow writing cache entries on non-default branches
+        # Add "enterprise" to main cache entry but omit "notifications"
+        gradle-home-cache-includes: |
+            caches
+            enterprise
+        # Exclude build-cache from main cache entry
+        gradle-home-cache-excludes: |
+            caches/build-cache-*
+            caches/*/executionHistory
+    - name: Build using Gradle wrapper
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test
+
+  # Test that the gradle-user-home cache will cache dependencies, by running build with --offline
+  verify-build:
+    needs: seed-build
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        # Use the same configuration as used in the seed build
+        gradle-home-cache-includes: |
+            caches
+            enterprise
+        gradle-home-cache-excludes: |
+            caches/build-cache-*
+            caches/*/executionHistory
+        cache-read-only: true
+    - name: Execute Gradle build with --offline
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test --offline
+
+  # Test that build scans are captured when caching is explicitly disabled
+  cache-disabled:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-disabled: true
+    - name: Run Gradle build
+      id: gradle
+      working-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
+      run: gradle help "-DgradleVersionCheck=${{matrix.gradle}}"
+    - name: Check Build Scan url is captured
+      if: ${{ !steps.gradle.outputs.build-scan-url }}
+      uses: actions/github-script@v7
+      with:
+        script: |
+          core.setFailed('No Build Scan detected')
+
+  # Test that build scans are captured when caching is disabled because Gradle User Home already exists
+  cache-disabled-pre-existing-gradle-home:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Create dummy Gradle User Home
+      run: mkdir -p ~/.gradle/caches
+    - name: Setup Gradle
+      uses: ./setup-gradle
+    - name: Run Gradle build
+      id: gradle
+      working-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
+      run: gradle help "-DgradleVersionCheck=${{matrix.gradle}}"
+    - name: Check Build Scan url is captured
+      if: ${{ !steps.gradle.outputs.build-scan-url }}
+      uses: actions/github-script@v7
+      with:
+        script: |
+          core.setFailed('No Build Scan detected')
+
+  # Test seed the cache with cache-write-only and verify with cache-read-only
+  seed-build-write-only:
+    env:
+      GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}-write-only-
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-write-only: true
+    - name: Build using Gradle wrapper
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test
+
+  verify-write-only-build:
+    env:
+      GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}-write-only-
+    needs: seed-build-write-only
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: true
+    - name: Execute Gradle build with --offline
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test --offline
+

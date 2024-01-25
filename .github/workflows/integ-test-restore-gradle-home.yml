@@ -1,0 +1,138 @@
+name: Test restore Gradle Home
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      download-dist:
+        type: boolean
+        default: false
+
+env:
+  DOWNLOAD_DIST: ${{ inputs.download-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-gradle-home-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-gradle-home
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  seed-build:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: false # For testing, allow writing cache entries on non-default branches
+    - name: Build using Gradle wrapper
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test
+
+  # Test that the gradle-user-home cache will cache dependencies, by running build with --offline
+  dependencies-cache:
+    needs: seed-build
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: true
+    - name: Execute Gradle build with --offline
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test --offline
+
+  # Test that the gradle-user-home cache will cache and restore local build-cache
+  build-cache:
+    needs: seed-build
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: true
+    - name: Execute Gradle build and verify tasks from cache
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test -DverifyCachedBuild=true
+
+  # Check that the build can run when Gradle User Home is not fully restored
+  no-extracted-cache-entries-restored:
+    needs: seed-build
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle with no extracted cache entries restored
+      uses: ./setup-gradle
+      env: 
+        GRADLE_BUILD_ACTION_SKIP_RESTORE: "generated-gradle-jars|wrapper-zips|java-toolchains|instrumented-jars|dependencies|kotlin-dsl"
+      with:
+        cache-read-only: true
+    - name: Check executee Gradle build
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test
+
+  # Test that a pre-existing gradle-user-home can be overwritten by the restored cache
+  pre-existing-gradle-home:
+    needs: seed-build
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Pre-create Gradle User Home
+      shell: bash
+      run: |
+        mkdir -p ~/.gradle/caches
+        touch ~/.gradle/gradle.properties
+        touch ~/.gradle/caches/dummy.txt
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: true
+        cache-overwrite-existing: true
+    - name: Check that pre-existing content still exists
+      shell: bash
+      run: |
+        if [ ! -e ~/.gradle/caches/dummy.txt ]; then
+          echo "::error ::Should find dummy.txt after cache restore"
+          exit 1
+        fi
+        if [ ! -e ~/.gradle/gradle.properties ]; then
+          echo "::error ::Should find gradle.properties after cache restore"
+          exit 1
+        fi
+    - name: Execute Gradle build with --offline
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew test --offline

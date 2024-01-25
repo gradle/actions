@@ -1,0 +1,51 @@
+name: Demo adding Build Scan® comment to PR
+on:
+  pull_request:
+    types: [assigned, review_requested]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  successful-build-with-always-comment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout project sources
+      uses: actions/checkout@v4
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        add-job-summary-as-pr-comment: always
+    - name: Run build with Gradle wrapper
+      id: gradle
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew build --scan
+
+  successful-build-with-comment-on-failure:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout project sources
+      uses: actions/checkout@v4
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        add-job-summary-as-pr-comment: on-failure
+    - name: Run build with Gradle wrapper
+      id: gradle
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew build --scan
+
+  failing-build-with-comment-on-failure:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout project sources
+      uses: actions/checkout@v4
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        add-job-summary-as-pr-comment: on-failure
+    - name: Run build with Gradle wrapper
+      id: gradle
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew no-a-real-task --scan
+      continue-on-error: true

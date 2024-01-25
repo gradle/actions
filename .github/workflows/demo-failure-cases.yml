@@ -1,0 +1,43 @@
+name: demo-failure-cases
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  failing-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Test build failure
+      uses: ./setup-gradle
+      continue-on-error: true
+      with:
+        build-root-directory: .github/workflow-samples/kotlin-dsl
+        arguments: not-a-valid-task
+
+  wrapper-missing:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Test wrapper missing
+      uses: ./setup-gradle
+      continue-on-error: true
+      with:
+        build-root-directory: .github/workflow-samples/no-wrapper
+        arguments: help
+
+  bad-configuration:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Test bad config value
+      uses: ./setup-gradle
+      continue-on-error: true
+      with:
+        build-root-directory: .github/workflow-samples/no-wrapper
+        arguments: help
+        cache-disabled: yes

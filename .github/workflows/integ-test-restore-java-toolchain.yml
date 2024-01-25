@@ -1,0 +1,57 @@
+name: Test restore java toolchains
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      download-dist:
+        type: boolean
+        default: false
+
+env:
+  DOWNLOAD_DIST: ${{ inputs.download-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-java-toolchain-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  seed-build:
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: false # For testing, allow writing cache entries on non-default branches
+    - name: Build using Gradle wrapper
+      working-directory: .github/workflow-samples/java-toolchain
+      run: ./gradlew test --info
+
+  # Test that the gradle-user-home cache will cache the toolchain, by running build with --offline
+  toolchain-cache:
+    needs: seed-build
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: true
+    - name: Execute Gradle build with --offline
+      working-directory: .github/workflow-samples/java-toolchain
+      run: ./gradlew test --info --offline
