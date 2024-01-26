@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd sources
+npm run all
