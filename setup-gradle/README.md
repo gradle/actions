@@ -17,9 +17,7 @@ However, the `setup-gradle` action offers a number of advantages over this appro
 The `setup-gradle` action is designed to provide these benefits with minimal configuration. 
 These features work both when Gradle is executed via `setup-gradle` and for any Gradle execution in subsequent steps.
 
-## Use the action to setup Gradle
-
-The recommended way to use `setup-gradle` is in an initial "Setup Gradle" step, with subsequent steps invoking Gradle directly with a `run` step. This makes the action minimally invasive, and allows a workflow to configure and execute a Gradle execution in any way.
+## General usage
 
 The `setup-gradle` action works by configuring environment variables and by adding a set of Gradle init-scripts to the Gradle User Home. These will apply to all Gradle executions on the runner, no matter how Gradle is invoked. 
 This means that if you have an existing workflow that executes Gradle with a `run` step, you can add an initial "Setup Gradle" Step to benefit from caching, build-scan capture and other features of this action.
