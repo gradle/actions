@@ -29,6 +29,10 @@ inputs:
       required to submit via the Dependency Submission API.
     required: false
     default: 'generate-and-submit'
+  additional-arguments:
+    description: |
+      Additional arguments to pass to Gradle. For example, `--no-configuration-cache --stacktrace`.
+    required: false
 
   build-scan-publish:
     description: |
@@ -61,8 +65,8 @@ runs:
         arguments: |
           --no-configure-on-demand
           --dependency-verification=off
-          --stacktrace
           :ForceDependencyResolutionPlugin_resolveAllDependencies
+          ${{ inputs.additional-arguments }}
     - name: Generate and save dependency graph
       if: ${{ inputs.dependency-graph-action == 'generate-and-save' }}
       uses: gradle/actions/setup-gradle@v3-beta
@@ -78,8 +82,8 @@ runs:
         arguments: |
           --no-configure-on-demand
           --dependency-verification=off
-          --stacktrace
           :ForceDependencyResolutionPlugin_resolveAllDependencies
+          ${{ inputs.additional-arguments }}
     - name: Download and submit dependency graph
       if: ${{ inputs.dependency-graph-action == 'retrieve-and-submit' }}
       uses: gradle/actions/setup-gradle@v3-beta
