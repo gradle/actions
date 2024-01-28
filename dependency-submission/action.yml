@@ -30,6 +30,19 @@ inputs:
     required: false
     default: 'generate-and-submit'
 
+  build-scan-publish:
+    description: |
+      Set to 'true' to automatically publish build results as a Build Scan on scans.gradle.com.
+      For publication to succeed without user input, you must also provide values for `build-scan-terms-of-service-url` and 'build-scan-terms-of-service-agree'.
+    required: false
+    default: false
+  build-scan-terms-of-service-url:
+    description: The URL to the Build Scan® terms of service. This input must be set to 'https://gradle.com/terms-of-service'.
+    required: false
+  build-scan-terms-of-service-agree:
+    description: Indicate that you agree to the Build Scan® terms of service. This input value must be "yes".
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -42,6 +55,9 @@ runs:
         gradle-version: ${{ inputs.gradle-version }}
         build-root-directory: ${{ inputs.build-root-directory }}
         cache-encryption-key: ${{ inputs.cache-encryption-key }}
+        build-scan-publish: ${{ inputs.build-scan-publish }}
+        build-scan-terms-of-service-url: ${{ inputs.build-scan-terms-of-service-url }}
+        build-scan-terms-of-service-agree: ${{ inputs.build-scan-terms-of-service-agree }}
         arguments: |
           --no-configure-on-demand
           --dependency-verification=off
@@ -56,6 +72,9 @@ runs:
         gradle-version: ${{ inputs.gradle-version }}
         build-root-directory: ${{ inputs.build-root-directory }}
         cache-encryption-key: ${{ inputs.cache-encryption-key }}
+        build-scan-publish: ${{ inputs.build-scan-publish }}
+        build-scan-terms-of-service-url: ${{ inputs.build-scan-terms-of-service-url }}
+        build-scan-terms-of-service-agree: ${{ inputs.build-scan-terms-of-service-agree }}
         arguments: |
           --no-configure-on-demand
           --dependency-verification=off
