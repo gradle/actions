@@ -461,6 +461,14 @@ You can use The `setup-gradle` action on GitHub Enterprise Server, and benefit f
 
 # GitHub Dependency Graph support
 
+> [!IMPORTANT]
+> The simplest (and recommended) way to generate a dependency graph is via a separate workflow 
+> using `gradle/actions/dependency-submission`. This action will attempt to detect all dependencies used by your build
+> without building and testing the project itself.
+>
+> See the [dependency-submission documentation](../dependency-submission/README.md) for up-to-date documentation.
+
+
 The `setup-gradle` action has support for submitting a [GitHub Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) snapshot via the [GitHub Dependency Submission API](https://docs.github.com/en/rest/dependency-graph/dependency-submission?apiVersion=2022-11-28).
 
 The dependency graph snapshot is generated via integration with the [GitHub Dependency Graph Gradle Plugin](https://plugins.gradle.org/plugin/org.gradle.github-dependency-graph-gradle-plugin), and saved as a workflow artifact. The generated snapshot files can be submitted either in the same job, or in a subsequent job (in the same or a dependent workflow).
@@ -548,65 +556,6 @@ jobs:
         GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
 ```
 
-### Integrating the `dependency-review-action`
-
-The GitHub [dependency-review-action](https://github.com/actions/dependency-review-action) helps you 
-understand dependency changes (and the security impact of these changes) for a pull request.
-For the `dependency-review-action` to succeed, it must run _after_ the dependency graph has been submitted for a PR.
-
-When using `generate-and-submit`, dependency graph files are submitted at the end of the job, after all steps have been
-executed. For this reason, the `dependency-review-action` must be executed in a dependent job,
-and not as a subsequent step in the job that generates the dependency graph.
-
-Example of a pull request workflow that executes a build for a pull request and runs the `dependency-review-action`:
-
-```yaml
-name: PR check
-
-on:
-  pull_request:
-  
-permissions:
-  contents: write
-  # Note that this permission will not be available if the PR is from a forked repository
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        dependency-graph: generate-and-submit
-    - name: Run a build and generate the dependency graph which will be submitted post-job
-      run: ./gradlew build
-
-  dependency-review:
-    needs: build
-    runs-on: ubuntu-latest
-    - name: Perform dependency review
-      uses: actions/dependency-review-action@v4
-```
-
-See [Dependency Graphs for pull request workflows](#dependency-graphs-for-pull-request-workflows) for a more complex
-(and less functional) example that will work for pull requests submitted from forked repositories.
-
-## Limiting the scope of the dependency graph
-
-At times it is helpful to limit the dependencies reported to GitHub, in order to security alerts for dependencies that don't form a critical part of your product.
-For example, a vulnerability in the tool you use to generate documentation is unlikely to be as important as a vulnerability in one of your runtime dependencies.
-
-There are a number of techniques you can employ to limit the scope of the generated dependency graph:
-- [Don't generate a dependency graph for all Gradle executions](#choosing-which-gradle-invocations-will-generate-a-dependency-graph)
-- [For a Gradle execution, filter which Gradle projects and configurations will contribute dependencies](#filtering-which-gradle-configurations-contribute-to-the-dependency-graph)
-- [Use a separate workflow that only resolves the required dependencies](#use-a-dedicated-workflow-for-dependency-graph-generation)
-
-> [!NOTE]
-> Ideally, all dependencies involved in building and testing a project will be extracted and reported in a dependency graph. 
-> These dependencies would be assigned to different scopes (eg development, runtime, testing) and the GitHub UI would make it easy to opt-in to security alerts for different dependency scopes.
-> However, this functionality does not yet exist.
-
 ### Choosing which Gradle invocations will generate a dependency graph
 
 Once you enable the dependency graph support for a workflow job (via the `dependency-graph` parameter), dependencies will be collected and reported for all subsequent Gradle invocations.
@@ -632,147 +581,11 @@ jobs:
 
 ### Filtering which Gradle Configurations contribute to the dependency graph
 
-If you do not want the dependency graph to include every dependency configuration in every project in your build, you can limit the
-dependency extraction to a subset of these.
+If you do not want the dependency graph to include every dependency configuration in every project in your build, 
+you can limit the dependency extraction to a subset of these.
 
-To restrict which Gradle subprojects contribute to the report, specify which projects to include via a regular expression.
-You can provide this value via the `DEPENDENCY_GRAPH_INCLUDE_PROJECTS` environment variable or system property.
-
-To restrict which Gradle configurations contribute to the report, you can filter configurations by name using a regular expression.
-You can provide this value via the `DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS` environment variable or system property.
-
-For example, if you want to exclude dependencies in the `buildSrc` project, and only report on dependencies from the `runtimeClasspath` configuration,
-you would use the following configuration:
-
-```yaml
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        dependency-graph: generate-and-submit
-    - name: Run a build, generating the dependency graph from any resolved 'runtimeClasspath' configurations
-      run: ./gradlew build
-      env:
-        DEPENDENCY_GRAPH_INCLUDE_PROJECTS: "^:(?!buildSrc).*"
-        DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: runtimeClasspath
-```
-
-### Use a dedicated workflow for dependency graph generation
-
-Instead of generating a dependency graph from your existing CI workflow, it's possible to create a separate dedicated workflow (or Job) that is intended for generating a dependency graph.
-Such a workflow will still need to execute Gradle, but can do so in a way that is targeted at resolving the specific dependencies required.
-
-For example, the following workflow will report those dependencies that are resolved in order to build the `distributionZip` for the `my-app` project. Test dependencies and other dependencies not required by the `distributionZip` will not be included.
-
-```yaml
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        dependency-graph: generate-and-submit
-    - name: Build the distribution Zip for `my-app`
-      run: ./gradlew :my-app:distributionZip
-```
-
-Note that the above example will also include any `buildSrc` dependencies, dependencies resolved when configuring your Gradle build or dependencies resolved while applying plugin. All of these dependencies are resolved in the process of running the `distributionZip` task, and thus will form part of the generated dependency graph.
-
-If this isn't desirable, you will still need to use the filtering mechanism described above.
-
-## Dependency Graphs for pull request workflows
-
-This `contents: write` permission is not available for any workflow that is triggered by a pull request submitted from a forked repository, since it would permit a malicious pull request to make repository changes. 
-
-Because of this restriction, it is not possible to `generate-and-submit` a dependency graph generated for a pull-request that comes from a repository fork. In order to do so, 2 workflows will be required:
-1. The first workflow runs directly against the pull request sources and will generate the dependency graph snapshot.
-2. The second workflow is triggered on `workflow_run` of the first workflow, and will submit the previously saved dependency snapshots.
-
-Note: when `download-and-submit` is used in a workflow triggered via [workflow_run](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run), the action will download snapshots saved in the triggering workflow.
-
-***Main workflow file***
-```yaml
-name: run-build-and-generate-dependency-snapshot
-
-on:
-  pull_request:
-
-permissions:
-  contents: read
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        dependency-graph: generate-and-upload # Generate graphs and save as workflow artifacts
-    - name: Run a build, generating the dependency graph snapshot which will be submitted
-      run: ./gradlew build
-```
-
-***Dependent workflow file***
-```yaml
-name: submit-dependency-snapshot
-
-on:
-  workflow_run:
-    workflows: ['run-build-and-generate-dependency-snapshot']
-    types: [completed]
-
-permissions:
-  contents: write
-
-jobs:
-  submit-dependency-graph:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Retrieve dependency graph artifact and submit
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        dependency-graph: download-and-submit # Download saved workflow artifacts and submit
-```
-
-### Integrating `dependency-review-action` for pull request workflows
-
-The GitHub [dependency-review-action](https://github.com/actions/dependency-review-action) helps you 
-understand dependency changes (and the security impact of these changes) for a pull request.
-
-To integrate the `dependency-review-action` into the pull request workflows above, a separate workflow should be added.
-This workflow will be triggered directly on `pull_request`, but will need to wait until the dependency graph results are
-submitted before the dependency review can complete. How long to wait is controlled by the `retry-on-snapshot-warnings` input parameters.
-
-Here's an example of a separate "Dependency Review" workflow that will wait for 10 minutes for the PR check workflow to complete.
-
-```yaml
-name: dependency-review
-on:
-  pull_request:
-
-permissions:
-  contents: read
-  pull-requests: write
-
-jobs:
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-    - name: 'Dependency Review'
-      uses: actions/dependency-review-action@v4
-      with:
-        retry-on-snapshot-warnings: true
-        retry-on-snapshot-warnings-timeout: 600
-```
-
-The `retry-on-snapshot-warnings-timeout` (in seconds) needs to be long enough to allow the entire `run-build-and-generate-dependency-snapshot` and `submit-dependency-snapshot` workflows (above) to complete.
+See the documentation for [dependency-submission](../dependency-submission/README.md) and the
+[GitHub Dependency Graph Gradle Plugin](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#filtering-which-gradle-configurations-contribute-to-the-dependency-graph) for details.
 
 ## Gradle version compatibility
 
@@ -801,8 +614,6 @@ To reduce storage costs for these artifacts, you can set the `artifact-retention
         dependency-graph: generate
         artifact-retention-days: 1
 ```
-
-
 
 # Develocity plugin injection
 

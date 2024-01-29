@@ -1,8 +1,17 @@
 # The `dependency-submission` action
 
-Generates and submits a dependency graph for a Gradle project. This action is designed to be used in a standalone workflow.
-The intention is to provide a simple, standardised way to enable Dependency Graph support for Gradle repositories,
-with a long-term goal of having this functionality enabled by default for Gradle projects on GitHub.
+The `gradle/actions/dependency-submission` action provides the simplest (and recommended) way to generate a 
+dependency graph for your project. This action will attempt to detect all dependencies used by your build
+without building and testing the project itself.
+
+The dependency graph snapshot is generated via integration with the [GitHub Dependency Graph Gradle Plugin](https://plugins.gradle.org/plugin/org.gradle.github-dependency-graph-gradle-plugin), and submitted to your repository via the 
+[GitHub Dependency Submission API](https://docs.github.com/en/rest/dependency-graph/dependency-submission).
+The generated snapshot files can be submitted in the same job, or saved for submission in a subsequent job.
+
+The generated dependency graph includes all of the dependencies in your build, and is used by GitHub to generate 
+[Dependabot Alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts) 
+for vulnerable dependencies, as well as to populate the 
+[Dependency Graph insights view](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exploring-the-dependencies-of-a-repository#viewing-the-dependency-graph).
 
 ## General usage
 
@@ -33,7 +42,7 @@ jobs:
 
 In some cases, the default action configuration will not be sufficient, and additional action parameters will need to be specified.
 
-See the example below for a summary, and the [Action Metadata file](../dependency-submission/action.yml) for a more detailed description of each input parameter.
+See the example below for a summary, and the [Action Metadata file](action.yml) for a more detailed description of each input parameter.
 
 ```yaml
 name: Dependency Submission with advanced config
@@ -65,7 +74,91 @@ jobs:
         dependency-graph: generate-and-upload
 ```
 
-## Integrating the `dependency-review-action`
+## Limiting the scope of the dependency graph
+
+By default, the `dependency-submission` action attempts to detect all dependencies declared and used by your Gradle build.
+At times it may helpful to limit the dependencies reported to GitHub, to avoid security alerts for dependencies that 
+don't form a critical part of your product. For example, a vulnerability in the tool you use to generate documentation 
+may not be as important as a vulnerability in one of your runtime dependencies.
+
+The `dependency-submission` action provides a convenient mechanism to filter the projects and configurations that
+contribute to the dependency graph.
+
+> [!NOTE]
+> Ideally, all dependencies involved in building and testing a project will be extracted and reported in a dependency graph. 
+> These dependencies would be assigned to different scopes (eg development, runtime, testing) and the GitHub UI would make it easy to opt-in to security alerts for different dependency scopes.
+> However, this functionality does not yet exist.
+
+### Excluding certain Gradle projects from to the dependency graph
+
+If you do not want the dependency graph to include dependencies from every project in your build, 
+you can easily exclude certain projects from the dependency extraction process.
+
+To restrict which Gradle subprojects contribute to the report, specify which projects to exclude via a regular expression.
+You can provide this value via the `DEPENDENCY_GRAPH_EXCLUDE_PROJECTS` environment variable or system property.
+
+Note that excluding a project in this way only removes dependencies that are _resolved_ as part of that project, and may
+not necessarily remove all dependencies _declared_ in that project. If another project depends on the excluded project
+then it may transitively resolve dependencies declared in the excluded project: these dependencies will still be included
+in the generated dependency graph.
+
+### Excluding certain Gradle configurations from to the dependency graph
+
+Similarly to Gradle projects, it is possible to exclude a set of configuration instances from dependency graph generation,
+so that dependencies resolved by those configurations are not included.
+
+To restrict which Gradle configurations contribute to the report, specify which configurations to exclude via a regular expression.
+You can provide this value via the `DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS` environment variable or system property.
+
+Note that configuration exclusion applies to the configuration in which the dependency is _resolved_ which is not necessarily
+the configuration where the dependency is _declared_. For example if you decare a dependency as `implementation` in
+a Java project, that dependency will be resolved in `compileClasspath`, `runtimeClasspath` and possibly other configurations.
+
+### Example of project and configuration filtering
+
+For example, if you want to exclude dependencies in the `buildSrc` project, and exclude dependencies from the `testCompileClasspath` and `testRuntimeClasspath` configurations, you would use the following configuration:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@v3
+      env:
+        DEPENDENCY_GRAPH_EXCLUDE_PROJECTS: ':buildSrc'
+        DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: 'test(Compile|Runtime)Classpath'
+```
+
+### Other configuration options
+
+The [GitHub Dependency Graph Gradle Plugin](https://plugins.gradle.org/plugin/org.gradle.github-dependency-graph-gradle-plugin)
+has other filtering options that may be useful.
+ See [the docs](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#filtering-which-gradle-configurations-contribute-to-the-dependency-graph) for details.
+
+## Advance usage scenarios
+
+### Using a custom plugin repository
+
+By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use. 
+Do so by setting the `GRADLE_PLUGIN_REPOSITORY_URL` environment variable.
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@v3
+      env:
+        GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
+```
+
+### Integrating the `dependency-review-action`
 
 The GitHub [dependency-review-action](https://github.com/actions/dependency-review-action) helps you 
 understand dependency changes (and the security impact of these changes) for a pull request,
@@ -101,7 +194,7 @@ jobs:
 Note that the `dependency-submission` action submits the dependency graph at the completion of the workflow Job.
 For this reason, the `dependency-review-action` must be executed in a dependent job, and not as a subsequent step in the job that generates the dependency graph.
 
-## Usage with pull requests from public forked repositories
+### Usage with pull requests from public forked repositories
 
 This `contents: write` permission is [not available for any workflow that is triggered by a pull request submitted from a public forked repository](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token).
 This limitation is designed to prevent a malicious pull request from effecting repository changes.
