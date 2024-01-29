@@ -40,7 +40,7 @@ jobs:
         java-version: 11
         
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
     
     - name: Execute Gradle build
       run: ./gradlew build
@@ -52,7 +52,7 @@ The `setup-gradle` action can download and install a specified Gradle version, a
 Downloaded Gradle versions are stored in the GitHub Actions cache, to avoid requiring downloading again later.
 
 ```yaml
- - uses: gradle/actions/setup-gradle@v3-beta
+ - uses: gradle/actions/setup-gradle@v3
    with:
      gradle-version: 6.5
 ```
@@ -87,7 +87,7 @@ jobs:
       with:
         distribution: temurin
         java-version: 11
-    - uses: gradle/actions/setup-gradle@v3-beta
+    - uses: gradle/actions/setup-gradle@v3
       id: setup-gradle
       with:
         gradle-version: release-candidate
@@ -176,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: gradle/actions/setup-gradle@v3-beta
+    - uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: 8.6-rc-1
         cache-encryption-key: ${{ secrets.GradleEncryptionKey }}
@@ -400,7 +400,7 @@ jobs:
     - name: Checkout project sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         add-job-summary-as-pr-comment: on-failure # Valid values are 'never' (default), 'always', and 'on-failure'
     - run: ./gradlew build --scan
@@ -432,7 +432,7 @@ jobs:
     - name: Checkout project sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
     - name: Run build with Gradle wrapper
       run: ./gradlew build --scan
     - name: Upload build reports
@@ -494,7 +494,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-submit
     - name: Run the usual CI build (dependency-graph will be generated and submitted post-job)
@@ -521,7 +521,7 @@ graph cannot be generated or submitted. You can enable this behaviour with the `
 
 ```yaml
 # Ensure that the workflow Job will fail if the dependency graph cannot be submitted
-- uses: gradle/actions/setup-gradle@v3-beta
+- uses: gradle/actions/setup-gradle@v3
   with:
     dependency-graph: generate-and-submit
     dependency-graph-continue-on-failure: false
@@ -539,7 +539,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-submit
     - name: Run a build, resolving the 'dependency-graph' plugin from the plugin portal proxy
@@ -576,7 +576,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-submit
     - name: Run a build and generate the dependency graph which will be submitted post-job
@@ -619,7 +619,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-submit
     - name: Build the app, generating a graph of dependencies required
@@ -651,7 +651,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-submit
     - name: Run a build, generating the dependency graph from any resolved 'runtimeClasspath' configurations
@@ -675,7 +675,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-submit
     - name: Build the distribution Zip for `my-app`
@@ -712,7 +712,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate-and-upload # Generate graphs and save as workflow artifacts
     - name: Run a build, generating the dependency graph snapshot which will be submitted
@@ -736,7 +736,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Retrieve dependency graph artifact and submit
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: download-and-submit # Download saved workflow artifacts and submit
 ```
@@ -796,7 +796,7 @@ To reduce storage costs for these artifacts, you can set the `artifact-retention
 ```yaml
     steps:
     - name: Generate dependency graph, but only retain artifact for one day
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         dependency-graph: generate
         artifact-retention-days: 1
@@ -831,7 +831,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
     - name: Run a Gradle build with Develocity injection enabled
       run: ./gradlew build
 ```
@@ -872,7 +872,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Gradle to publish build scans
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
       with:
         build-scan-publish: true
         build-scan-terms-of-service-url: "https://gradle.com/terms-of-service"

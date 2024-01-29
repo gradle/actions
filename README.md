@@ -20,7 +20,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3-beta
+      uses: gradle/actions/setup-gradle@v3
     - name: Build with Gradle
       run: ./gradlew build
 ```
@@ -51,7 +51,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3-beta
+      uses: gradle/actions/dependency-submission@v3
 ```
 
 See the [full action documentation](dependency-submission/README.md) for more advanced usage scenarios.

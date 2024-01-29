@@ -26,7 +26,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3-beta
+      uses: gradle/actions/dependency-submission@v3
 ```
 
 ### Configuration parameters
@@ -50,7 +50,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v3-beta
+      uses: gradle/actions/dependency-submission@v3
       with:
         # Use a particular Gradle version instead of the configured wrapper.
         gradle-version: 8.6-rc-2
@@ -88,7 +88,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3-beta
+      uses: gradle/actions/dependency-submission@v3
   
   dependency-review:
     needs: dependency-submission
@@ -126,7 +126,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v3-beta
+      uses: gradle/actions/dependency-submission@v3
       with:
         dependency-graph: generate-and-upload
 ```
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3-beta
+      uses: gradle/actions/dependency-submission@v3
       with:
         dependency-graph: download-and-submit # Download saved dependency-graph and submit
 ```
