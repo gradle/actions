@@ -62,6 +62,7 @@ runs:
         build-scan-publish: ${{ inputs.build-scan-publish }}
         build-scan-terms-of-service-url: ${{ inputs.build-scan-terms-of-service-url }}
         build-scan-terms-of-service-agree: ${{ inputs.build-scan-terms-of-service-agree }}
+        artifact-retention-days: 1
         arguments: |
           --no-configure-on-demand
           --dependency-verification=off
