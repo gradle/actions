@@ -459,7 +459,7 @@ You can use The `setup-gradle` action on GitHub Enterprise Server, and benefit f
 - Save/restore of Gradle User Home (requires GHES v3.5+ : GitHub Actions cache was introduced in GHES 3.5)
 - Support for GitHub Actions Job Summary (requires GHES 3.6+ : GitHub Actions Job Summary support was introduced in GHES 3.6). In earlier versions of GHES the build-results summary and caching report will be written to the workflow log, as part of the post-action step.
 
-# GitHub Dependency Graph support
+## GitHub Dependency Graph support
 
 > [!IMPORTANT]
 > The simplest (and recommended) way to generate a dependency graph is via a separate workflow 
@@ -475,7 +475,7 @@ The dependency graph snapshot is generated via integration with the [GitHub Depe
 
 The generated dependency graph snapshot reports all of the dependencies that were resolved during a build execution, and is used by GitHub to generate [Dependabot Alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts) for vulnerable dependencies, as well as to populate the [Dependency Graph insights view](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exploring-the-dependencies-of-a-repository#viewing-the-dependency-graph).
 
-## Enable Dependency Graph generation for a workflow
+### Basic usage
  
 You enable GitHub Dependency Graph support by setting the `dependency-graph` action parameter. Valid values are:
 
@@ -587,20 +587,16 @@ you can limit the dependency extraction to a subset of these.
 See the documentation for [dependency-submission](../dependency-submission/README.md) and the
 [GitHub Dependency Graph Gradle Plugin](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#filtering-which-gradle-configurations-contribute-to-the-dependency-graph) for details.
 
-## Gradle version compatibility
+### Gradle version compatibility
 
-The GitHub Dependency Graph plugin should be compatible with all versions of Gradle >= 5.0, and has been tested against 
-Gradle versions "5.6.4", "6.9.4", "7.0.2", "7.6.2", "8.0.2" and the current Gradle release.
+Dependency-graph generation is compatible with most versions of Gradle >= `5.2`, and is tested regularly against 
+Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1` and `7.6.3`, as well as all patched versions of Gradle 8.x.
 
-The plugin is compatible with running Gradle with the configuration-cache enabled. However, this support is
-limited to Gradle "8.1.0" and later:
-- With Gradle "8.0", the build should run successfully, but an empty dependency graph will be generated.
-- With Gradle <= "7.6.4", the plugin will cause the build to fail with configuration-cache enabled.
+A known exception to this is that Gradle `7.0`, `7.0.1` and `7.0.2` are not supported.
 
-To use this plugin with versions of Gradle older than "8.1.0", you'll need to invoke Gradle with the
-configuration-cache disabled.
+See [here](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#gradle-compatibility) for complete compatibility information.
 
-## Reducing storage costs for saved dependency graph artifacts
+### Reducing storage costs for saved dependency graph artifacts
 
 When `generate` or `generate-and-submit` is used with the action, the dependency graph that is generated is stored as a workflow artifact. 
 By default, these artifacts are retained for a period of 30 days (or as configured for the repository).

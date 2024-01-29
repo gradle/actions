@@ -281,3 +281,5 @@ Dependency-graph generation is compatible with most versions of Gradle >= `5.2`,
 Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1` and `7.6.3`, as well as all patched versions of Gradle 8.x.
 
 A known exception to this is that Gradle `7.0`, `7.0.1` and `7.0.2` are not supported.
+
+See [here](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#gradle-compatibility) for complete compatibility information.
