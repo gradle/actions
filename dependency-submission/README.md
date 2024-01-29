@@ -62,7 +62,7 @@ jobs:
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
         # Do not attempt to submit the dependency-graph. Save it as a workflow artifact.
-        dependency-graph-action: generate-and-save
+        dependency-graph: generate-and-upload
 ```
 
 ## Integrating the `dependency-review-action`
@@ -107,8 +107,8 @@ This `contents: write` permission is [not available for any workflow that is tri
 This limitation is designed to prevent a malicious pull request from effecting repository changes.
 
 Because of this restriction, we require 2 separate workflows in order to generate and submit a dependency graph:
-1. The first workflow runs directly against the pull request sources and will `generate-and-save` the dependency graph.
-2. The second workflow is triggered on `workflow_run` of the first workflow, and will `retrieve-and-submit` the previously saved dependency graph.
+1. The first workflow runs directly against the pull request sources and will `generate-and-upload` the dependency graph.
+2. The second workflow is triggered on `workflow_run` of the first workflow, and will `download-and-submit` the previously saved dependency graph.
 
 ***Main workflow file***
 ```yaml
@@ -125,15 +125,15 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Generate and submit dependency graph
+    - name: Generate and save dependency graph
       uses: gradle/actions/dependency-submission@v3-beta
       with:
-        dependency-graph-action: generate-and-save
+        dependency-graph: generate-and-upload
 ```
 
 ***Dependent workflow file***
 ```yaml
-name: Retrieve and submit dependency graph
+name: Download and submit dependency graph
 
 on:
   workflow_run:
@@ -147,10 +147,10 @@ jobs:
   submit-dependency-graph:
     runs-on: ubuntu-latest
     steps:
-    - name: Retrieve and submit dependency graph
+    - name: Download and submit dependency graph
       uses: gradle/actions/dependency-submission@v3-beta
       with:
-        dependency-graph-action: retrieve-and-submit # Download saved dependency-graph and submit
+        dependency-graph: download-and-submit # Download saved dependency-graph and submit
 ```
 
 ### Integrating `dependency-review-action` for pull requests from public forked repositories
@@ -180,7 +180,7 @@ jobs:
         retry-on-snapshot-warnings-timeout: 600
 ```
 
-The `retry-on-snapshot-warnings-timeout` (in seconds) needs to be long enough to allow the entire `Generate and save dependency graph` and `Retrieve and submit dependency graph` workflows (above) to complete.
+The `retry-on-snapshot-warnings-timeout` (in seconds) needs to be long enough to allow the entire `Generate and save dependency graph` and `Download and submit dependency graph` workflows (above) to complete.
 
 ## Gradle version compatibility
 

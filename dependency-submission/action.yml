@@ -16,13 +16,13 @@ inputs:
       A suitable key can be generated with `openssl rand -base64 16`.
       Configuration-cache data will not be saved/restored without an encryption key being provided.
     required: false
-  dependency-graph-action:
+  dependency-graph:
     description: |
       Specifies how the dependency-graph should be handled by this action. By default a dependency-graph will be generated and submitted.
       Valid values are:
         'generate-and-submit' (default): Generates a dependency graph for the project and submits it in the same Job.
-        'generate-and-save': Generates a dependency graph for the project and saves it as a workflow artifact.
-        'retrieve-and-submit': Retrieves a previously saved dependency-graph and submits it to the repository.
+        'generate-and-upload': Generates a dependency graph for the project and saves it as a workflow artifact.
+        'download-and-submit': Retrieves a previously saved dependency-graph and submits it to the repository.
 
       The `generate-and-upload` and `download-and-submit` options are designed to be used in an untrusted workflow scenario,
       where the workflow generating the dependency-graph cannot (or should not) be given the `contents: write` permissions
@@ -50,28 +50,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Generate and submit dependency graph
-      if: ${{ inputs.dependency-graph-action == 'generate-and-submit' }}
+    - name: Generate dependency graph
+      if: ${{ inputs.dependency-graph == 'generate-and-submit' || inputs.dependency-graph == 'generate-and-upload' }}
       uses: gradle/actions/setup-gradle@v3-beta
       with:
-        dependency-graph: 'generate-and-submit'
-        dependency-graph-continue-on-failure: false
-        gradle-version: ${{ inputs.gradle-version }}
-        build-root-directory: ${{ inputs.build-root-directory }}
-        cache-encryption-key: ${{ inputs.cache-encryption-key }}
-        build-scan-publish: ${{ inputs.build-scan-publish }}
-        build-scan-terms-of-service-url: ${{ inputs.build-scan-terms-of-service-url }}
-        build-scan-terms-of-service-agree: ${{ inputs.build-scan-terms-of-service-agree }}
-        arguments: |
-          --no-configure-on-demand
-          --dependency-verification=off
-          :ForceDependencyResolutionPlugin_resolveAllDependencies
-          ${{ inputs.additional-arguments }}
-    - name: Generate and save dependency graph
-      if: ${{ inputs.dependency-graph-action == 'generate-and-save' }}
-      uses: gradle/actions/setup-gradle@v3-beta
-      with:
-        dependency-graph: generate-and-upload
+        dependency-graph: ${{ inputs.dependency-graph }}
         dependency-graph-continue-on-failure: false
         gradle-version: ${{ inputs.gradle-version }}
         build-root-directory: ${{ inputs.build-root-directory }}
@@ -85,7 +68,7 @@ runs:
           :ForceDependencyResolutionPlugin_resolveAllDependencies
           ${{ inputs.additional-arguments }}
     - name: Download and submit dependency graph
-      if: ${{ inputs.dependency-graph-action == 'retrieve-and-submit' }}
+      if: ${{ inputs.dependency-graph == 'download-and-submit' }}
       uses: gradle/actions/setup-gradle@v3-beta
       with:
         dependency-graph: download-and-submit
