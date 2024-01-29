@@ -233,9 +233,10 @@ export class GradleStateCache {
         }
     }
 
+    // TODO:DAZ Move this to a utility class
     private readResourceFileAsString(...paths: string[]): string {
         // Resolving relative to __dirname will allow node to find the resource at runtime
-        const absolutePath = path.resolve(__dirname, '..', '..', 'sources', 'src', 'resources', ...paths)
+        const absolutePath = path.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths)
         return fs.readFileSync(absolutePath, 'utf8')
     }
 
