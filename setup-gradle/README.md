@@ -193,6 +193,16 @@ Specifically:
 
 Using either of these mechanisms may interfere with the caching provided by this action. If you choose to use a different mechanism to save and restore the Gradle User Home, you should disable the caching provided by this action, as described above.
 
+### GitHub Action Debug support
+To debug a failed job, GitHub provides a [debug mode](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging).
+If this debug mode is active, this action adds `--info` and `--stacktrace` by writing these [Gradle properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) into the `${GRADLE_USER_HOME}/gradle.properties` file at the top.
+
+To opt-out of this behaviour you can override these properties manually and put them into your `gradle.properties` file:
+```properties
+# default lifecycle
+org.gradle.logging.level=lifecycle
+org.gradle.logging.stacktrace=internal
+```
 ### Cache debugging and analysis
 
 A report of all cache entries restored and saved is printed to the Job Summary when saving the cache entries. 
@@ -688,4 +698,3 @@ jobs:
     - name: Run a Gradle build - a build scan will be published automatically
       run: ./gradlew build
 ```
-

@@ -192,6 +192,10 @@ export class GradleStateCache {
 
         // Copy the default toolchain definitions to `~/.m2/toolchains.xml`
         this.registerToolchains()
+
+        if (core.isDebug()) {
+            this.configureInfoLogLevel()
+        }
     }
 
     private copyInitScripts(): void {
@@ -238,6 +242,23 @@ export class GradleStateCache {
         // Resolving relative to __dirname will allow node to find the resource at runtime
         const absolutePath = path.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths)
         return fs.readFileSync(absolutePath, 'utf8')
+    }
+
+    /**
+     * When the GitHub environment ACTIONS_RUNNER_DEBUG is true, run Gradle with --info and --stacktrace.
+     * see https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging
+     */
+    configureInfoLogLevel(): void {
+        const infoProperties = `org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n`
+        const propertiesFile = path.resolve(this.gradleUserHome, 'gradle.properties')
+        if (fs.existsSync(propertiesFile)) {
+            core.info(`Merged --info and --stacktrace into existing ${propertiesFile} file`)
+            const existingProperties = fs.readFileSync(propertiesFile, 'utf-8')
+            fs.writeFileSync(propertiesFile, `${infoProperties}\n${existingProperties}`)
+        } else {
+            core.info(`Created a new ${propertiesFile} with --info and --stacktrace`)
+            fs.writeFileSync(propertiesFile, infoProperties)
+        }
     }
 
     /**
