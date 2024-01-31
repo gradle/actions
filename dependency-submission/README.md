@@ -74,7 +74,33 @@ jobs:
         dependency-graph: generate-and-upload
 ```
 
-## Limiting the scope of the dependency graph
+## Finding the source of a dependency vulnerability
+
+Once you have submitted a dependency graph, you may receive Dependabot Alerts warning about vulnerabilities in
+dependencies of your project. In the case of transitive dependencies, it may not be obvious how that dependency is
+used or what you can do to address the vulnerability alert.
+
+The first step to investigating a Dependabot Alert is to determine the source of the dependency. One of the best ways to 
+do so is with a free Gradle Develocity Build Scan®, which makes it easy to explore the dependencies resolved in your build.
+
+<img width="1069" alt="image" src="https://github.com/gradle/actions/assets/179734/3a637dfd-396c-4e94-8332-dcc6eb5a35ac">
+
+In this example, we are searching for dependencies matching the name 'com.squareup.okio:okio' in the _Build Dependencies_ of 
+the project. You can easily see that this dependency originates from 'com.github.ben-manes:gradle-versions-plugin'.
+Knowing the source of the dependency can help determine how to deal with the Dependabot Alert.
+
+Note that you may need to look at both the _Dependencies_ and the _Build Dependencies_ of your project to find the
+offending dependency.
+
+### When you cannot use Build Scans
+
+If publishing a free Build Scan to https://scans.gradle.com isn't an option, and you don't have access to a private [Develocity
+server](https://gradle.com/) for your project, you can use the [GitHub Dependency Graph Gradle Plugin to generate a report]([https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-in-a-standalone-project](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-to-generate-dependency-reports)) 
+listing the dependencies resolved in your build.
+
+After generating the dependency reports as described, it is possible to [determine the dependency source](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-dependency-reports-to-determine-the-underlying-source-of-a-dependency).
+
+## Limiting the dependencies that appear in the dependency graph
 
 By default, the `dependency-submission` action attempts to detect all dependencies declared and used by your Gradle build.
 At times it may helpful to limit the dependencies reported to GitHub, to avoid security alerts for dependencies that 
@@ -128,8 +154,10 @@ jobs:
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
       env:
+        # Exclude all dependencies that originate solely in the 'buildSrc' project
         DEPENDENCY_GRAPH_EXCLUDE_PROJECTS: ':buildSrc'
-        DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: 'test(Compile|Runtime)Classpath'
+        # Exclude dependencies that are only resolved in test classpaths
+        DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: '.*[Tt]est(Compile|Runtime)Classpath'
 ```
 
 ### Other configuration options
