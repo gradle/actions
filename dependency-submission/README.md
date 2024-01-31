@@ -102,6 +102,57 @@ listing the dependencies resolved in your build.
 
 After generating the dependency reports as described, it is possible to [determine the dependency source](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-dependency-reports-to-determine-the-underlying-source-of-a-dependency).
 
+## Updating the dependency version
+
+Once you've discovered the source of the dependency, the most obvious fix is to update the dependency to a patched version that does not
+suffer the vulnerability. For direct dependencies, this is often straightforward.  But for transitive dependencies it can be tricky.
+
+### Dependency source is specified directly in the build
+
+If the dependency is used to compile your code or run your tests, it's normal for the underlying "source" of the dependency to have a
+version configured directly in the build. For example, if you have a vulnerable version of `com.squareup.okio:okio` in your `compileClasspath`, then
+it's likely you have a dependency like `com.squareup.moshi:moshi` configured as an `api` or `implementation` dependency.
+
+In this case there are 2 possibilities:
+1. There is a newer, compatible version of `com.squareup.moshi:moshi` available, and you can just bump the version number.
+2. There isn't a newer, compatible version of `com.squareup.moshi:moshi`
+
+In the second case, you can add a Dependency Constraint, to force the use of the newest version of `com.squareup.okio`:
+
+```kotlin
+dependencies {
+  implementation("com.squareup.moshi:moshi:1.12.0")
+  constraints {
+    // Force a newer version of okio in transitive resolution
+    implementation("com.squareup.okio:okio:3.6.0")
+  }
+}
+```
+
+### Dependency source is a plugin classpath
+
+If the vulnerable dependency is introduced by a Gradle plugin, again the best option is to look for a newer version of the plugin.
+But if none is available, you can still use a dependency constraint to force a newer transitive version to be used.
+
+The dependency constraint must be added to the `classpath` configuration of the buildscript that loads the plugin.
+
+```kotlin
+buildscript {
+  repositories {
+    gradlePluginPortal()
+  }
+  dependencies {
+    constraints {
+      // Force a newer version of okio in transitive resolution
+      classpath("com.squareup.okio:okio:3.6.0")
+    }
+  }
+}
+plugins {
+  id("com.github.ben-manes.versions") version("0.51.0")
+}
+```
+
 ## Limiting the dependencies that appear in the dependency graph
 
 By default, the `dependency-submission` action attempts to detect all dependencies declared and used by your Gradle build.
