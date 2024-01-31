@@ -1,4 +1,4 @@
-<img width="1102" alt="image" src="https://github.com/gradle/actions/assets/179734/d5922f72-852e-408a-b5c7-b0aeb6437566"># The `dependency-submission` action
+# The `dependency-submission` action
 
 The `gradle/actions/dependency-submission` action provides the simplest (and recommended) way to generate a 
 dependency graph for your project. This action will attempt to detect all dependencies used by your build
@@ -95,10 +95,12 @@ offending dependency.
 ### When you cannot use Build Scans
 
 If publishing a free Build Scan to https://scans.gradle.com isn't an option, and you don't have access to a private [Develocity
-server](https://gradle.com/) for your project, you can use the GitHub Dependency Graph Gradle Plugin to generate a report 
+server](https://gradle.com/) for your project, you can use the [GitHub Dependency Graph Gradle Plugin to generate a report]([https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-in-a-standalone-project](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-to-generate-dependency-reports)) 
 listing the dependencies resolved in your build.
 
-## Limiting the scope of the dependency graph
+After generating the dependency reports as described, it is possible to [determine the dependency source](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-dependency-reports-to-determine-the-underlying-source-of-a-dependency).
+
+## Limiting the dependencies that appear in the dependency graph
 
 By default, the `dependency-submission` action attempts to detect all dependencies declared and used by your Gradle build.
 At times it may helpful to limit the dependencies reported to GitHub, to avoid security alerts for dependencies that 
@@ -152,8 +154,10 @@ jobs:
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
       env:
+        # Exclude all dependencies that originate solely in the 'buildSrc' project
         DEPENDENCY_GRAPH_EXCLUDE_PROJECTS: ':buildSrc'
-        DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: 'test(Compile|Runtime)Classpath'
+        # Exclude dependencies that are only resolved in test classpaths
+        DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: '.*[Tt]est(Compile|Runtime)Classpath'
 ```
 
 ### Other configuration options
