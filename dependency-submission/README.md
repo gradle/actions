@@ -83,7 +83,7 @@ dependencies of your project. In the case of transitive dependencies, it may not
 used or what you can do to address the vulnerability alert.
 
 The first step to investigating a Dependabot Alert is to determine the source of the dependency. One of the best ways to 
-do so is with a free Gradle Develocity Build Scan®, which makes it easy to explore the dependencies resolved in your build.
+do so is with a free Develocity Build Scan®, which makes it easy to explore the dependencies resolved in your build.
 
 <img width="1069" alt="image" src="https://github.com/gradle/actions/assets/179734/3a637dfd-396c-4e94-8332-dcc6eb5a35ac">
 
