@@ -74,6 +74,8 @@ jobs:
         dependency-graph: generate-and-upload
 ```
 
+# Resolving a dependency vulnerability
+
 ## Finding the source of a dependency vulnerability
 
 Once you have submitted a dependency graph, you may receive Dependabot Alerts warning about vulnerabilities in
@@ -160,15 +162,15 @@ jobs:
         DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: '.*[Tt]est(Compile|Runtime)Classpath'
 ```
 
-### Other configuration options
+### Other filtering options
 
 The [GitHub Dependency Graph Gradle Plugin](https://plugins.gradle.org/plugin/org.gradle.github-dependency-graph-gradle-plugin)
 has other filtering options that may be useful.
  See [the docs](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#filtering-which-gradle-configurations-contribute-to-the-dependency-graph) for details.
 
-## Advance usage scenarios
+# Advance usage scenarios
 
-### Using a custom plugin repository
+## Using a custom plugin repository
 
 By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use. 
 Do so by setting the `GRADLE_PLUGIN_REPOSITORY_URL` environment variable.
@@ -186,7 +188,7 @@ jobs:
         GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
 ```
 
-### Integrating the `dependency-review-action`
+## Integrating the `dependency-review-action`
 
 The GitHub [dependency-review-action](https://github.com/actions/dependency-review-action) helps you 
 understand dependency changes (and the security impact of these changes) for a pull request,
@@ -222,7 +224,7 @@ jobs:
 Note that the `dependency-submission` action submits the dependency graph at the completion of the workflow Job.
 For this reason, the `dependency-review-action` must be executed in a dependent job, and not as a subsequent step in the job that generates the dependency graph.
 
-### Usage with pull requests from public forked repositories
+## Usage with pull requests from public forked repositories
 
 This `contents: write` permission is [not available for any workflow that is triggered by a pull request submitted from a public forked repository](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token).
 This limitation is designed to prevent a malicious pull request from effecting repository changes.
@@ -303,7 +305,7 @@ jobs:
 
 The `retry-on-snapshot-warnings-timeout` (in seconds) needs to be long enough to allow the entire `Generate and save dependency graph` and `Download and submit dependency graph` workflows (above) to complete.
 
-## Gradle version compatibility
+# Gradle version compatibility
 
 Dependency-graph generation is compatible with most versions of Gradle >= `5.2`, and is tested regularly against 
 Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1` and `7.6.3`, as well as all patched versions of Gradle 8.x.
