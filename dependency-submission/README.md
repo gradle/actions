@@ -83,7 +83,7 @@ dependencies of your project. In the case of transitive dependencies, it may not
 used or what you can do to address the vulnerability alert.
 
 The first step to investigating a Dependabot Alert is to determine the source of the dependency. One of the best ways to 
-do so is with a free Gradle Develocity Build Scan®, which makes it easy to explore the dependencies resolved in your build.
+do so is with a free Develocity Build Scan®, which makes it easy to explore the dependencies resolved in your build.
 
 <img width="1069" alt="image" src="https://github.com/gradle/actions/assets/179734/3a637dfd-396c-4e94-8332-dcc6eb5a35ac">
 
@@ -94,7 +94,21 @@ Knowing the source of the dependency can help determine how to deal with the Dep
 Note that you may need to look at both the _Dependencies_ and the _Build Dependencies_ of your project to find the
 offending dependency.
 
-### When you cannot use Build Scans
+### Publishing a Develocity Build Scan® from your dependency submission workflow
+
+You can automatically publish a Build Scan on every run of `gradle/actions/dependency-submission`. Three input parameters are 
+required, one to enable publishing and two more to accept the [Develocity terms of service](https://gradle.com/terms-of-service).
+
+```yaml
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@v3
+      with:
+        build-scan-publish: true
+        build-scan-terms-of-service-url: "https://gradle.com/terms-of-service"
+        build-scan-terms-of-service-agree: "yes"
+```
+
+### When you cannot use Build Scans®
 
 If publishing a free Build Scan to https://scans.gradle.com isn't an option, and you don't have access to a private [Develocity
 server](https://gradle.com/) for your project, you can use the [GitHub Dependency Graph Gradle Plugin to generate a report]([https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-in-a-standalone-project](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-to-generate-dependency-reports)) 
