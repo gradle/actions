@@ -1,4 +1,4 @@
-# The `dependency-submission` action
+<img width="1102" alt="image" src="https://github.com/gradle/actions/assets/179734/d5922f72-852e-408a-b5c7-b0aeb6437566"># The `dependency-submission` action
 
 The `gradle/actions/dependency-submission` action provides the simplest (and recommended) way to generate a 
 dependency graph for your project. This action will attempt to detect all dependencies used by your build
@@ -73,6 +73,30 @@ jobs:
         # Do not attempt to submit the dependency-graph. Save it as a workflow artifact.
         dependency-graph: generate-and-upload
 ```
+
+## Finding the source of a dependency vulnerability
+
+Once you have submitted a dependency graph, you may receive Dependabot Alerts warning about vulnerabilities in
+dependencies of your project. In the case of transitive dependencies, it may not be obvious how that dependency is
+used or what you can do to address the vulnerability alert.
+
+The first step to investigating a Dependabot Alert is to determine the source of the dependency. One of the best ways to 
+do so is with a free Gradle Develocity Build Scan®, which makes it easy to explore the dependencies resolved in your build.
+
+<img width="1069" alt="image" src="https://github.com/gradle/actions/assets/179734/3a637dfd-396c-4e94-8332-dcc6eb5a35ac">
+
+In this example, we are searching for dependencies matching the name 'com.squareup.okio:okio' in the _Build Dependencies_ of 
+the project. You can easily see that this dependency originates from 'com.github.ben-manes:gradle-versions-plugin'.
+Knowing the source of the dependency can help determine how to deal with the Dependabot Alert.
+
+Note that you may need to look at both the _Dependencies_ and the _Build Dependencies_ of your project to find the
+offending dependency.
+
+### When you cannot use Build Scans
+
+If publishing a free Build Scan to https://scans.gradle.com isn't an option, and you don't have access to a private [Develocity
+server](https://gradle.com/) for your project, you can use the GitHub Dependency Graph Gradle Plugin to generate a report 
+listing the dependencies resolved in your build.
 
 ## Limiting the scope of the dependency graph
 
