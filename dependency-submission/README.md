@@ -62,7 +62,7 @@ jobs:
       uses: gradle/actions/dependency-submission@v3
       with:
         # Use a particular Gradle version instead of the configured wrapper.
-        gradle-version: 8.6-rc-2
+        gradle-version: 8.6
 
         # The gradle project is not in the root of the repository.
         build-root-directory: my-gradle-project
