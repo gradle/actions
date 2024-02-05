@@ -58,7 +58,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        declareGePluginApplication(testGradleVersion.gradleVersion)
+        declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         run(['help'], initScript, testGradleVersion.gradleVersion)
 
         then:
@@ -68,11 +68,11 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
-    def "produces build results file for #testGradleVersion with ge-plugin and no build scan published"() {
+    def "produces build results file for #testGradleVersion with Develocity plugin and no build scan published"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        declareGePluginApplication(testGradleVersion.gradleVersion)
+        declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         run(['help', '--no-scan'], initScript, testGradleVersion.gradleVersion)
 
         then:
@@ -86,7 +86,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        declareGePluginApplication(testGradleVersion.gradleVersion)
+        declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         addFailingTaskToBuild()
         runAndFail(['expectFailure'], initScript, testGradleVersion.gradleVersion)
 
@@ -101,7 +101,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        declareGePluginApplication(testGradleVersion.gradleVersion)
+        declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion)
 
         then:
@@ -122,7 +122,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        declareGePluginApplication(testGradleVersion.gradleVersion)
+        declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         addFailingTaskToBuild()
         failScanUpload = true
         runAndFail(['expectFailure'], initScript, testGradleVersion.gradleVersion)
@@ -165,7 +165,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
-    def "produces build results file with build scan when GE plugin is applied in settingsEvaluated"() {
+    def "produces build results file with build scan when Develocity plugin is applied in settingsEvaluated"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
