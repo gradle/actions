@@ -28,6 +28,9 @@ if (isTopLevelBuild) {
             settings.pluginManager.withPlugin("com.gradle.enterprise") {
                 captureUsingBuildScanPublished(settings.extensions["gradleEnterprise"].buildScan, settings.rootProject, invocationId)
             }
+            settings.pluginManager.withPlugin("com.gradle.develocity") {
+                captureUsingBuildScanPublished(settings.extensions["develocity"].buildScan, settings.rootProject, invocationId)
+            }
         }
     } else if (atLeastGradle3) {
         projectsEvaluated { gradle ->
