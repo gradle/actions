@@ -146,28 +146,33 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     buildScanExtension.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                 }
 
-                if (develocityUrl && develocityEnforceUrl) {
-                    logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Build Scan plugin")
-                    pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
-                        afterEvaluate {
+                pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
+                    afterEvaluate {
+                        if (develocityUrl && develocityEnforceUrl) {
+                            logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Build Scan plugin")
                             buildScan.server = develocityUrl
                             buildScan.allowUntrustedServer = develocityAllowUntrustedServer
                         }
-                    }
-                    pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
-                        afterEvaluate {
-                            develocity.server = develocityUrl
-                            develocity.allowUntrustedServer = develocityAllowUntrustedServer
+
+                        if (buildScanTermsOfServiceUrl && buildScanTermsOfServiceAgree) {
+                            buildScan.termsOfServiceUrl = buildScanTermsOfServiceUrl
+                            buildScan.termsOfServiceAgree = buildScanTermsOfServiceAgree
                         }
                     }
                 }
+                pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
+                    afterEvaluate {
+                        if (develocityUrl && develocityEnforceUrl) {
+                            logger.quiet("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Build Scan plugin")
+                            develocity.server = develocityUrl
+                            develocity.allowUntrustedServer = develocityAllowUntrustedServer
+                        }
 
-                if (buildScanTermsOfServiceUrl && buildScanTermsOfServiceAgree) {
-                    def buildScanExtension = atLeastGradle5
-                            ? dvOrGe(develocity.buildScan, buildScan)
-                            : buildScan
-                    buildScanExtension.termsOfServiceUrl = buildScanTermsOfServiceUrl
-                    buildScanExtension.termsOfServiceAgree = buildScanTermsOfServiceAgree
+                        if (buildScanTermsOfServiceUrl && buildScanTermsOfServiceAgree) {
+                            develocity.buildScan.termsOfServiceUrl = buildScanTermsOfServiceUrl
+                            develocity.buildScan.termsOfServiceAgree = buildScanTermsOfServiceAgree
+                        }
+                    }
                 }
             }
 
