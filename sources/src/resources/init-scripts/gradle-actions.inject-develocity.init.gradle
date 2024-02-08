@@ -170,16 +170,15 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 }
 
                 if (develocityUrl && develocityEnforceUrl) {
+                    logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Build Scan plugin")
                     pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
                         afterEvaluate {
-                            logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer")
                             buildScan.server = develocityUrl
                             buildScan.allowUntrustedServer = develocityAllowUntrustedServer
                         }
                     }
                     pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
                         afterEvaluate {
-                            logger.quiet("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Develocity plugin")
                             develocity.server = develocityUrl
                             develocity.allowUntrustedServer = develocityAllowUntrustedServer
                         }
@@ -213,12 +212,15 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 def pluginClass = dvOrGe(DEVELOCITY_PLUGIN_CLASS, GRADLE_ENTERPRISE_PLUGIN_CLASS)
                 logger.lifecycle("Applying $pluginClass via init script")
                 applyPluginExternally(settings.pluginManager, pluginClass)
-                eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
-                    if (develocityUrl) {
-                        logger.lifecycle("Connection to Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
+                if (develocityUrl) {
+                    logger.lifecycle("Connection to Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
+                    eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
                         ext.server = develocityUrl
                         ext.allowUntrustedServer = develocityAllowUntrustedServer
                     }
+                }
+
+                eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
                     if (!shouldApplyDevelocityPlugin) {
                         // Develocity plugin publishes build scans by default
                         ext.buildScan.publishAlways()
@@ -237,8 +239,8 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
             }
 
             if (develocityUrl && develocityEnforceUrl) {
+                logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
                 eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
-                    logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
                     ext.server = develocityUrl
                     ext.allowUntrustedServer = develocityAllowUntrustedServer
                 }

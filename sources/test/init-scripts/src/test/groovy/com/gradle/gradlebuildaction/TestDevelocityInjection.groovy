@@ -352,8 +352,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     void outputContainsDevelocityConnectionInfo(BuildResult result, String develocityUrl, boolean develocityAllowUntrustedServer) {
         def develocityConnectionInfo = "Connection to Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer"
         assert result.output.contains(develocityConnectionInfo)
-        // Develocity plugin configures both the deprecated and new extensions
-        assert 2 == result.output.count(develocityConnectionInfo)
+        assert 1 == result.output.count(develocityConnectionInfo)
     }
 
     void outputCaptureFileFingerprints(BuildResult result, boolean captureFileFingerprints) {
@@ -377,8 +376,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     void outputEnforcesDevelocityUrl(BuildResult result, String develocityUrl, boolean develocityAllowUntrustedServer) {
         def enforceUrl = "Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer"
         assert result.output.contains(enforceUrl)
-        // Develocity plugin configures both the deprecated and new extensions
-        assert 2 == result.output.count(enforceUrl)
+        assert 1 == result.output.count(enforceUrl)
     }
 
     private BuildResult run(TestGradleVersion testGradleVersion, TestConfig config, List<String> args = ["help"]) {
