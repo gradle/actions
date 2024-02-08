@@ -5,12 +5,14 @@ import org.gradle.util.GradleVersion
 
 import static org.junit.Assume.assumeTrue
 
+// TODO pshevche: test that applying the GE plugin still works
+// TODO pshevche: test that deprecated plugins also prevent the DV plugin application
 class TestDevelocityInjection extends BaseInitScriptTest {
     static final List<TestGradleVersion> CCUD_COMPATIBLE_VERSIONS = ALL_VERSIONS - [GRADLE_3_X]
 
     def initScript = 'gradle-actions.inject-develocity.init.gradle'
 
-    private static final GradleVersion GRADLE_6 = GradleVersion.version('6.0')
+    private static final GradleVersion GRADLE_5 = GradleVersion.version('5.0')
 
     def "does not apply Develocity plugins when not requested"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
@@ -274,24 +276,24 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     }
 
     void outputContainsDevelocityPluginApplicationViaInitScript(BuildResult result, GradleVersion gradleVersion) {
-        def pluginApplicationLogMsgGradle4And5 = "Applying com.gradle.scan.plugin.BuildScanPlugin via init script"
-        def pluginApplicationLogMsgGradle6AndHigher = "Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script"
-        if (gradleVersion < GRADLE_6) {
-            assert result.output.contains(pluginApplicationLogMsgGradle4And5)
-            assert 1 == result.output.count(pluginApplicationLogMsgGradle4And5)
-            assert !result.output.contains(pluginApplicationLogMsgGradle6AndHigher)
+        def pluginApplicationLogMsgGradle4 = "Applying com.gradle.scan.plugin.BuildScanPlugin via init script"
+        def pluginApplicationLogMsgGradle5AndHigher = "Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script"
+        if (gradleVersion < GRADLE_5) {
+            assert result.output.contains(pluginApplicationLogMsgGradle4)
+            assert 1 == result.output.count(pluginApplicationLogMsgGradle4)
+            assert !result.output.contains(pluginApplicationLogMsgGradle5AndHigher)
         } else {
-            assert result.output.contains(pluginApplicationLogMsgGradle6AndHigher)
-            assert 1 == result.output.count(pluginApplicationLogMsgGradle6AndHigher)
-            assert !result.output.contains(pluginApplicationLogMsgGradle4And5)
+            assert result.output.contains(pluginApplicationLogMsgGradle5AndHigher)
+            assert 1 == result.output.count(pluginApplicationLogMsgGradle5AndHigher)
+            assert !result.output.contains(pluginApplicationLogMsgGradle4)
         }
     }
 
     void outputMissesDevelocityPluginApplicationViaInitScript(BuildResult result) {
-        def pluginApplicationLogMsgGradle4And5 = "Applying com.gradle.scan.plugin.BuildScanPlugin via init script"
-        def pluginApplicationLogMsgGradle6AndHigher = "Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script"
-        assert !result.output.contains(pluginApplicationLogMsgGradle4And5)
-        assert !result.output.contains(pluginApplicationLogMsgGradle6AndHigher)
+        def pluginApplicationLogMsgGradle4 = "Applying com.gradle.scan.plugin.BuildScanPlugin via init script"
+        def pluginApplicationLogMsgGradle5AndHigher = "Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script"
+        assert !result.output.contains(pluginApplicationLogMsgGradle4)
+        assert !result.output.contains(pluginApplicationLogMsgGradle5AndHigher)
     }
 
     void outputContainsCcudPluginApplicationViaInitScript(BuildResult result) {
@@ -308,7 +310,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     void outputContainsDevelocityConnectionInfo(BuildResult result, String develocityUrl, boolean develocityAllowUntrustedServer) {
         def develocityConnectionInfo = "Connection to Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer"
         assert result.output.contains(develocityConnectionInfo)
-        assert 1 == result.output.count(develocityConnectionInfo)
+        // Develocity plugin configures both the deprecated and new extensions
+        assert 2 == result.output.count(develocityConnectionInfo)
     }
 
     void outputContainsPluginRepositoryInfo(BuildResult result, String gradlePluginRepositoryUrl) {
@@ -320,7 +323,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     void outputEnforcesDevelocityUrl(BuildResult result, String develocityUrl, boolean develocityAllowUntrustedServer) {
         def enforceUrl = "Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer"
         assert result.output.contains(enforceUrl)
-        assert 1 == result.output.count(enforceUrl)
+        // Develocity plugin configures both the deprecated and new extensions
+        assert 2 == result.output.count(enforceUrl)
     }
 
     private BuildResult run(TestGradleVersion testGradleVersion, TestConfig config, List<String> args = ["help"]) {
