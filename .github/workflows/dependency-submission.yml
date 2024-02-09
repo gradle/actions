@@ -57,6 +57,7 @@ jobs:
       with:
         build-root-directory: .github/workflow-samples/groovy-dsl
     - name: Assert step failure
+      if: ${{ success() }}
       run: |
         echo "Previous step didn't fail"
         exit 1
