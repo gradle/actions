@@ -46,6 +46,12 @@ jobs:
         gradle-version: release-candidate
         build-root-directory: .github/workflow-samples/no-wrapper
         arguments: help
+    - name: Test with non-executable wrapper
+      uses: ./setup-gradle
+      with:
+        gradle-version: wrapper
+        build-root-directory: .github/workflow-samples/non-executable-wrapper
+        arguments: help
 
   gradle-versions:
     strategy:

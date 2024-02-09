@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as path from 'path'
 import fs from 'fs'
 
@@ -37,6 +38,9 @@ function verifyIsExecutableScript(toExecute: string): void {
     try {
         fs.accessSync(toExecute, fs.constants.X_OK)
     } catch (err) {
-        throw new Error(`Gradle script '${toExecute}' is not executable.`)
+        core.warning(
+            `Gradle wrapper script '${toExecute}' is not executable. Action will set executable permission and continue.`
+        )
+        fs.chmodSync(toExecute, '755')
     }
 }
