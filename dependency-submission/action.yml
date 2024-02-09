@@ -53,7 +53,7 @@ runs:
     - name: Check no setup-gradle
       shell: bash
       run: |
-        if [ -n "${GRADLE_BUILD_ACTION_SETUP_COMPLETED}" ];
+        if [ -n "${GRADLE_BUILD_ACTION_SETUP_COMPLETED}" ]; then
           echo "The dependency-submission action cannot be used in the same Job as the setup-gradle action. Please use a separate Job for dependency submission."
           exit 1
         fi
