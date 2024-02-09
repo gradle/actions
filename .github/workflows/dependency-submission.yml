@@ -43,3 +43,22 @@ jobs:
         build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
       env:
         GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
+
+  test-after-setup-gradle:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Setup Gradle
+      uses: ./setup-gradle
+    - name: Generate and submit dependencies
+      id: dependency-submission
+      uses: ./dependency-submission
+      continue-on-error: true
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
+    - name: Assert step failure
+      if: steps.dependency-submission.outcome != 'failure'
+      run: |
+        echo "Dependency submission step should fail after setup-gradle"
+        exit 1

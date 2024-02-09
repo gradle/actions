@@ -50,6 +50,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Check no setup-gradle
+      shell: bash
+      run: |
+        if [ -n "${GRADLE_BUILD_ACTION_SETUP_COMPLETED}" ]; then
+          echo "The dependency-submission action cannot be used in the same Job as the setup-gradle action. Please use a separate Job for dependency submission."
+          exit 1
+        fi
     - name: Generate dependency graph
       if: ${{ inputs.dependency-graph == 'generate-and-submit' || inputs.dependency-graph == 'generate-and-upload' }}
       uses: gradle/actions/setup-gradle@v3.0.0
