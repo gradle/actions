@@ -64,8 +64,8 @@ runs:
         build-scan-terms-of-service-agree: ${{ inputs.build-scan-terms-of-service-agree }}
         artifact-retention-days: 1
         arguments: |
-          --no-configure-on-demand
-          --dependency-verification=off
+          -Dorg.gradle.configureondemand=false
+          -Dorg.gradle.dependency.verification=off
           :ForceDependencyResolutionPlugin_resolveAllDependencies
           ${{ inputs.additional-arguments }}
     - name: Download and submit dependency graph
