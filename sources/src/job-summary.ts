@@ -123,7 +123,7 @@ function renderBuildScan(result: BuildResult): string {
 function renderBuildScanBadge(outcomeText: string, outcomeColor: string, targetUrl: string): string {
     const badgeUrl = `https://img.shields.io/badge/Build%20Scan%C2%AE-${outcomeText}-${outcomeColor}?logo=Gradle`
     const badgeHtml = `<img src="${badgeUrl}" alt="Build Scan ${outcomeText}" />`
-    return `<a href="${targetUrl}" rel="nofollow">${badgeHtml}</a>`
+    return `<a href="${targetUrl}" rel="nofollow" target="_blank">${badgeHtml}</a>`
 }
 
 function shouldGenerateJobSummary(buildResults: BuildResult[]): boolean {
