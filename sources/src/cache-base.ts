@@ -247,6 +247,8 @@ export class GradleStateCache {
     /**
      * When the GitHub environment ACTIONS_RUNNER_DEBUG is true, run Gradle with --info and --stacktrace.
      * see https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging
+     *
+     * @VisibleForTesting
      */
     configureInfoLogLevel(): void {
         const infoProperties = `org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n`
@@ -262,11 +264,11 @@ export class GradleStateCache {
     }
 
     /**
-     * When cache debugging is enabled, this method will give a detailed report
-     * of the Gradle User Home contents.
+     * When cache debugging is enabled (or ACTIONS_STEP_DEBUG is on),
+     * this method will give a detailed report of the Gradle User Home contents.
      */
     private async debugReportGradleUserHomeSize(label: string): Promise<void> {
-        if (!isCacheDebuggingEnabled()) {
+        if (!isCacheDebuggingEnabled() && !core.isDebug()) {
             return
         }
         if (!fs.existsSync(this.gradleUserHome)) {

@@ -215,7 +215,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 ```
 
-Note that this setting will also prevent certain cache operations from running in parallel, further assisting with debugging.
+Note that when the workflow is run in debug mode (above), cache debugging is automatically enabled.
 
 ## How Gradle User Home caching works
 
