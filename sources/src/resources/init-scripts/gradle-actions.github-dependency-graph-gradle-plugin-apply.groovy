@@ -4,7 +4,7 @@ buildscript {
       return System.getProperty(name) ?: System.getenv(envVarName)
   }
   def pluginRepositoryUrl = getInputParam('gradle.plugin-repository.url') ?: 'https://plugins.gradle.org/m2'
-  def dependencyGraphPluginVersion = getInputParam('dependency-graph-plugin.version') ?: '1.2.0'
+  def dependencyGraphPluginVersion = getInputParam('dependency-graph-plugin.version') ?: '1.2.1'
 
   repositories {
     maven { url pluginRepositoryUrl }
