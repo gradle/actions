@@ -12,7 +12,6 @@ on:
 env:
   DOWNLOAD_DIST: ${{ inputs.download-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-custom-gradle-home-${{ inputs.cache-key-prefix }}
-  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 
 jobs:
   seed-build:

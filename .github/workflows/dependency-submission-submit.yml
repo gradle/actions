@@ -8,9 +8,6 @@ on:
 permissions:
   contents: write
 
-env:
-  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
-
 jobs:
   dependency-submission-submit:
     runs-on: ubuntu-latest

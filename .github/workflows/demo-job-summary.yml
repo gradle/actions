@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   push:
 
-env:
-  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
-
 jobs:
   many-gradle-builds:
     runs-on: ubuntu-latest
