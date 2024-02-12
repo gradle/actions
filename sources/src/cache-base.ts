@@ -192,6 +192,10 @@ export class GradleStateCache {
 
         // Copy the default toolchain definitions to `~/.m2/toolchains.xml`
         this.registerToolchains()
+
+        if (core.isDebug()) {
+            this.configureInfoLogLevel()
+        }
     }
 
     private copyInitScripts(): void {
@@ -241,11 +245,30 @@ export class GradleStateCache {
     }
 
     /**
-     * When cache debugging is enabled, this method will give a detailed report
-     * of the Gradle User Home contents.
+     * When the GitHub environment ACTIONS_RUNNER_DEBUG is true, run Gradle with --info and --stacktrace.
+     * see https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging
+     *
+     * @VisibleForTesting
+     */
+    configureInfoLogLevel(): void {
+        const infoProperties = `org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n`
+        const propertiesFile = path.resolve(this.gradleUserHome, 'gradle.properties')
+        if (fs.existsSync(propertiesFile)) {
+            core.info(`Merged --info and --stacktrace into existing ${propertiesFile} file`)
+            const existingProperties = fs.readFileSync(propertiesFile, 'utf-8')
+            fs.writeFileSync(propertiesFile, `${infoProperties}\n${existingProperties}`)
+        } else {
+            core.info(`Created a new ${propertiesFile} with --info and --stacktrace`)
+            fs.writeFileSync(propertiesFile, infoProperties)
+        }
+    }
+
+    /**
+     * When cache debugging is enabled (or ACTIONS_STEP_DEBUG is on),
+     * this method will give a detailed report of the Gradle User Home contents.
      */
     private async debugReportGradleUserHomeSize(label: string): Promise<void> {
-        if (!isCacheDebuggingEnabled()) {
+        if (!isCacheDebuggingEnabled() && !core.isDebug()) {
             return
         }
         if (!fs.existsSync(this.gradleUserHome)) {

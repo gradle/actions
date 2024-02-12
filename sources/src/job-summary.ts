@@ -41,7 +41,9 @@ async function addPRComment(jobSummary: string): Promise<void> {
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
     const prComment = `<h3>Job Summary for Gradle</h3>
-<h5>${github.context.workflow} :: <em>${github.context.job}</em></h5>
+<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
+<h5>${context.workflow} :: <em>${context.job}</em></h5>
+</a>
 
 ${jobSummary}`
 
@@ -123,7 +125,7 @@ function renderBuildScan(result: BuildResult): string {
 function renderBuildScanBadge(outcomeText: string, outcomeColor: string, targetUrl: string): string {
     const badgeUrl = `https://img.shields.io/badge/Build%20Scan%C2%AE-${outcomeText}-${outcomeColor}?logo=Gradle`
     const badgeHtml = `<img src="${badgeUrl}" alt="Build Scan ${outcomeText}" />`
-    return `<a href="${targetUrl}" rel="nofollow">${badgeHtml}</a>`
+    return `<a href="${targetUrl}" rel="nofollow" target="_blank">${badgeHtml}</a>`
 }
 
 function shouldGenerateJobSummary(buildResults: BuildResult[]): boolean {

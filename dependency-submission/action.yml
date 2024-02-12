@@ -73,6 +73,7 @@ runs:
         arguments: |
           -Dorg.gradle.configureondemand=false
           -Dorg.gradle.dependency.verification=off
+          -Dorg.gradle.unsafe.isolated-projects=false
           :ForceDependencyResolutionPlugin_resolveAllDependencies
           ${{ inputs.additional-arguments }}
     - name: Download and submit dependency graph
