@@ -193,30 +193,6 @@ Specifically:
 
 Using either of these mechanisms may interfere with the caching provided by this action. If you choose to use a different mechanism to save and restore the Gradle User Home, you should disable the caching provided by this action, as described above.
 
-### GitHub Action Debug support
-To debug a failed job, GitHub provides a [debug mode](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging).
-If this debug mode is active, this action adds `--info` and `--stacktrace` by writing these [Gradle properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) into the `${GRADLE_USER_HOME}/gradle.properties` file at the top.
-
-To opt-out of this behaviour you can override these properties manually and put them into your `gradle.properties` file:
-```properties
-# default lifecycle
-org.gradle.logging.level=lifecycle
-org.gradle.logging.stacktrace=internal
-```
-### Cache debugging and analysis
-
-A report of all cache entries restored and saved is printed to the Job Summary when saving the cache entries. 
-This report can provide valuable insight into how much cache space is being used.
-
-It is possible to enable additional debug logging for cache operations. You do via the `GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED` environment variable:
-
-```yaml
-env:
-  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
-```
-
-Note that when the workflow is run in debug mode (above), cache debugging is automatically enabled.
-
 ## How Gradle User Home caching works
 
 ### Properties of the GitHub Actions cache
@@ -337,7 +313,6 @@ See [Using the cache read-only](#using-the-cache-read-only) for more details.
 Note there are some cases where writing cache entries is typically unhelpful (these are disabled by default):
 - For `pull_request` triggered runs, the cache scope is limited to the merge ref (`refs/pull/.../merge`) and can only be restored by re-runs of the same pull request.
 - For `merge_group` triggered runs, the cache scope is limited to a temporary branch with a special prefix created to validate pull request changes, and won't be available on subsequent Merge Queue executions.
-
   
 ### Exclude content from Gradle User Home cache
 
@@ -376,6 +351,32 @@ Gradle Home cache cleanup is considered experimental and is disabled by default.
 ```yaml
 gradle-home-cache-cleanup: true
 ```
+## Debugging and Troubleshooting
+
+In order to debug a failed job, it can be useful to run with [debug logging enabled](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging).
+You can enable debug logging either by adding an `ACTIONS_STEP_DEBUG` variable to your repository configuration, or by re-running a Job and checking the "Enable debug logging" box.
+
+### Increased logging from Gradle builds
+
+When debug logging is enabled, this action will cause all builds to run with the `--info` and `--stacktrace` options. 
+This is done by inserting the relevant [Gradle properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) 
+at the top of the `${GRADLE_USER_HOME}/gradle.properties` file.
+
+If the additional Gradle logging produced is problematic, you may opt-out of this behaviour by setting these properties manually in your project `gradle.properties` file:
+
+```properties
+# default lifecycle
+org.gradle.logging.level=lifecycle
+org.gradle.logging.stacktrace=internal
+```
+
+### Cache debugging and analysis
+
+A report of all cache entries restored and saved is printed to the Job Summary when saving the cache entries. 
+This report can provide valuable insight into how much cache space is being used.
+
+When debug logging is enabled, more detailed logging of cache operations is included in the GitHub actions log.
+This includes a breakdown of the contents of the Gradle User Home directory, which may assist in cache optimization.
 
 ## Build reporting
 
