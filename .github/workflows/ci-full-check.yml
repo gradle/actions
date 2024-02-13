@@ -13,6 +13,7 @@ on:
     paths:
       - '.github/**'
       - 'dist/**'
+      - '**/action.yml'
 
 jobs:
   action-inputs:
