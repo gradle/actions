@@ -17,6 +17,32 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-graph-${{ inputs.cache-key-prefix }}
 
 jobs:
+  failing-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Download distribution if required
+      uses: ./.github/actions/download-dist
+    - name: Setup Gradle for dependency-graph generate
+      uses: ./setup-gradle
+      with:
+        dependency-graph: generate
+        dependency-graph-continue-on-failure: true
+    - name: Run build that will fail
+      id: gradle-build
+      continue-on-error: true
+      run: ./gradlew build fail
+      working-directory: .github/workflow-samples/groovy-dsl
+    - name: Check no dependency graph is generated
+      shell: bash
+      run: |
+        if [ ! -z "$(ls -A dependency-graph-reports)" ]; then
+            echo "Expected no dependency graph files to be generated"
+            ls -l dependency-graph-reports
+            exit 1
+        fi        
+
   unsupported-gradle-version-warning:
     runs-on: ubuntu-latest
     steps:
