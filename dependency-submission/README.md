@@ -108,13 +108,43 @@ required, one to enable publishing and two more to accept the [Develocity terms 
         build-scan-terms-of-service-agree: "yes"
 ```
 
-### When you cannot use Build Scans®
+### When you cannot publish a Build Scan®
 
 If publishing a free Build Scan to https://scans.gradle.com isn't an option, and you don't have access to a private [Develocity
-server](https://gradle.com/) for your project, you can use the [GitHub Dependency Graph Gradle Plugin to generate a report]([https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-in-a-standalone-project](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-the-plugin-to-generate-dependency-reports)) 
-listing the dependencies resolved in your build.
+server](https://gradle.com/) for your project, you can obtain information about the each resolved dependency by running the `dependency-submission` workflow with debug logging enabled.
 
-After generating the dependency reports as described, it is possible to [determine the dependency source](https://github.com/gradle/github-dependency-graph-gradle-plugin/blob/main/README.md#using-dependency-reports-to-determine-the-underlying-source-of-a-dependency).
+The simplest way to do so is to re-run the dependency-submission job with debug logging enabled:
+
+<img width="665" alt="image" src="https://github.com/gradle/actions/assets/179734/d95b889a-09fb-4731-91f2-baebbf647e31">
+
+When you do so, the Gradle build that generates the dependency-graph will include a log message for each dependency version included in the graph.
+Given the details in one log message, you can run (locally) the built-in [dependencyInsight](https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#dependency_insights) task
+to determine exactly how the dependency was resolved. 
+
+For example, given the following message in the logs:
+```
+Detected dependency 'com.google.guava:guava:32.1.3-jre': project = ':my-subproject', configuration = 'compileClasspath'
+```
+
+You would run the following command locally:
+```
+./gradlew :my-subproject:dependencyInsight --configuration compileClasspath --dependency com.google.guava:guava:32.1.3-jre
+```
+
+#### Dealing with 'classpath' configuration
+
+If the configuration value in the log message is "classpath" then instead of running `dependency-insight` you'll need to run the Gradle
+`buildEnvironment` task.
+
+For example, given the following message in the logs:
+```
+Detected dependency 'xerces:xercesImpl:2.12.2': project = ':my-subproject', configuration = 'classpath'
+```
+
+You would run the following command locally to expose the `xercesImpl` dependency:
+```
+./gradlew :my-subproject:buildEnvironment | grep -C 5 xercesImpl
+```
 
 ## Updating the dependency version
 
