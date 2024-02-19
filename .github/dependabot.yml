@@ -14,6 +14,24 @@ updates:
       github-actions:
         patterns:
         - "*"
+  # github-actions with directory: "/" only monitors .github/workflows
+  # https://github.com/dependabot/dependabot-core/issues/6345
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/build-dist"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/download-dist"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/"
