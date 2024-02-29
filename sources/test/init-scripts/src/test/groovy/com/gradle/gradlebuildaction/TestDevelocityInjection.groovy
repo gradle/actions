@@ -214,7 +214,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         then:
         outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
-        outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true)
+        outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true, true)
         outputMissesCcudPluginApplicationViaInitScript(result)
 
         and:
