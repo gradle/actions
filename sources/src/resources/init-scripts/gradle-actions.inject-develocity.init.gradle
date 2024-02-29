@@ -113,7 +113,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                         buildScan.allowUntrustedServer = geAllowUntrustedServer
                     }
                     buildScan.publishAlways()
-                    if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() > GradleVersion.version('4.0')) {
+                    if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() > GradleVersion.version('5.0')) {
                         if (isNotAtLeast(gePluginVersion, '3.7')) {
                             buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
                         } else {
@@ -130,7 +130,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
-                            if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() > GradleVersion.version('4.0')) {
+                            if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() > GradleVersion.version('5.0')) {
                                 if (isNotAtLeast(gePluginVersion, '3.7')) {
                                     buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
                                 } else {
