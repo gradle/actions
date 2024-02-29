@@ -80,6 +80,7 @@ def geUrl = getInputParam('develocity.url')
 def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('develocity.allow-untrusted-server'))
 def geEnforceUrl = Boolean.parseBoolean(getInputParam('develocity.enforce-url'))
 def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam('develocity.build-scan.upload-in-background'))
+def geCaptureTaskInputFiles = Boolean.parseBoolean(getInputParam('develocity.build-scan.capture-task-input-files'))
 def gePluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
 def buildScanTermsOfServiceUrl = getInputParam('build-scan.terms-of-service.url')
@@ -107,11 +108,18 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     logger.quiet("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
                     applyPluginExternally(pluginManager, BUILD_SCAN_PLUGIN_CLASS)
                     if (geUrl) {
-                        logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                        logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                         buildScan.server = geUrl
                         buildScan.allowUntrustedServer = geAllowUntrustedServer
                     }
                     buildScan.publishAlways()
+                    if (isAtLeast(gePluginVersion, '2.1')) {
+                        if (isNotAtLeast(gePluginVersion, '3.7')) {
+                            buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
+                        } else {
+                            buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                        }
+                    }
                     if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = buildScanUploadInBackground  // uploadInBackground not available for build-scan-plugin 1.16
                     buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                 }
@@ -119,9 +127,16 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 if (geUrl && geEnforceUrl) {
                     pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
                         afterEvaluate {
-                            logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                            logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
+                            if (isAtLeast(gePluginVersion, '2.1')) {
+                                if (isNotAtLeast(gePluginVersion, '3.7')) {
+                                    buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
+                                } else {
+                                    buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                                }
+                            }
                         }
                     }
                 }
@@ -151,21 +166,35 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 applyPluginExternally(settings.pluginManager, DEVELOCITY_PLUGIN_CLASS)
                 eachDevelocityExtension(settings, DEVELOCITY_EXTENSION_CLASS) { ext ->
                     if (geUrl) {
-                        logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                        logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                         ext.server = geUrl
                         ext.allowUntrustedServer = geAllowUntrustedServer
                     }
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
+                    if (isAtLeast(gePluginVersion, '2.1')) {
+                        if (isNotAtLeast(gePluginVersion, '3.7')) {
+                            ext.buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
+                        } else {
+                            ext.buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                        }
+                    }
                     ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                 }
             }
 
             if (geUrl && geEnforceUrl) {
                 eachDevelocityExtension(settings, DEVELOCITY_EXTENSION_CLASS) { ext ->
-                    logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                    logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
+                    if (isAtLeast(gePluginVersion, '2.1')) {
+                        if (isNotAtLeast(gePluginVersion, '3.7')) {
+                            ext.buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
+                        } else {
+                            ext.buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                        }
+                    }
                 }
             }
 
@@ -207,5 +236,9 @@ static def eachDevelocityExtension(def settings, def publicType, def action) {
 }
 
 static boolean isNotAtLeast(String versionUnderTest, String referenceVersion) {
-    GradleVersion.version(versionUnderTest) < GradleVersion.version(referenceVersion)
+    !isAtLeast(versionUnderTest, referenceVersion)
+}
+
+static boolean isAtLeast(String versionUnderTest, String referenceVersion) {
+    GradleVersion.version(versionUnderTest) > GradleVersion.version(referenceVersion)
 }
