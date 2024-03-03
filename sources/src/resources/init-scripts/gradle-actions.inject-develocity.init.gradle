@@ -23,6 +23,8 @@ initscript {
     def pluginRepositoryUrl = getInputParam('gradle.plugin-repository.url')
     def gePluginVersion = getInputParam('develocity.plugin.version')
     def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
+    def gradlePluginRepoUsername = getInputParam('gradle.plugin-repository.username')
+    def gradlePluginRepoPassword = getInputParam('gradle.plugin-repository.password')
 
     def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
     def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -32,7 +34,19 @@ initscript {
         logger.quiet("Develocity plugins resolution: $pluginRepositoryUrl")
 
         repositories {
-            maven { url pluginRepositoryUrl }
+            maven {
+                url pluginRepositoryUrl
+                if (gradlePluginRepoUsername && gradlePluginRepoPassword) {
+                    logger.quiet("Using credentials for plugin repository")
+                    credentials {
+                        username(gradlePluginRepoUsername)
+                        password(gradlePluginRepoPassword)
+                    }
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                }
+            }
         }
     }
 

@@ -205,6 +205,26 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
+    def "can configure alternative repository for plugins with credentials when Develocity plugin is applied by the init script"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        def config = testConfig().withPluginRepository(new URI('https://plugins.grdev.net/m2')).withPluginRepositoryCredentials("john", "doe")
+        def result = run(testGradleVersion, config)
+
+        then:
+        outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
+        outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true)
+        outputMissesCcudPluginApplicationViaInitScript(result)
+        outputContainsPluginRepositoryInfo(result, 'https://plugins.grdev.net/m2', true)
+
+        and:
+        outputContainsBuildScanUrl(result)
+
+        where:
+        testGradleVersion << ALL_VERSIONS
+    }
+
     def "stops gracefully when requested CCUD plugin version is <1.7"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
@@ -311,10 +331,16 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assert 1 == result.output.count(geConnectionInfo)
     }
 
-    void outputContainsPluginRepositoryInfo(BuildResult result, String gradlePluginRepositoryUrl) {
+    void outputContainsPluginRepositoryInfo(BuildResult result, String gradlePluginRepositoryUrl, boolean withCredentials = false) {
         def repositoryInfo = "Develocity plugins resolution: ${gradlePluginRepositoryUrl}"
         assert result.output.contains(repositoryInfo)
         assert 1 == result.output.count(repositoryInfo)
+
+        if (withCredentials) {
+            def credentialsInfo = "Using credentials for plugin repository"
+            assert result.output.contains(credentialsInfo)
+            assert 1 == result.output.count(credentialsInfo)
+        }
     }
 
     void outputEnforcesDevelocityUrl(BuildResult result, String geUrl, boolean geAllowUntrustedServer) {
@@ -350,6 +376,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         boolean enforceUrl = false
         String ccudPluginVersion = null
         String pluginRepositoryUrl = null
+        String pluginRepoUsername = null
+        String pluginRepoPassword = null
 
         TestConfig withCCUDPlugin(String version = CCUD_PLUGIN_VERSION) {
             ccudPluginVersion = version
@@ -367,6 +395,12 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             return this
         }
 
+        TestConfig withPluginRepositoryCredentials(String pluginRepoUsername, String pluginRepoPassword) {
+            this.pluginRepoUsername = pluginRepoUsername
+            this.pluginRepoPassword = pluginRepoPassword
+            return this
+        }
+
         def getEnvVars() {
             Map<String, String> envVars = [
                 DEVELOCITY_INJECTION_ENABLED: "true",
@@ -378,6 +412,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) envVars.put("DEVELOCITY_ENFORCE_URL", "true")
             if (ccudPluginVersion != null) envVars.put("DEVELOCITY_CCUD_PLUGIN_VERSION", ccudPluginVersion)
             if (pluginRepositoryUrl != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
+            if (pluginRepoUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepoUsername)
+            if (pluginRepoPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepoPassword)
 
             return envVars
         }
@@ -394,6 +430,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) jvmArgs.add("-Ddevelocity.enforce-url=true")
             if (ccudPluginVersion != null) jvmArgs.add("-Ddevelocity.ccud-plugin.version=$ccudPluginVersion")
             if (pluginRepositoryUrl != null) jvmArgs.add("-Dgradle.plugin-repository.url=$pluginRepositoryUrl")
+            if (pluginRepoUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepoUsername")
+            if (pluginRepoPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepoPassword")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
         }

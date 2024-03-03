@@ -663,15 +663,17 @@ with a valid [Develocity access key](https://docs.gradle.com/enterprise/gradle-p
 
 The `init-script` supports several additional configuration parameters that you may find useful. All configuration options (required and optional) are detailed below:
 
-| Variable                          | Required | Description |
-|-----------------------------------| --- | --- |
-| DEVELOCITY_INJECTION_ENABLED      | :white_check_mark: | enables Develocity injection |
-| DEVELOCITY_URL                    | :white_check_mark: | the URL of the Develocity server |
-| DEVELOCITY_ALLOW_UNTRUSTED_SERVER | | allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed certificate |
+| Variable                          | Required | Description                                                                                                                                                              |
+|-----------------------------------| --- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| DEVELOCITY_INJECTION_ENABLED      | :white_check_mark: | enables Develocity injection                                                                                                                                             |
+| DEVELOCITY_URL                    | :white_check_mark: | the URL of the Develocity server                                                                                                                                         |
+| DEVELOCITY_ALLOW_UNTRUSTED_SERVER | | allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed certificate                                               |
 | DEVELOCITY_ENFORCE_URL            | | enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL |
-| DEVELOCITY_PLUGIN_VERSION         | :white_check_mark: | the version of the [Develocity Gradle plugin](https://docs.gradle.com/enterprise/gradle-plugin/) to apply |
-| DEVELOCITY_CCUD_PLUGIN_VERSION    |  | the version of the [Common Custom User Data Gradle plugin](https://github.com/gradle/common-custom-user-data-gradle-plugin) to apply, if any |
-| GRADLE_PLUGIN_REPOSITORY_URL      |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default |
+| DEVELOCITY_PLUGIN_VERSION         | :white_check_mark: | the version of the [Develocity Gradle plugin](https://docs.gradle.com/enterprise/gradle-plugin/) to apply                                                                |
+| DEVELOCITY_CCUD_PLUGIN_VERSION    |  | the version of the [Common Custom User Data Gradle plugin](https://github.com/gradle/common-custom-user-data-gradle-plugin) to apply, if any                             |
+| GRADLE_PLUGIN_REPOSITORY_URL      |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default                                             |
+| GRADLE_PLUGIN_REPOSITORY_USERNAME |  | the username for the repository URL to use when resolving the Develocity and CCUD plugins                                                                                |
+| GRADLE_PLUGIN_REPOSITORY_PASSWORD |  | the password for the repository URL to use when resolving the Develocity and CCUD plugins                                                                                |
 
 ## Publishing to scans.gradle.com
 
