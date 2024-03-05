@@ -80,7 +80,7 @@ def geUrl = getInputParam('develocity.url')
 def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('develocity.allow-untrusted-server'))
 def geEnforceUrl = Boolean.parseBoolean(getInputParam('develocity.enforce-url'))
 def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam('develocity.build-scan.upload-in-background'))
-def geCaptureTaskInputFiles = Boolean.parseBoolean(getInputParam('develocity.build-scan.capture-task-input-files'))
+def geCaptureTaskInputFiles = Boolean.parseBoolean(getInputParam('develocity.capture-task-input-files'))
 def gePluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
 def buildScanTermsOfServiceUrl = getInputParam('build-scan.terms-of-service.url')
@@ -113,11 +113,11 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                         buildScan.allowUntrustedServer = geAllowUntrustedServer
                     }
                     buildScan.publishAlways()
-                    if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() > GradleVersion.version('5.0')) {
-                        if (isNotAtLeast(gePluginVersion, '3.7')) {
-                            buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
-                        } else {
+                    if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() >= GradleVersion.version('5.0')) {
+                        if (isAtLeast(gePluginVersion, '3.7')) {
                             buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                        } else {
+                            buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
                         }
                     }
                     if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = buildScanUploadInBackground  // uploadInBackground not available for build-scan-plugin 1.16
@@ -130,11 +130,11 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
-                            if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() > GradleVersion.version('5.0')) {
-                                if (isNotAtLeast(gePluginVersion, '3.7')) {
-                                    buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
-                                } else {
+                            if (isAtLeast(gePluginVersion, '2.1') && GradleVersion.current() >= GradleVersion.version('5.0')) {
+                                if (isAtLeast(gePluginVersion, '3.7')) {
                                     buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                                } else {
+                                    buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
                                 }
                             }
                         }
@@ -173,10 +173,10 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
                     if (isAtLeast(gePluginVersion, '2.1')) {
-                        if (isNotAtLeast(gePluginVersion, '3.7')) {
-                            ext.buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
-                        } else {
+                        if (isAtLeast(gePluginVersion, '3.7')) {
                             ext.buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                        } else {
+                            ext.buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
                         }
                     }
                     ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
@@ -189,10 +189,10 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
                     if (isAtLeast(gePluginVersion, '2.1')) {
-                        if (isNotAtLeast(gePluginVersion, '3.7')) {
-                            ext.buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
-                        } else {
+                        if (isAtLeast(gePluginVersion, '3.7')) {
                             ext.buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
+                        } else {
+                            ext.buildScan.captureTaskInputFiles = geCaptureTaskInputFiles
                         }
                     }
                 }
@@ -240,5 +240,5 @@ static boolean isNotAtLeast(String versionUnderTest, String referenceVersion) {
 }
 
 static boolean isAtLeast(String versionUnderTest, String referenceVersion) {
-    GradleVersion.version(versionUnderTest) > GradleVersion.version(referenceVersion)
+    GradleVersion.version(versionUnderTest) >= GradleVersion.version(referenceVersion)
 }

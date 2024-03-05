@@ -403,7 +403,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) envVars.put("DEVELOCITY_ENFORCE_URL", "true")
             if (ccudPluginVersion != null) envVars.put("DEVELOCITY_CCUD_PLUGIN_VERSION", ccudPluginVersion)
             if (pluginRepositoryUrl != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
-            if (captureTaskInputFiles) envVars.put("DEVELOCITY_BUILD_SCAN_CAPTURE_TASK_INPUT_FILES", "true")
+            if (captureTaskInputFiles) envVars.put("DEVELOCITY_CAPTURE_TASK_INPUT_FILES", "true")
 
             return envVars
         }
@@ -420,7 +420,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) jvmArgs.add("-Ddevelocity.enforce-url=true")
             if (ccudPluginVersion != null) jvmArgs.add("-Ddevelocity.ccud-plugin.version=$ccudPluginVersion")
             if (pluginRepositoryUrl != null) jvmArgs.add("-Dgradle.plugin-repository.url=$pluginRepositoryUrl")
-            if (captureTaskInputFiles) jvmArgs.add("-Ddevelocity.build-scan.capture-task-input-files=true")
+            if (captureTaskInputFiles) jvmArgs.add("-Ddevelocity.capture-task-input-files=true")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
         }
