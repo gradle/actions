@@ -673,7 +673,7 @@ The `init-script` supports several additional configuration parameters that you 
 | DEVELOCITY_CCUD_PLUGIN_VERSION    |  | the version of the [Common Custom User Data Gradle plugin](https://github.com/gradle/common-custom-user-data-gradle-plugin) to apply, if any                             |
 | GRADLE_PLUGIN_REPOSITORY_URL      |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default                                             |
 | GRADLE_PLUGIN_REPOSITORY_USERNAME |  | the username for the repository URL to use when resolving the Develocity and CCUD plugins                                                                                |
-| GRADLE_PLUGIN_REPOSITORY_PASSWORD |  | the password for the repository URL to use when resolving the Develocity and CCUD plugins                                                                                |
+| GRADLE_PLUGIN_REPOSITORY_PASSWORD |  | the password for the repository URL to use when resolving the Develocity and CCUD plugins; Consider using secrets to pass the value to this variable                     |
 
 ## Publishing to scans.gradle.com
 
