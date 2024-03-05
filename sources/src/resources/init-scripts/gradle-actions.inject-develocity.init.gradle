@@ -29,7 +29,7 @@ initscript {
 
     if (gePluginVersion || ccudPluginVersion && atLeastGradle4) {
         pluginRepositoryUrl = pluginRepositoryUrl ?: 'https://plugins.gradle.org/m2'
-        logger.quiet("Develocity plugins resolution: $pluginRepositoryUrl")
+        logger.lifecycle("Develocity plugins resolution: $pluginRepositoryUrl")
 
         repositories {
             maven { url pluginRepositoryUrl }
@@ -106,10 +106,10 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     it.moduleVersion.with { group == "com.gradle" && (name == "build-scan-plugin" || name == "gradle-enterprise-gradle-plugin") }
                 }
                 if (!scanPluginComponent) {
-                    logger.quiet("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
+                    logger.lifecycle("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
                     applyPluginExternally(pluginManager, BUILD_SCAN_PLUGIN_CLASS)
                     if (geUrl) {
-                        logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
+                        logger.lifecycle("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                         buildScan.server = geUrl
                         buildScan.allowUntrustedServer = geAllowUntrustedServer
                     }
@@ -128,7 +128,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 if (geUrl && geEnforceUrl) {
                     pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
                         afterEvaluate {
-                            logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
+                            logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
                             if (isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
@@ -153,7 +153,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     it.moduleVersion.with { group == "com.gradle" && name == "common-custom-user-data-gradle-plugin" }
                 }
                 if (!ccudPluginComponent) {
-                    logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
+                    logger.lifecycle("Applying $CCUD_PLUGIN_CLASS via init script")
                     pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
                 }
             }
@@ -163,11 +163,11 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
     gradle.settingsEvaluated { settings ->
         if (gePluginVersion) {
             if (!settings.pluginManager.hasPlugin(DEVELOCITY_PLUGIN_ID)) {
-                logger.quiet("Applying $DEVELOCITY_PLUGIN_CLASS via init script")
+                logger.lifecycle("Applying $DEVELOCITY_PLUGIN_CLASS via init script")
                 applyPluginExternally(settings.pluginManager, DEVELOCITY_PLUGIN_CLASS)
                 eachDevelocityExtension(settings, DEVELOCITY_EXTENSION_CLASS) { ext ->
                     if (geUrl) {
-                        logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
+                        logger.lifecycle("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                         ext.server = geUrl
                         ext.allowUntrustedServer = geAllowUntrustedServer
                     }
@@ -186,7 +186,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
 
             if (geUrl && geEnforceUrl) {
                 eachDevelocityExtension(settings, DEVELOCITY_EXTENSION_CLASS) { ext ->
-                    logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
+                    logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
                     if (isAtLeast(gePluginVersion, '2.1')) {
@@ -209,7 +209,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
 
         if (ccudPluginVersion) {
             if (!settings.pluginManager.hasPlugin(CCUD_PLUGIN_ID)) {
-                logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
+                logger.lifecycle("Applying $CCUD_PLUGIN_CLASS via init script")
                 settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
             }
         }
