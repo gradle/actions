@@ -107,7 +107,13 @@ class BuildResults {
     }
 
     def setBuildResult(def result) {
-        buildResults['buildFailed'] = result.failure != null
+        try {
+            // Gradle and old Build Scan/Gradle Enterprise plugins report a single optional failure in the build result
+            buildResults['buildFailed'] = result.failure != null
+        } catch (Exception e) {
+            // Develocity plugin unwraps all build failures and reports them as a mandatory array
+            buildResults['buildFailed'] = !result.failures.empty
+        }
     }
 
     def setBuildScanUri(def buildScanUrl) {
