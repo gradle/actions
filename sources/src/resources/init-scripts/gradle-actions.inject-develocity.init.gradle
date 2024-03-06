@@ -72,10 +72,9 @@ def GRADLE_ENTERPRISE_PLUGIN_CLASS = 'com.gradle.enterprise.gradleplugin.GradleE
 
 def DEVELOCITY_PLUGIN_ID = 'com.gradle.develocity'
 def DEVELOCITY_PLUGIN_CLASS = 'com.gradle.develocity.agent.gradle.DevelocityPlugin'
-def SETTINGS_EXTENSION_CLASSES = [
-        'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension',
-        'com.gradle.develocity.agent.gradle.DevelocityConfiguration'
-]
+def GRADLE_ENTERPRISE_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
+def DEVELOCITY_CONFIGURATION_CLASS = 'com.gradle.develocity.agent.gradle.DevelocityConfiguration'
+def SETTINGS_EXTENSION_CLASSES = [GRADLE_ENTERPRISE_EXTENSION_CLASS, DEVELOCITY_CONFIGURATION_CLASS]
 
 def CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = 'CI auto injection'
 def CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE = 'gradle-actions'
@@ -105,8 +104,8 @@ def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam('develocity
 def develocityCaptureFileFingerprints = getInputParam('develocity.capture-file-fingerprints') ? Boolean.parseBoolean(getInputParam('develocity.capture-file-fingerprints')) : true
 def develocityPluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
-def buildScanTermsOfServiceUrl = getInputParam('build-scan.terms-of-service.url')
-def buildScanTermsOfServiceAgree = getInputParam('build-scan.terms-of-service.agree')
+def buildScanTermsOfUseUrl = getInputParam('build-scan.terms-of-use.url') ?: getInputParam('build-scan.terms-of-service.url')
+def buildScanTermsOfUseAgree = getInputParam('build-scan.terms-of-use.agree') ?: getInputParam('build-scan.terms-of-service.agree')
 
 def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
 def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -177,9 +176,9 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             buildScan.allowUntrustedServer = develocityAllowUntrustedServer
                         }
 
-                        if (buildScanTermsOfServiceUrl && buildScanTermsOfServiceAgree) {
-                            buildScan.termsOfServiceUrl = buildScanTermsOfServiceUrl
-                            buildScan.termsOfServiceAgree = buildScanTermsOfServiceAgree
+                        if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
+                            buildScan.termsOfServiceUrl = buildScanTermsOfUseUrl
+                            buildScan.termsOfServiceAgree = buildScanTermsOfUseAgree
                         }
                     }
                 }
@@ -191,9 +190,9 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             develocity.allowUntrustedServer = develocityAllowUntrustedServer
                         }
 
-                        if (buildScanTermsOfServiceUrl && buildScanTermsOfServiceAgree) {
-                            develocity.buildScan.termsOfServiceUrl = buildScanTermsOfServiceUrl
-                            develocity.buildScan.termsOfServiceAgree = buildScanTermsOfServiceAgree
+                        if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
+                            develocity.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
+                            develocity.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
                         }
                     }
                 }
@@ -251,10 +250,14 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 }
             }
 
-            if (buildScanTermsOfServiceUrl && buildScanTermsOfServiceAgree) {
-                eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
-                    ext.buildScan.termsOfServiceUrl = buildScanTermsOfServiceUrl
-                    ext.buildScan.termsOfServiceAgree = buildScanTermsOfServiceAgree
+            if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
+                eachDevelocitySettingsExtension(settings, [GRADLE_ENTERPRISE_EXTENSION_CLASS]) { ext ->
+                    ext.buildScan.termsOfServiceUrl = buildScanTermsOfUseUrl
+                    ext.buildScan.termsOfServiceAgree = buildScanTermsOfUseAgree
+                }
+                eachDevelocitySettingsExtension(settings, [DEVELOCITY_CONFIGURATION_CLASS]) { ext ->
+                    ext.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
+                    ext.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
                 }
             }
         }

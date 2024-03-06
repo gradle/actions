@@ -85,16 +85,16 @@ inputs:
   build-scan-publish:
     description: |
       Set to 'true' to automatically publish build results as a Build Scan on scans.gradle.com.
-      For publication to succeed without user input, you must also provide values for `build-scan-terms-of-service-url` and 'build-scan-terms-of-service-agree'.
+      For publication to succeed without user input, you must also provide values for `build-scan-terms-of-use-url` and 'build-scan-terms-of-use-agree'.
     required: false
     default: false
 
-  build-scan-terms-of-service-url:
-    description: The URL to the Build Scan® terms of service. This input must be set to 'https://gradle.com/terms-of-service'.
+  build-scan-terms-of-use-url:
+    description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.
     required: false
   
-  build-scan-terms-of-service-agree:
-    description: Indicate that you agree to the Build Scan® terms of service. This input value must be "yes".
+  build-scan-terms-of-use-agree:
+    description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
     required: false
 
   # DEPRECATED ACTION INPUTS

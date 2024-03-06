@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import {
     getBuildScanPublishEnabled,
-    getBuildScanTermsOfServiceUrl,
-    getBuildScanTermsOfServiceAgree
+    getBuildScanTermsOfUseUrl,
+    getBuildScanTermsOfUseAgree
 } from './input-params'
 
 export function setup(): void {
@@ -10,17 +10,17 @@ export function setup(): void {
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
         maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.16.2')
         maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')
-        maybeExportVariable('BUILD_SCAN_TERMS_OF_SERVICE_URL', getBuildScanTermsOfServiceUrl())
-        maybeExportVariable('BUILD_SCAN_TERMS_OF_SERVICE_AGREE', getBuildScanTermsOfServiceAgree())
+        maybeExportVariable('BUILD_SCAN_TERMS_OF_SERVICE_URL', getBuildScanTermsOfUseUrl())
+        maybeExportVariable('BUILD_SCAN_TERMS_OF_SERVICE_AGREE', getBuildScanTermsOfUseAgree())
     }
 }
 
 function verifyTermsOfServiceAgreement(): boolean {
     if (
-        getBuildScanTermsOfServiceUrl() !== 'https://gradle.com/terms-of-service' ||
-        getBuildScanTermsOfServiceAgree() !== 'yes'
+        getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' ||
+        getBuildScanTermsOfUseAgree() !== 'yes'
     ) {
-        core.warning(`Terms of service must be agreed in order to publish build scans.`)
+        core.warning(`Terms of use must be agreed in order to publish build scans.`)
         return false
     }
     return true
