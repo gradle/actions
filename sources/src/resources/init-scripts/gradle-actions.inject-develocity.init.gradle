@@ -157,10 +157,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     }
                     if (isAtLeast(develocityPluginVersion, '2.1') && atLeastGradle5) {
                         logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
-                        if (isAtLeast(develocityPluginVersion, '3.7')) {
-                            buildScan.capture.taskInputFiles = develocityCaptureFileFingerprints
+                        if (isAtLeast(develocityPluginVersion, '3.17')) {
+                            buildScanExtension.capture.fileFingerprints.set(develocityCaptureFileFingerprints)
+                        } else if (isAtLeast(develocityPluginVersion, '3.7')) {
+                            buildScanExtension.capture.taskInputFiles = develocityCaptureFileFingerprints
                         } else {
-                            buildScan.captureTaskInputFiles = develocityCaptureFileFingerprints
+                            buildScanExtension.captureTaskInputFiles = develocityCaptureFileFingerprints
                         }
                     }
                     // uploadInBackground not available for build-scan-plugin 1.16
@@ -194,6 +196,8 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             develocity.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
                             develocity.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
                         }
+
+                        develocity.buildScan.capture.fileFingerprints.set(develocityCaptureFileFingerprints)
                     }
                 }
             }
@@ -225,11 +229,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 }
 
                 eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
-                    if (!shouldApplyDevelocityPlugin) {
-                        // Develocity plugin publishes build scans by default
-                        ext.buildScan.publishAlways()
-                    }
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
+                    ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
+                }
+
+                eachDevelocitySettingsExtension(settings, [GRADLE_ENTERPRISE_EXTENSION_CLASS]) { ext ->
+                    ext.buildScan.publishAlways()
                     if (isAtLeast(develocityPluginVersion, '2.1')) {
                         logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
                         if (isAtLeast(develocityPluginVersion, '3.7')) {
@@ -238,12 +243,15 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             ext.buildScan.captureTaskInputFiles = develocityCaptureFileFingerprints
                         }
                     }
-                    ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
+                }
+
+                eachDevelocitySettingsExtension(settings, [DEVELOCITY_CONFIGURATION_CLASS]) { ext ->
+                    ext.buildScan.capture.fileFingerprints.set(develocityCaptureFileFingerprints)
                 }
             }
 
             if (develocityUrl && develocityEnforceUrl) {
-                logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
+                logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer")
                 eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
                     ext.server = develocityUrl
                     ext.allowUntrustedServer = develocityAllowUntrustedServer
