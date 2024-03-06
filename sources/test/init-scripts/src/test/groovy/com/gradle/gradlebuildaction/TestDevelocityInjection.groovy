@@ -225,11 +225,11 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
-    def "can configure capturing task input files when Develocity plugin is applied by the init script"() {
+    def "can configure capturing file fingerprints when Develocity plugin is applied by the init script"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        def config = testConfig().withCaptureTaskInputFiles()
+        def config = testConfig().withCaptureFileFingerprints()
         def result = run(testGradleVersion, config)
 
         then:
@@ -397,7 +397,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         String pluginRepositoryUrl = null
         String pluginRepositoryUsername = null
         String pluginRepositoryPassword = null
-        boolean captureTaskInputFiles = false
+        boolean captureFileFingerprints = false
 
         TestConfig withCCUDPlugin(String version = CCUD_PLUGIN_VERSION) {
             ccudPluginVersion = version
@@ -415,8 +415,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             return this
         }
 
-        TestConfig withCaptureTaskInputFiles() {
-            this.captureTaskInputFiles = true
+        TestConfig withCaptureFileFingerprints() {
+            this.captureFileFingerprints = true
             return this
         }
 
@@ -439,7 +439,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (pluginRepositoryUrl != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
             if (pluginRepositoryUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepositoryUsername)
             if (pluginRepositoryPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepositoryPassword)
-            if (captureTaskInputFiles) envVars.put("DEVELOCITY_CAPTURE_TASK_INPUT_FILES", "true")
+            if (captureFileFingerprints) envVars.put("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS", "true")
 
             return envVars
         }
@@ -458,7 +458,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (pluginRepositoryUrl != null) jvmArgs.add("-Dgradle.plugin-repository.url=$pluginRepositoryUrl")
             if (pluginRepositoryUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepositoryUsername")
             if (pluginRepositoryPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepositoryPassword")
-            if (captureTaskInputFiles) jvmArgs.add("-Ddevelocity.capture-task-input-files=true")
+            if (captureFileFingerprints) jvmArgs.add("-Ddevelocity.capture-file-fingerprints=true")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
         }
