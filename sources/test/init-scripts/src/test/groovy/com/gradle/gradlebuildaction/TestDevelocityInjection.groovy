@@ -395,8 +395,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         boolean enforceUrl = false
         String ccudPluginVersion = null
         String pluginRepositoryUrl = null
-        String pluginRepoUsername = null
-        String pluginRepoPassword = null
+        String pluginRepositoryUsername = null
+        String pluginRepositoryPassword = null
         boolean captureTaskInputFiles = false
 
         TestConfig withCCUDPlugin(String version = CCUD_PLUGIN_VERSION) {
@@ -421,8 +421,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         }
 
         TestConfig withPluginRepositoryCredentials(String pluginRepoUsername, String pluginRepoPassword) {
-            this.pluginRepoUsername = pluginRepoUsername
-            this.pluginRepoPassword = pluginRepoPassword
+            this.pluginRepositoryUsername = pluginRepoUsername
+            this.pluginRepositoryPassword = pluginRepoPassword
             return this
         }
 
@@ -437,8 +437,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) envVars.put("DEVELOCITY_ENFORCE_URL", "true")
             if (ccudPluginVersion != null) envVars.put("DEVELOCITY_CCUD_PLUGIN_VERSION", ccudPluginVersion)
             if (pluginRepositoryUrl != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
-            if (pluginRepoUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepoUsername)
-            if (pluginRepoPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepoPassword)
+            if (pluginRepositoryUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepositoryUsername)
+            if (pluginRepositoryPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepositoryPassword)
             if (captureTaskInputFiles) envVars.put("DEVELOCITY_CAPTURE_TASK_INPUT_FILES", "true")
 
             return envVars
@@ -456,8 +456,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) jvmArgs.add("-Ddevelocity.enforce-url=true")
             if (ccudPluginVersion != null) jvmArgs.add("-Ddevelocity.ccud-plugin.version=$ccudPluginVersion")
             if (pluginRepositoryUrl != null) jvmArgs.add("-Dgradle.plugin-repository.url=$pluginRepositoryUrl")
-            if (pluginRepoUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepoUsername")
-            if (pluginRepoPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepoPassword")
+            if (pluginRepositoryUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepositoryUsername")
+            if (pluginRepositoryPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepositoryPassword")
             if (captureTaskInputFiles) jvmArgs.add("-Ddevelocity.capture-task-input-files=true")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
