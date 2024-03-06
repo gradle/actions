@@ -225,6 +225,25 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
+    def "can configure capturing file fingerprints when Develocity plugin is applied by the init script"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        def config = testConfig().withCaptureFileFingerprints()
+        def result = run(testGradleVersion, config)
+
+        then:
+        outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
+        outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true, true)
+        outputMissesCcudPluginApplicationViaInitScript(result)
+
+        and:
+        outputContainsBuildScanUrl(result)
+
+        where:
+        testGradleVersion << ALL_VERSIONS
+    }
+
     def "stops gracefully when requested CCUD plugin version is <1.7"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
@@ -325,8 +344,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assert !result.output.contains(pluginApplicationLogMsg)
     }
 
-    void outputContainsDevelocityConnectionInfo(BuildResult result, String geUrl, boolean geAllowUntrustedServer) {
-        def geConnectionInfo = "Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer"
+    void outputContainsDevelocityConnectionInfo(BuildResult result, String geUrl, boolean geAllowUntrustedServer, boolean geCaptureFileFingerprints = false) {
+        def geConnectionInfo = "Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureFileFingerprints: $geCaptureFileFingerprints"
         assert result.output.contains(geConnectionInfo)
         assert 1 == result.output.count(geConnectionInfo)
     }
@@ -376,8 +395,9 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         boolean enforceUrl = false
         String ccudPluginVersion = null
         String pluginRepositoryUrl = null
-        String pluginRepoUsername = null
-        String pluginRepoPassword = null
+        String pluginRepositoryUsername = null
+        String pluginRepositoryPassword = null
+        boolean captureFileFingerprints = false
 
         TestConfig withCCUDPlugin(String version = CCUD_PLUGIN_VERSION) {
             ccudPluginVersion = version
@@ -395,9 +415,14 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             return this
         }
 
+        TestConfig withCaptureFileFingerprints() {
+            this.captureFileFingerprints = true
+            return this
+        }
+
         TestConfig withPluginRepositoryCredentials(String pluginRepoUsername, String pluginRepoPassword) {
-            this.pluginRepoUsername = pluginRepoUsername
-            this.pluginRepoPassword = pluginRepoPassword
+            this.pluginRepositoryUsername = pluginRepoUsername
+            this.pluginRepositoryPassword = pluginRepoPassword
             return this
         }
 
@@ -412,8 +437,9 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) envVars.put("DEVELOCITY_ENFORCE_URL", "true")
             if (ccudPluginVersion != null) envVars.put("DEVELOCITY_CCUD_PLUGIN_VERSION", ccudPluginVersion)
             if (pluginRepositoryUrl != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
-            if (pluginRepoUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepoUsername)
-            if (pluginRepoPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepoPassword)
+            if (pluginRepositoryUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepositoryUsername)
+            if (pluginRepositoryPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepositoryPassword)
+            if (captureFileFingerprints) envVars.put("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS", "true")
 
             return envVars
         }
@@ -430,8 +456,9 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (enforceUrl) jvmArgs.add("-Ddevelocity.enforce-url=true")
             if (ccudPluginVersion != null) jvmArgs.add("-Ddevelocity.ccud-plugin.version=$ccudPluginVersion")
             if (pluginRepositoryUrl != null) jvmArgs.add("-Dgradle.plugin-repository.url=$pluginRepositoryUrl")
-            if (pluginRepoUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepoUsername")
-            if (pluginRepoPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepoPassword")
+            if (pluginRepositoryUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepositoryUsername")
+            if (pluginRepositoryPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepositoryPassword")
+            if (captureFileFingerprints) jvmArgs.add("-Ddevelocity.capture-file-fingerprints=true")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
         }
