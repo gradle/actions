@@ -688,7 +688,7 @@ The `init-script` supports several additional configuration parameters that you 
 Develocity injection is designed to enable the publishing of build scans to a Develocity instance,
 but is also useful for publishing to the public Build Scans instance (https://scans.gradle.com).
 
-To publish to https://scans.gradle.com, you must specify in your workflow that you accept the [Gradle Terms of Service](https://gradle.com/terms-of-service).
+To publish to https://scans.gradle.com, you must specify in your workflow that you accept the [Gradle Terms of Use](https://gradle.com/terms-of-service).
 
 ```yaml
 name: Run build and publish Build Scan
@@ -702,8 +702,8 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
       with:
         build-scan-publish: true
-        build-scan-terms-of-service-url: "https://gradle.com/terms-of-service"
-        build-scan-terms-of-service-agree: "yes"
+        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+        build-scan-terms-of-use-agree: "yes"
 
     - name: Run a Gradle build - a build scan will be published automatically
       run: ./gradlew build

@@ -83,8 +83,8 @@ jobs:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         gradle-version: ${{ matrix.gradle }}
         build-scan-publish: true
-        build-scan-terms-of-service-url: "https://gradle.com/terms-of-service"
-        build-scan-terms-of-service-agree: "yes"
+        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+        build-scan-terms-of-use-agree: "yes"
     - name: Run Gradle build
       id: gradle
       working-directory: .github/workflow-samples/no-ge
