@@ -187,7 +187,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
                     afterEvaluate {
                         if (develocityUrl && develocityEnforceUrl) {
-                            logger.quiet("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Build Scan plugin")
+                            logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer for Build Scan plugin")
                             develocity.server = develocityUrl
                             develocity.allowUntrustedServer = develocityAllowUntrustedServer
                         }
