@@ -14,7 +14,7 @@ export function setup(): void {
 function verifyTermsOfUseAgreement(): boolean {
     if (
         getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' ||
-        getBuildScanTermsOfUseUrl() !== 'https://gradle.com/legal/terms-of-use' ||
+        getBuildScanTermsOfUseUrl() !== 'https://gradle.com/help/legal-terms-of-use' ||
         getBuildScanTermsOfUseAgree() !== 'yes'
     ) {
         core.warning(`Terms of use must be agreed in order to publish build scans.`)
