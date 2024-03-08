@@ -75,11 +75,12 @@ def BUILD_SCAN_PLUGIN_CLASS = 'com.gradle.scan.plugin.BuildScanPlugin'
 
 def GRADLE_ENTERPRISE_PLUGIN_ID = 'com.gradle.enterprise'
 def GRADLE_ENTERPRISE_PLUGIN_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin'
+def GRADLE_ENTERPRISE_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
 
 def DEVELOCITY_PLUGIN_ID = 'com.gradle.develocity'
 def DEVELOCITY_PLUGIN_CLASS = 'com.gradle.develocity.agent.gradle.DevelocityPlugin'
-def GRADLE_ENTERPRISE_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
 def DEVELOCITY_CONFIGURATION_CLASS = 'com.gradle.develocity.agent.gradle.DevelocityConfiguration'
+
 def SETTINGS_EXTENSION_CLASSES = [GRADLE_ENTERPRISE_EXTENSION_CLASS, DEVELOCITY_CONFIGURATION_CLASS]
 
 def CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = 'CI auto injection'
