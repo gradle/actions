@@ -53,9 +53,15 @@ initscript {
 
     dependencies {
         if (develocityPluginVersion) {
-            classpath atLeastGradle5 ?
-                    shouldApplyDevelocityPlugin ? "com.gradle:develocity-gradle-plugin:$develocityPluginVersion" : "com.gradle:gradle-enterprise-gradle-plugin:$develocityPluginVersion" :
-                    "com.gradle:build-scan-plugin:1.16"
+            if (atLeastGradle5) {
+                if (GradleVersion.version(develocityPluginVersion) >= GradleVersion.version("3.17")) {
+                    classpath "com.gradle:develocity-gradle-plugin:$develocityPluginVersion"
+                } else {
+                    classpath "com.gradle:gradle-enterprise-gradle-plugin:$develocityPluginVersion"
+                }
+            } else {
+                classpath "com.gradle:build-scan-plugin:1.16"
+            }
         }
 
         if (ccudPluginVersion && atLeastGradle4) {
