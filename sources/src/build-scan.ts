@@ -1,9 +1,5 @@
 import * as core from '@actions/core'
-import {
-    getBuildScanPublishEnabled,
-    getBuildScanTermsOfUseUrl,
-    getBuildScanTermsOfUseAgree
-} from './input-params'
+import {getBuildScanPublishEnabled, getBuildScanTermsOfUseUrl, getBuildScanTermsOfUseAgree} from './input-params'
 
 export function setup(): void {
     if (getBuildScanPublishEnabled() && verifyTermsOfServiceAgreement()) {
@@ -18,6 +14,7 @@ export function setup(): void {
 function verifyTermsOfServiceAgreement(): boolean {
     if (
         getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' ||
+        getBuildScanTermsOfUseUrl() !== 'https://gradle.com/legal/terms-of-use' ||
         getBuildScanTermsOfUseAgree() !== 'yes'
     ) {
         core.warning(`Terms of use must be agreed in order to publish build scans.`)
