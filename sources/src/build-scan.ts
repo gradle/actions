@@ -2,16 +2,16 @@ import * as core from '@actions/core'
 import {getBuildScanPublishEnabled, getBuildScanTermsOfUseUrl, getBuildScanTermsOfUseAgree} from './input-params'
 
 export function setup(): void {
-    if (getBuildScanPublishEnabled() && verifyTermsOfServiceAgreement()) {
+    if (getBuildScanPublishEnabled() && verifyTermsOfUseAgreement()) {
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
         maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.16.2')
         maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')
-        maybeExportVariable('BUILD_SCAN_TERMS_OF_SERVICE_URL', getBuildScanTermsOfUseUrl())
-        maybeExportVariable('BUILD_SCAN_TERMS_OF_SERVICE_AGREE', getBuildScanTermsOfUseAgree())
+        maybeExportVariable('BUILD_SCAN_TERMS_OF_USE_URL', getBuildScanTermsOfUseUrl())
+        maybeExportVariable('BUILD_SCAN_TERMS_OF_USE_AGREE', getBuildScanTermsOfUseAgree())
     }
 }
 
-function verifyTermsOfServiceAgreement(): boolean {
+function verifyTermsOfUseAgreement(): boolean {
     if (
         getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' ||
         getBuildScanTermsOfUseUrl() !== 'https://gradle.com/legal/terms-of-use' ||
