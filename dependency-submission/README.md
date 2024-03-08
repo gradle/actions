@@ -97,14 +97,14 @@ offending dependency.
 ### Publishing a Develocity Build Scan® from your dependency submission workflow
 
 You can automatically publish a Build Scan on every run of `gradle/actions/dependency-submission`. Three input parameters are 
-required, one to enable publishing and two more to accept the [Develocity terms of use](https://gradle.com/terms-of-service).
+required, one to enable publishing and two more to accept the [Develocity terms of use](https://gradle.com/legal/terms-of-use).
 
 ```yaml
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
       with:
         build-scan-publish: true
-        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+        build-scan-terms-of-use-url: "https://gradle.com/legal/terms-of-use"
         build-scan-terms-of-use-agree: "yes"
 ```
 

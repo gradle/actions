@@ -5,7 +5,7 @@ plugins {
 
 gradleEnterprise {
     buildScan {
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceUrl = "https://gradle.com/legal/terms-of-use"
         termsOfServiceAgree = "yes"
         publishAlways()
         isUploadInBackground = false
