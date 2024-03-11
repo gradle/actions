@@ -3,6 +3,7 @@ import {getBuildScanPublishEnabled, getBuildScanTermsOfUseUrl, getBuildScanTerms
 
 export function setup(): void {
     if (getBuildScanPublishEnabled() && verifyTermsOfUseAgreement()) {
+        maybeExportVariable('DEVELOCITY_INJECTION_INIT_SCRIPT_NAME', 'gradle-actions.inject-develocity.init.gradle')
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
         maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.16.2')
         maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')

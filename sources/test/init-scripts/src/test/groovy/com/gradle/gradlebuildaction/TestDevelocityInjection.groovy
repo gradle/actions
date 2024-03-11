@@ -534,6 +534,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         def getEnvVars() {
             Map<String, String> envVars = [
+                DEVELOCITY_INJECTION_INIT_SCRIPT_NAME     : "gradle-actions.inject-develocity.init.gradle",
                 DEVELOCITY_INJECTION_ENABLED              : "true",
                 DEVELOCITY_URL                            : serverUrl,
                 DEVELOCITY_ALLOW_UNTRUSTED_SERVER         : "true",
@@ -552,6 +553,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         def getJvmArgs() {
             List<String> jvmArgs = [
+                "-Ddevelocity.injection.init-script-name=gradle-actions.inject-develocity.init.gradle",
                 "-Ddevelocity.injection-enabled=true",
                 "-Ddevelocity.url=$serverUrl",
                 "-Ddevelocity.allow-untrusted-server=true",

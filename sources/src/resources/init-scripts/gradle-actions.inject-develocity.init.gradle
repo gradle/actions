@@ -14,6 +14,12 @@ initscript {
         return System.getProperty(name) ?: System.getenv(envVarName)
     }
 
+    def requestedInitScriptName = getInputParam('develocity.injection.init-script-name')
+    def initScriptName = buildscript.sourceFile.name
+    if (requestedInitScriptName != initScriptName) {
+        return
+    }
+
     // finish early if injection is disabled
     def gradleInjectionEnabled = getInputParam("develocity.injection-enabled")
     if (gradleInjectionEnabled != "true") {
@@ -95,6 +101,13 @@ if (!isTopLevelBuild) {
 def getInputParam = { String name ->
     def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
     return System.getProperty(name) ?: System.getenv(envVarName)
+}
+
+def requestedInitScriptName = getInputParam('develocity.injection.init-script-name')
+def initScriptName = buildscript.sourceFile.name
+if (requestedInitScriptName != initScriptName) {
+    logger.quiet("Ignoring init script '${initScriptName}' as requested name '${requestedInitScriptName}' does not match")
+    return
 }
 
 // finish early if injection is disabled
