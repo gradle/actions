@@ -262,15 +262,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 }
             }
 
-            if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
-                eachDevelocitySettingsExtension(settings, [GRADLE_ENTERPRISE_EXTENSION_CLASS]) { ext ->
-                    ext.buildScan.termsOfServiceUrl = buildScanTermsOfUseUrl
-                    ext.buildScan.termsOfServiceAgree = buildScanTermsOfUseAgree
-                }
-                eachDevelocitySettingsExtension(settings, [DEVELOCITY_CONFIGURATION_CLASS]) { ext ->
+                if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
                     ext.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
                     ext.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
                 }
+
+                ext.buildScan.capture.fileFingerprints = develocityCaptureFileFingerprints
             }
         }
 
