@@ -161,6 +161,9 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                         // Develocity plugin publishes scans by default
                         buildScanExtension.publishAlways()
                     }
+                    // uploadInBackground not available for build-scan-plugin 1.16
+                    if (buildScanExtension.metaClass.respondsTo(buildScanExtension, 'setUploadInBackground', Boolean)) buildScanExtension.uploadInBackground = buildScanUploadInBackground
+                    buildScanExtension.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                     if (isAtLeast(develocityPluginVersion, '2.1') && atLeastGradle5) {
                         logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
                         if (isAtLeast(develocityPluginVersion, '3.17')) {
@@ -171,9 +174,6 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             buildScanExtension.captureTaskInputFiles = develocityCaptureFileFingerprints
                         }
                     }
-                    // uploadInBackground not available for build-scan-plugin 1.16
-                    if (buildScanExtension.metaClass.respondsTo(buildScanExtension, 'setUploadInBackground', Boolean)) buildScanExtension.uploadInBackground = buildScanUploadInBackground
-                    buildScanExtension.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                 }
 
                 if (develocityUrl && develocityEnforceUrl) {
