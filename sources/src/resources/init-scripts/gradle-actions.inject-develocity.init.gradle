@@ -176,10 +176,13 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     }
                 }
 
+                if (develocityUrl && develocityEnforceUrl) {
+                    logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
+                }
+
                 pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
                     afterEvaluate {
                         if (develocityUrl && develocityEnforceUrl) {
-                            logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
                             buildScan.server = develocityUrl
                             buildScan.allowUntrustedServer = develocityAllowUntrustedServer
                         }
@@ -255,6 +258,10 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
             }
 
             if (develocityUrl && develocityEnforceUrl) {
+                logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
+            }
+
+            if (develocityUrl && develocityEnforceUrl) {
                 logger.lifecycle("Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer")
                 eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
                     ext.server = develocityUrl
@@ -262,20 +269,19 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 }
             }
 
-                if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
-                    ext.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
-                    ext.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
-                }
-
-                ext.buildScan.capture.fileFingerprints = develocityCaptureFileFingerprints
+            if (buildScanTermsOfUseUrl && buildScanTermsOfUseAgree) {
+                ext.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
+                ext.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
             }
+
+            ext.buildScan.capture.fileFingerprints = develocityCaptureFileFingerprints
         }
+    }
 
-        if (ccudPluginVersion) {
-            if (!settings.pluginManager.hasPlugin(CCUD_PLUGIN_ID)) {
-                logger.lifecycle("Applying $CCUD_PLUGIN_CLASS via init script")
-                settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
-            }
+    if (ccudPluginVersion) {
+        if (!settings.pluginManager.hasPlugin(CCUD_PLUGIN_ID)) {
+            logger.lifecycle("Applying $CCUD_PLUGIN_CLASS via init script")
+            settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
         }
     }
 }
