@@ -212,7 +212,7 @@ contribute to the dependency graph.
 > These dependencies would be assigned to different scopes (eg development, runtime, testing) and the GitHub UI would make it easy to opt-in to security alerts for different dependency scopes.
 > However, this functionality does not yet exist.
 
-### Excluding certain Gradle projects from to the dependency graph
+### Excluding certain Gradle projects from the dependency graph
 
 If you do not want the dependency graph to include dependencies from every project in your build, 
 you can easily exclude certain projects from the dependency extraction process.
@@ -225,7 +225,7 @@ not necessarily remove all dependencies _declared_ in that project. If another p
 then it may transitively resolve dependencies declared in the excluded project: these dependencies will still be included
 in the generated dependency graph.
 
-### Excluding certain Gradle configurations from to the dependency graph
+### Excluding certain Gradle configurations from the dependency graph
 
 Similarly to Gradle projects, it is possible to exclude a set of configuration instances from dependency graph generation,
 so that dependencies resolved by those configurations are not included.
