@@ -123,8 +123,8 @@ def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam('develocity
 def develocityCaptureFileFingerprints = getInputParam('develocity.capture-file-fingerprints') ? Boolean.parseBoolean(getInputParam('develocity.capture-file-fingerprints')) : true
 def develocityPluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
-def buildScanTermsOfUseUrl = getInputParam('build-scan.terms-of-use.url') ?: getInputParam('build-scan.terms-of-service.url')
-def buildScanTermsOfUseAgree = getInputParam('build-scan.terms-of-use.agree') ?: getInputParam('build-scan.terms-of-service.agree')
+def buildScanTermsOfUseUrl = getInputParam('develocity.terms-of-use.url')
+def buildScanTermsOfUseAgree = getInputParam('develocity.terms-of-use.agree')
 
 def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
 def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')

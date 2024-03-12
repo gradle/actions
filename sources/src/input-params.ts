@@ -87,6 +87,9 @@ export function getBuildScanTermsOfUseAgree(): string {
     return getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree')
 }
 
+/**
+ * TODO @bigdaz: remove the deprecated input property in the next major release of the action
+ */
 function getTermsOfUseProp(newPropName: string, oldPropName: string): string {
     const newProp = core.getInput(newPropName)
     if (newProp.length !== 0) {

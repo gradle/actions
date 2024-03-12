@@ -7,8 +7,8 @@ export function setup(): void {
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
         maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.16.2')
         maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')
-        maybeExportVariable('BUILD_SCAN_TERMS_OF_USE_URL', getBuildScanTermsOfUseUrl())
-        maybeExportVariable('BUILD_SCAN_TERMS_OF_USE_AGREE', getBuildScanTermsOfUseAgree())
+        maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', getBuildScanTermsOfUseUrl())
+        maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', getBuildScanTermsOfUseAgree())
     }
 }
 
