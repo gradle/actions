@@ -36,7 +36,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
         assert reportFile.exists()
 
         where:
-        testGradleVersion << [GRADLE_8_X]
+        testGradleVersion << DEPENDENCY_GRAPH_VERSIONS
     }
 
     def "produces dependency graph with configuration-cache on latest Gradle"() {
@@ -123,6 +123,41 @@ class TestDependencyGraph extends BaseInitScriptTest {
         assert reportFile1.exists()
         assert reportFile2.exists()
         
+        where:
+        testGradleVersion << DEPENDENCY_GRAPH_VERSIONS
+    }
+
+    def "can configure alternative repository for plugins"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        def vars = envVars
+        vars.put('GRADLE_PLUGIN_REPOSITORY_URL', 'https://plugins.grdev.net/m2')
+        def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, [], vars)
+
+        then:
+        assert reportFile.exists()
+        assert result.output.contains("Resolving dependency graph plugin 1.2.2 from plugin repository: https://plugins.grdev.net/m2")
+
+        where:
+        testGradleVersion << DEPENDENCY_GRAPH_VERSIONS
+    }
+
+    def "can provide credentials for alternative repository for plugins"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        def vars = envVars
+        vars.put('GRADLE_PLUGIN_REPOSITORY_URL', 'https://plugins.grdev.net/m2')
+        vars.put('GRADLE_PLUGIN_REPOSITORY_USERNAME', 'REPO_USER')
+        vars.put('GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'REPO_PASSWORD')
+        def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, [], vars)
+
+        then:
+        assert reportFile.exists()
+        assert result.output.contains("Resolving dependency graph plugin 1.2.2 from plugin repository: https://plugins.grdev.net/m2")
+        assert result.output.contains("Applying credentials for plugin repository: https://plugins.grdev.net/m2")
+
         where:
         testGradleVersion << DEPENDENCY_GRAPH_VERSIONS
     }
