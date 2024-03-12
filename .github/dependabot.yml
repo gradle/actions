@@ -6,6 +6,15 @@ registries:
     username: dummy # Required by dependabot
     password: dummy # Required by dependabot
 updates:
+  - package-ecosystem: "npm"
+    directory: "/sources"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+        - "*"
+      
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -33,18 +42,6 @@ updates:
         patterns:
           - "*"
 
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    ignore:
-      - dependency-name: "@types/node" # Breaking change: update with next major release
-      - dependency-name: "@octokit/rest" # Tied to node version
-    groups:
-      npm-dependencies:
-        patterns:
-        - "*"
-      
   - package-ecosystem: "gradle"
     directory: ".github/workflow-samples/gradle-plugin"
     registries:
