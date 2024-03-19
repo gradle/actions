@@ -539,7 +539,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
                 DEVELOCITY_URL                            : serverUrl,
                 DEVELOCITY_ALLOW_UNTRUSTED_SERVER         : "true",
                 DEVELOCITY_PLUGIN_VERSION                 : develocityPluginVersion,
-                DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND: "true" // Need to upload in background since our Mock server doesn't cope with foreground upload
+                DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND: "true", // Need to upload in background since our Mock server doesn't cope with foreground upload
+                DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE    : 'gradle-actions'
             ]
             if (enforceUrl) envVars.put("DEVELOCITY_ENFORCE_URL", "true")
             if (ccudPluginVersion != null) envVars.put("DEVELOCITY_CCUD_PLUGIN_VERSION", ccudPluginVersion)
@@ -558,7 +559,8 @@ class TestDevelocityInjection extends BaseInitScriptTest {
                 "-Ddevelocity.url=$serverUrl",
                 "-Ddevelocity.allow-untrusted-server=true",
                 "-Ddevelocity.plugin.version=$develocityPluginVersion",
-                "-Ddevelocity.build-scan.upload-in-background=true"
+                "-Ddevelocity.build-scan.upload-in-background=true",
+                "-Ddevelocity.auto-injection.custom-value=gradle-actions"
             ]
 
             if (enforceUrl) jvmArgs.add("-Ddevelocity.enforce-url=true")
