@@ -92,8 +92,7 @@ export function getBuildScanTermsOfUseAgree(): string {
  */
 function getTermsOfUseProp(newPropName: string, oldPropName: string): string {
     const newProp = core.getInput(newPropName)
-    core.info(`prop[${newPropName}] = ${newProp}`)
-    if (newProp.length !== 0) {
+    if (newProp !== '') {
         return newProp
     }
     return core.getInput(oldPropName)
