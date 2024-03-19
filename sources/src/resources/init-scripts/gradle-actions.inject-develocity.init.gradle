@@ -94,7 +94,7 @@ def geUrl = getInputParam('develocity.url')
 def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('develocity.allow-untrusted-server'))
 def geEnforceUrl = Boolean.parseBoolean(getInputParam('develocity.enforce-url'))
 def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam('develocity.build-scan.upload-in-background'))
-def geCaptureFileFingerprints = Boolean.parseBoolean(getInputParam('develocity.capture-file-fingerprints'))
+def geCaptureFileFingerprints = getInputParam('develocity.capture-file-fingerprints')
 def gePluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
 def buildScanTermsOfServiceUrl = getInputParam('build-scan.terms-of-service.url')
@@ -123,35 +123,29 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     logger.lifecycle("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
                     applyPluginExternally(pluginManager, BUILD_SCAN_PLUGIN_CLASS)
                     if (geUrl) {
-                        logger.lifecycle("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureFileFingerprints: $geCaptureFileFingerprints")
+                        logger.lifecycle("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                         buildScan.server = geUrl
                         buildScan.allowUntrustedServer = geAllowUntrustedServer
                     }
                     buildScan.publishAlways()
-                    if (isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
-                        if (isAtLeast(gePluginVersion, '3.7')) {
-                            buildScan.capture.taskInputFiles = geCaptureFileFingerprints
-                        } else {
-                            buildScan.captureTaskInputFiles = geCaptureFileFingerprints
-                        }
-                    }
                     if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = buildScanUploadInBackground  // uploadInBackground not available for build-scan-plugin 1.16
                     buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
+                    if (geCaptureFileFingerprints && isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
+                        logger.lifecycle("Setting captureTaskInputFiles: $geCaptureTaskInputFiles")
+                        if (isAtLeast(gePluginVersion, '3.7')) {
+                            buildScan.capture.taskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
+                        } else {
+                            buildScan.captureTaskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
+                        }
+                    }
                 }
 
                 if (geUrl && geEnforceUrl) {
                     pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
                         afterEvaluate {
-                            logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureFileFingerprints: $geCaptureFileFingerprints")
+                            logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
-                        }
-                        if (isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
-                            if (isAtLeast(gePluginVersion, '3.7')) {
-                                buildScan.capture.taskInputFiles = geCaptureFileFingerprints
-                            } else {
-                                buildScan.captureTaskInputFiles = geCaptureFileFingerprints
-                            }
                         }
                     }
                 }
@@ -181,17 +175,18 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 applyPluginExternally(settings.pluginManager, DEVELOCITY_PLUGIN_CLASS)
                 eachDevelocityExtension(settings, DEVELOCITY_EXTENSION_CLASS) { ext ->
                     if (geUrl) {
-                        logger.lifecycle("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureFileFingerprints: $geCaptureFileFingerprints")
+                        logger.lifecycle("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                         ext.server = geUrl
                         ext.allowUntrustedServer = geAllowUntrustedServer
                     }
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
-                    if (isAtLeast(gePluginVersion, '2.1')) {
+                    if (geCaptureFileFingerprints && isAtLeast(gePluginVersion, '2.1')) {
+                        logger.lifecycle("Setting captureTaskInputFiles: $geCaptureTaskInputFiles")
                         if (isAtLeast(gePluginVersion, '3.7')) {
-                            ext.buildScan.capture.taskInputFiles = geCaptureFileFingerprints
+                            ext.buildScan.capture.taskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
                         } else {
-                            ext.buildScan.captureTaskInputFiles = geCaptureFileFingerprints
+                            ext.buildScan.captureTaskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
                         }
                     }
                     ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
@@ -200,16 +195,9 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
 
             if (geUrl && geEnforceUrl) {
                 eachDevelocityExtension(settings, DEVELOCITY_EXTENSION_CLASS) { ext ->
-                    logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureFileFingerprints: $geCaptureFileFingerprints")
+                    logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
-                    if (isAtLeast(gePluginVersion, '2.1')) {
-                        if (isAtLeast(gePluginVersion, '3.7')) {
-                            ext.buildScan.capture.taskInputFiles = geCaptureFileFingerprints
-                        } else {
-                            ext.buildScan.captureTaskInputFiles = geCaptureFileFingerprints
-                        }
-                    }
                 }
             }
 
