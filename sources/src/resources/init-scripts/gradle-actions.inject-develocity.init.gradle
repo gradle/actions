@@ -131,7 +131,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = buildScanUploadInBackground  // uploadInBackground not available for build-scan-plugin 1.16
                     buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                     if (geCaptureFileFingerprints && isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
-                        logger.lifecycle("Setting captureTaskInputFiles: $geCaptureTaskInputFiles")
+                        logger.lifecycle("Setting captureFileFingerprints: $geCaptureFileFingerprints")
                         if (isAtLeast(gePluginVersion, '3.7')) {
                             buildScan.capture.taskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
                         } else {
@@ -182,7 +182,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
                     if (geCaptureFileFingerprints && isAtLeast(gePluginVersion, '2.1')) {
-                        logger.lifecycle("Setting captureTaskInputFiles: $geCaptureTaskInputFiles")
+                        logger.lifecycle("Setting captureFileFingerprints: $geCaptureFileFingerprints")
                         if (isAtLeast(gePluginVersion, '3.7')) {
                             ext.buildScan.capture.taskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
                         } else {
