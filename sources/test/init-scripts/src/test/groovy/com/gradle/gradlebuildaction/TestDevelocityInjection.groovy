@@ -236,7 +236,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
         outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true)
         outputMissesCcudPluginApplicationViaInitScript(result)
-        if (testGradleVersion.gradleVersion > GRADLE_5_X) {
+        if (testGradleVersion.gradleVersion >= GRADLE_5_X.gradleVersion) {
             outputCaptureFileFingerprints(result, true)
         }
 
