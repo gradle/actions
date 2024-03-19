@@ -89,7 +89,6 @@ def DEVELOCITY_CONFIGURATION_CLASS = 'com.gradle.develocity.agent.gradle.Develoc
 def SETTINGS_EXTENSION_CLASSES = [GRADLE_ENTERPRISE_EXTENSION_CLASS, DEVELOCITY_CONFIGURATION_CLASS]
 
 def CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = 'CI auto injection'
-def CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE = 'gradle-actions'
 def CCUD_PLUGIN_ID = 'com.gradle.common-custom-user-data-gradle-plugin'
 def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
@@ -125,6 +124,7 @@ def develocityPluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
 def buildScanTermsOfUseUrl = getInputParam('develocity.terms-of-use.url')
 def buildScanTermsOfUseAgree = getInputParam('develocity.terms-of-use.agree')
+def ciAutoInjectionCustomValueValue = getInputParam('develocity.auto-injection.custom-value')
 
 def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
 def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -176,7 +176,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     }
                     // uploadInBackground not available for build-scan-plugin 1.16
                     if (buildScanExtension.metaClass.respondsTo(buildScanExtension, 'setUploadInBackground', Boolean)) buildScanExtension.uploadInBackground = buildScanUploadInBackground
-                    buildScanExtension.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
+                    buildScanExtension.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, ciAutoInjectionCustomValueValue
                     if (isAtLeast(develocityPluginVersion, '2.1') && atLeastGradle5) {
                         logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
                         if (isAtLeast(develocityPluginVersion, '3.17')) {
@@ -250,7 +250,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
 
                 eachDevelocitySettingsExtension(settings, SETTINGS_EXTENSION_CLASSES) { ext ->
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
-                    ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
+                    ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, ciAutoInjectionCustomValueValue
                 }
 
                 eachDevelocitySettingsExtension(settings, [GRADLE_ENTERPRISE_EXTENSION_CLASS]) { ext ->

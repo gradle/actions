@@ -9,6 +9,7 @@ export function setup(): void {
         maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', getBuildScanTermsOfUseUrl())
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', getBuildScanTermsOfUseAgree())
+        maybeExportVariable('DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE', 'gradle-actions')
     }
 }
 
