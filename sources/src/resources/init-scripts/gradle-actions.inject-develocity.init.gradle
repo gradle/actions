@@ -301,8 +301,11 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
 
 void applyPluginExternally(def pluginManager, String pluginClassName) {
     def externallyApplied = 'develocity.externally-applied'
+    def externallyAppliedDeprecated = 'gradle.enterprise.externally-applied'
     def oldValue = System.getProperty(externallyApplied)
+    def oldValueDeprecated = System.getProperty(externallyAppliedDeprecated)
     System.setProperty(externallyApplied, 'true')
+    System.setProperty(externallyAppliedDeprecated, 'true')
     try {
         pluginManager.apply(initscript.classLoader.loadClass(pluginClassName))
     } finally {
@@ -310,6 +313,11 @@ void applyPluginExternally(def pluginManager, String pluginClassName) {
             System.clearProperty(externallyApplied)
         } else {
             System.setProperty(externallyApplied, oldValue)
+        }
+        if (oldValueDeprecated == null) {
+            System.clearProperty(externallyAppliedDeprecated)
+        } else {
+            System.setProperty(externallyAppliedDeprecated, oldValueDeprecated)
         }
     }
 }
