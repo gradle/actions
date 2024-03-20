@@ -128,7 +128,7 @@ def ciAutoInjectionCustomValueValue = getInputParam('develocity.auto-injection.c
 
 def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
 def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
-def shouldApplyDevelocityPlugin = atLeastGradle5 && isAtLeast(develocityPluginVersion, '3.17')
+def shouldApplyDevelocityPlugin = atLeastGradle5 && develocityPluginVersion && isAtLeast(develocityPluginVersion, '3.17')
 
 def dvOrGe = { def dvValue, def geValue ->
     if (shouldApplyDevelocityPlugin) {
