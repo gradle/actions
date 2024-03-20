@@ -104,7 +104,7 @@ required, one to enable publishing and two more to accept the [Develocity terms 
       uses: gradle/actions/dependency-submission@v3
       with:
         build-scan-publish: true
-        build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
         build-scan-terms-of-use-agree: "yes"
 ```
 

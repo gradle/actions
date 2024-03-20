@@ -702,7 +702,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
       with:
         build-scan-publish: true
-        build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
         build-scan-terms-of-use-agree: "yes"
 
     - name: Run a Gradle build - a build scan will be published automatically
