@@ -27,9 +27,6 @@ function verifyTermsOfUseAgreement(): boolean {
 
 function maybeExportVariable(variableName: string, value: unknown): void {
     if (!process.env[variableName]) {
-        core.info(`Exporting variable ${variableName} with value ${value}`)
         core.exportVariable(variableName, value)
-    } else {
-        core.info(`Variable with name ${variableName} is already set to ${process.env[variableName]}`)
     }
 }
