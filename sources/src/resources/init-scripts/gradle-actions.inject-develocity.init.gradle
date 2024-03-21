@@ -94,7 +94,7 @@ def geUrl = getInputParam('develocity.url')
 def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('develocity.allow-untrusted-server'))
 def geEnforceUrl = Boolean.parseBoolean(getInputParam('develocity.enforce-url'))
 def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam('develocity.build-scan.upload-in-background'))
-def geCaptureFileFingerprints = getInputParam('develocity.capture-file-fingerprints')
+def develocityCaptureFileFingerprints = getInputParam('develocity.capture-file-fingerprints') ? Boolean.parseBoolean(getInputParam('develocity.capture-file-fingerprints')) : true
 def gePluginVersion = getInputParam('develocity.plugin.version')
 def ccudPluginVersion = getInputParam('develocity.ccud-plugin.version')
 def buildScanTermsOfServiceUrl = getInputParam('build-scan.terms-of-service.url')
@@ -130,12 +130,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     buildScan.publishAlways()
                     if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = buildScanUploadInBackground  // uploadInBackground not available for build-scan-plugin 1.16
                     buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
-                    if (geCaptureFileFingerprints && isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
-                        logger.lifecycle("Setting captureFileFingerprints: $geCaptureFileFingerprints")
+                    if (isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
+                        logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
                         if (isAtLeast(gePluginVersion, '3.7')) {
-                            buildScan.capture.taskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
+                            buildScan.capture.taskInputFiles = develocityCaptureFileFingerprints
                         } else {
-                            buildScan.captureTaskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
+                            buildScan.captureTaskInputFiles = develocityCaptureFileFingerprints
                         }
                     }
                 }
@@ -181,12 +181,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     }
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = buildScanUploadInBackground
-                    if (geCaptureFileFingerprints && isAtLeast(gePluginVersion, '2.1')) {
-                        logger.lifecycle("Setting captureFileFingerprints: $geCaptureFileFingerprints")
+                    if (isAtLeast(gePluginVersion, '2.1')) {
+                        logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
                         if (isAtLeast(gePluginVersion, '3.7')) {
-                            ext.buildScan.capture.taskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
+                            ext.buildScan.capture.taskInputFiles = develocityCaptureFileFingerprints
                         } else {
-                            ext.buildScan.captureTaskInputFiles = Boolean.parseBoolean(geCaptureFileFingerprints)
+                            ext.buildScan.captureTaskInputFiles = develocityCaptureFileFingerprints
                         }
                     }
                     ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
