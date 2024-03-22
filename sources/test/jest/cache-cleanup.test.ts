@@ -1,5 +1,6 @@
 import * as exec from '@actions/exec'
 import * as core from '@actions/core'
+import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
 import {CacheCleaner} from '../../src/caching/cache-cleaner'
@@ -14,7 +15,7 @@ test('will cleanup unused dependency jars and build-cache entries', async () => 
 
     await runGradleBuild(projectRoot, 'build', '3.1')
     
-    await cacheCleaner.prepare()
+    const timestamp = await cacheCleaner.prepare()
 
     await runGradleBuild(projectRoot, 'build', '3.1.1')
 
@@ -26,7 +27,7 @@ test('will cleanup unused dependency jars and build-cache entries', async () => 
     expect(fs.existsSync(commonsMath311)).toBe(true)
     expect(fs.readdirSync(buildCacheDir).length).toBe(4) // gc.properties, build-cache-1.lock, and 2 task entries
 
-    await cacheCleaner.forceCleanup()
+    await cacheCleaner.forceCleanupFilesOlderThan(timestamp)
 
     expect(fs.existsSync(commonsMath31)).toBe(false)
     expect(fs.existsSync(commonsMath311)).toBe(true)
@@ -42,25 +43,39 @@ test('will cleanup unused gradle versions', async () => {
     // Initialize HOME with 2 different Gradle versions
     await runGradleWrapperBuild(projectRoot, 'build')
     await runGradleBuild(projectRoot, 'build')
-    
-    await cacheCleaner.prepare()
+
+    const timestamp = await cacheCleaner.prepare()
 
     // Run with only one of these versions
     await runGradleBuild(projectRoot, 'build')
 
     const gradle802 = path.resolve(gradleUserHome, "caches/8.0.2")
+    const transforms3 = path.resolve(gradleUserHome, "caches/transforms-3")
+    const metadata100 = path.resolve(gradleUserHome, "caches/modules-2/metadata-2.100")
     const wrapper802 = path.resolve(gradleUserHome, "wrapper/dists/gradle-8.0.2-bin")
     const gradleCurrent = path.resolve(gradleUserHome, "caches/8.8")
+    const metadataCurrent = path.resolve(gradleUserHome, "caches/modules-2/metadata-2.106")
 
     expect(fs.existsSync(gradle802)).toBe(true)
+    expect(fs.existsSync(transforms3)).toBe(true)
+    expect(fs.existsSync(metadata100)).toBe(true)
     expect(fs.existsSync(wrapper802)).toBe(true)
-    expect(fs.existsSync(gradleCurrent)).toBe(true)
 
-    await cacheCleaner.forceCleanup()
+    expect(fs.existsSync(gradleCurrent)).toBe(true)
+    expect(fs.existsSync(metadataCurrent)).toBe(true)
+
+    // The wrapper won't be removed if it was recently downloaded. Age it.
+    setUtimes(wrapper802, new Date(Date.now() - 48 * 60 * 60 * 1000))
+
+    await cacheCleaner.forceCleanupFilesOlderThan(timestamp)
 
     expect(fs.existsSync(gradle802)).toBe(false)
+    expect(fs.existsSync(transforms3)).toBe(false)
+    expect(fs.existsSync(metadata100)).toBe(false)
     expect(fs.existsSync(wrapper802)).toBe(false)
+
     expect(fs.existsSync(gradleCurrent)).toBe(true)
+    expect(fs.existsSync(metadataCurrent)).toBe(true)
 })
 
 async function runGradleBuild(projectRoot: string, args: string, version: string = '3.1'): Promise<void> {
@@ -86,3 +101,9 @@ function prepareTestProject(): string {
     return projectRoot
 }
 
+async function setUtimes(pattern: string, timestamp: Date): Promise<void> {
+    const globber = await glob.create(pattern)
+    for await (const file of globber.globGenerator()) {
+        fs.utimesSync(file, timestamp, timestamp)
+    }
+}

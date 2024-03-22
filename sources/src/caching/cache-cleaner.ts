@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
 import {provisionAndMaybeExecute} from '../execution/gradle'
@@ -13,25 +12,20 @@ export class CacheCleaner {
         this.tmpDir = tmpDir
     }
 
-    async prepare(): Promise<void> {
-        // Reset the file-access journal so that files appear not to have been used recently
-        fs.rmSync(path.resolve(this.gradleUserHome, 'caches/journal-1'), {recursive: true, force: true})
-        fs.mkdirSync(path.resolve(this.gradleUserHome, 'caches/journal-1'), {recursive: true})
-        fs.writeFileSync(
-            path.resolve(this.gradleUserHome, 'caches/journal-1/file-access.properties'),
-            'inceptionTimestamp=0'
-        )
-
-        // Set the modification time of all files to the past: this timestamp is used when there is no matching entry in the journal
-        await this.ageAllFiles()
-
-        // Touch all 'gc' files so that cache cleanup won't run immediately.
-        await this.touchAllFiles('gc.properties')
+    async prepare(): Promise<string> {
+        // Save the current timestamp
+        const timestamp = Date.now().toString()
+        core.saveState('clean-timestamp', timestamp)
+        return timestamp
     }
 
     async forceCleanup(): Promise<void> {
-        // Age all 'gc' files so that cache cleanup will run immediately.
-        await this.ageAllFiles('gc.properties')
+        const cleanTimestamp = core.getState('clean-timestamp')
+        await this.forceCleanupFilesOlderThan(cleanTimestamp)
+    }
+
+    async forceCleanupFilesOlderThan(cleanTimestamp: string): Promise<void> {
+        core.info(`Cleaning up caches before ${cleanTimestamp}`)
 
         // Run a dummy Gradle build to trigger cache cleanup
         const cleanupProjectDir = path.resolve(this.tmpDir, 'dummy-cleanup-project')
@@ -40,11 +34,31 @@ export class CacheCleaner {
             path.resolve(cleanupProjectDir, 'settings.gradle'),
             'rootProject.name = "dummy-cleanup-project"'
         )
+        fs.writeFileSync(
+            path.resolve(cleanupProjectDir, 'init.gradle'),
+            `
+            beforeSettings { settings ->
+                def cleanupTime = ${cleanTimestamp}
+            
+                settings.caches {
+                    cleanup = Cleanup.ALWAYS
+            
+                    releasedWrappers.removeUnusedEntriesOlderThan.set(cleanupTime)
+                    snapshotWrappers.removeUnusedEntriesOlderThan.set(cleanupTime)
+                    downloadedResources.removeUnusedEntriesOlderThan.set(cleanupTime)
+                    createdResources.removeUnusedEntriesOlderThan.set(cleanupTime)
+                    buildCache.removeUnusedEntriesOlderThan.set(cleanupTime)
+                }
+            }
+            `
+        )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
 
         await provisionAndMaybeExecute('current', cleanupProjectDir, [
             '-g',
             this.gradleUserHome,
+            '-I',
+            'init.gradle',
             '--quiet',
             '--no-daemon',
             '--no-scan',
@@ -52,24 +66,5 @@ export class CacheCleaner {
             '-DGITHUB_DEPENDENCY_GRAPH_ENABLED=false',
             'noop'
         ])
-    }
-
-    private async ageAllFiles(fileName = '*'): Promise<void> {
-        core.debug(`Aging all files in Gradle User Home with name ${fileName}`)
-        await this.setUtimes(`${this.gradleUserHome}/**/${fileName}`, new Date(0))
-    }
-
-    private async touchAllFiles(fileName = '*'): Promise<void> {
-        core.debug(`Touching all files in Gradle User Home with name ${fileName}`)
-        await this.setUtimes(`${this.gradleUserHome}/**/${fileName}`, new Date())
-    }
-
-    private async setUtimes(pattern: string, timestamp: Date): Promise<void> {
-        const globber = await glob.create(pattern, {
-            implicitDescendants: false
-        })
-        for await (const file of globber.globGenerator()) {
-            fs.utimesSync(file, timestamp, timestamp)
-        }
     }
 }
