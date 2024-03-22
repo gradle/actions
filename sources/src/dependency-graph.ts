@@ -14,6 +14,7 @@ import {PostActionJobFailure} from './errors'
 import {
     DependencyGraphOption,
     getDependencyGraphContinueOnFailure,
+    getGithubToken,
     getJobMatrix,
     getArtifactRetentionDays
 } from './input-params'
@@ -190,10 +191,6 @@ function warnOrFail(option: String, error: unknown): void {
 
 function getOctokit(): InstanceType<typeof GitHub> {
     return github.getOctokit(getGithubToken())
-}
-
-function getGithubToken(): string {
-    return core.getInput('github-token', {required: true})
 }
 
 function getRelativePathFromWorkspace(file: string): string {
