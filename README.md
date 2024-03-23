@@ -22,7 +22,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
     - name: Build with Gradle
-      run: ./gradlew build
+      run: gradle build
 ```
 
 See the [full action documentation](setup-gradle/README.md) for more advanced usage scenarios.
