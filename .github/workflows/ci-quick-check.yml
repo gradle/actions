@@ -24,7 +24,7 @@ jobs:
     - name: Configure Gradle as default for unit test
       uses: ./setup-gradle
       with:
-        gradle-version: 8.5
+        gradle-version: 8.7
     - name: Run tests
       run: |
         npm install

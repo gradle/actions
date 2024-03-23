@@ -23,13 +23,13 @@ test('will cleanup unused dependency jars and build-cache entries', async () => 
 
     expect(fs.existsSync(commonsMath31)).toBe(true)
     expect(fs.existsSync(commonsMath311)).toBe(true)
-    expect(fs.readdirSync(buildCacheDir).length).toBe(4)
+    expect(fs.readdirSync(buildCacheDir).length).toBe(6)
 
     await cacheCleaner.forceCleanup()
 
     expect(fs.existsSync(commonsMath31)).toBe(false)
     expect(fs.existsSync(commonsMath311)).toBe(true)
-    expect(fs.readdirSync(buildCacheDir).length).toBe(3)
+    expect(fs.readdirSync(buildCacheDir).length).toBe(5)
 })
 
 test('will cleanup unused gradle versions', async () => {
@@ -49,7 +49,7 @@ test('will cleanup unused gradle versions', async () => {
 
     const gradle802 = path.resolve(gradleUserHome, "caches/8.0.2")
     const wrapper802 = path.resolve(gradleUserHome, "wrapper/dists/gradle-8.0.2-bin")
-    const gradleCurrent = path.resolve(gradleUserHome, "caches/8.5")
+    const gradleCurrent = path.resolve(gradleUserHome, "caches/8.7")
 
     expect(fs.existsSync(gradle802)).toBe(true)
     expect(fs.existsSync(wrapper802)).toBe(true)
