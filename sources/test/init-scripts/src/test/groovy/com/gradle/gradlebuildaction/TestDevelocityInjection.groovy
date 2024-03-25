@@ -234,8 +234,11 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         then:
         outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
-        outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true, true)
+        outputContainsDevelocityConnectionInfo(result, mockScansServer.address.toString(), true)
         outputMissesCcudPluginApplicationViaInitScript(result)
+        if (testGradleVersion.gradleVersion >= GRADLE_5_X.gradleVersion) {
+            outputCaptureFileFingerprints(result, true)
+        }
 
         and:
         outputContainsBuildScanUrl(result)
@@ -344,10 +347,16 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assert !result.output.contains(pluginApplicationLogMsg)
     }
 
-    void outputContainsDevelocityConnectionInfo(BuildResult result, String geUrl, boolean geAllowUntrustedServer, boolean geCaptureFileFingerprints = false) {
-        def geConnectionInfo = "Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureFileFingerprints: $geCaptureFileFingerprints"
+    void outputContainsDevelocityConnectionInfo(BuildResult result, String geUrl, boolean geAllowUntrustedServer) {
+        def geConnectionInfo = "Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer"
         assert result.output.contains(geConnectionInfo)
         assert 1 == result.output.count(geConnectionInfo)
+    }
+
+    void outputCaptureFileFingerprints(BuildResult result, boolean captureFileFingerprints) {
+        def captureFileFingerprintsInfo = "Setting captureFileFingerprints: $captureFileFingerprints"
+        assert result.output.contains(captureFileFingerprintsInfo)
+        assert 1 == result.output.count(captureFileFingerprintsInfo)
     }
 
     void outputContainsPluginRepositoryInfo(BuildResult result, String gradlePluginRepositoryUrl, boolean withCredentials = false) {
