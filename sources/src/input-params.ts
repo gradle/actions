@@ -79,12 +79,23 @@ export function getBuildScanPublishEnabled(): boolean {
     return getBooleanInput('build-scan-publish')
 }
 
-export function getBuildScanTermsOfServiceUrl(): string {
-    return core.getInput('build-scan-terms-of-service-url')
+export function getBuildScanTermsOfUseUrl(): string {
+    return getTermsOfUseProp('build-scan-terms-of-use-url', 'build-scan-terms-of-service-url')
 }
 
-export function getBuildScanTermsOfServiceAgree(): string {
-    return core.getInput('build-scan-terms-of-service-agree')
+export function getBuildScanTermsOfUseAgree(): string {
+    return getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree')
+}
+
+/**
+ * TODO @bigdaz: remove the deprecated input property in the next major release of the action
+ */
+function getTermsOfUseProp(newPropName: string, oldPropName: string): string {
+    const newProp = core.getInput(newPropName)
+    if (newProp !== '') {
+        return newProp
+    }
+    return core.getInput(oldPropName)
 }
 
 function parseJobSummaryOption(paramName: string): JobSummaryOption {
