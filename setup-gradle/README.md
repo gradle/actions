@@ -43,7 +43,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
     
     - name: Execute Gradle build
-      run: ./gradlew build
+      run: gradle build
 ```
 
 ## Choose a specific Gradle version
@@ -413,7 +413,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
       with:
         add-job-summary-as-pr-comment: on-failure # Valid values are 'never' (default), 'always', and 'on-failure'
-    - run: ./gradlew build --scan
+    - run: gradle build --scan
 ```
 
 Note that to add a Pull Request comment, the workflow must be configured with the `pull-requests: write` permission.
@@ -516,7 +516,7 @@ jobs:
       with:
         dependency-graph: generate-and-submit
     - name: Run the usual CI build (dependency-graph will be generated and submitted post-job)
-      run: ./gradlew build
+      run: gradle build
 ```
 
 The `contents: write` permission is required to submit (but not generate) the dependency graph file. 
@@ -561,7 +561,7 @@ jobs:
       with:
         dependency-graph: generate-and-submit
     - name: Run a build, resolving the 'dependency-graph' plugin from the plugin portal proxy
-      run: ./gradlew build
+      run: gradle build
       env:
         GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
 ```
@@ -582,9 +582,9 @@ jobs:
       with:
         dependency-graph: generate-and-submit
     - name: Build the app, generating a graph of dependencies required
-      run: ./gradlew :my-app:assemble
+      run: gradle :my-app:assemble
     - name: Run all checks, disabling dependency graph generation
-      run: ./gradlew check
+      run: gradle check
       env:
         GITHUB_DEPENDENCY_GRAPH_ENABLED: false
 ```
@@ -650,7 +650,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
     - name: Run a Gradle build with Develocity injection enabled
-      run: ./gradlew build
+      run: gradle build
 ```
 
 This configuration will automatically apply `v3.16.2` of the [Develocity Gradle plugin](https://docs.gradle.com/enterprise/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
@@ -699,5 +699,5 @@ jobs:
         build-scan-terms-of-service-agree: "yes"
 
     - name: Run a Gradle build - a build scan will be published automatically
-      run: ./gradlew build
+      run: gradle build
 ```
