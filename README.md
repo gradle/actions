@@ -4,7 +4,11 @@ This repository contains a set of GitHub Actions that are useful for building Gr
 
 ## The `setup-gradle` action
 
+The `setup-gradle` action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.
+
 This replaces the previous `gradle/gradle-build-action`, which now delegates to this implementation.
+
+The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), and the examples assume that the Gradle Wrapper has been configured for the project. See [this example](setup-gradle/README.md#build-with-a-specific-gradle-version) if your project doesn't use the Gradle Wrapper.
 
 ### Example usage
 
