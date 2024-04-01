@@ -22,6 +22,8 @@ These features work both when Gradle is executed via `setup-gradle` and for any 
 The `setup-gradle` action works by configuring environment variables and by adding a set of Gradle init-scripts to the Gradle User Home. These will apply to all Gradle executions on the runner, no matter how Gradle is invoked. 
 This means that if you have an existing workflow that executes Gradle with a `run` step, you can add an initial "Setup Gradle" Step to benefit from caching, build-scan capture, and other features of this action.
 
+The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), and the following examples assume that the Gradle Wrapper has been configured for the project. See [this example](#build-with-a-specific-gradle-version) if your project doesn't use the Gradle Wrapper.
+
 
 ```yaml
 name: Run Gradle on every push
@@ -46,15 +48,18 @@ jobs:
       run: ./gradlew build
 ```
 
-## Choose a specific Gradle version
+## Build with a specific Gradle version
 
 The `setup-gradle` action can download and install a specified Gradle version, adding this installed version to the PATH.
 Downloaded Gradle versions are stored in the GitHub Actions cache, to avoid having to download them again later.
 
 ```yaml
- - uses: gradle/actions/setup-gradle@v3
+ - name: Setup Gradle 8.5
+   uses: gradle/actions/setup-gradle@v3
    with:
-     gradle-version: 6.5
+     gradle-version: 8.5
+  - name: Build with Gradle 8.5
+    run: gradle build
 ```
 
 The `gradle-version` parameter can be set to any valid Gradle version.
