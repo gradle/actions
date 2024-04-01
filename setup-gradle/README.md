@@ -358,7 +358,9 @@ gradle-home-cache-cleanup: true
 ## Debugging and Troubleshooting
 
 To debug a failed job, it can be useful to run with [debug logging enabled](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging).
-You can enable debug logging either by adding an `ACTIONS_STEP_DEBUG` variable to your repository configuration, or by re-running a Job and checking the "Enable debug logging" box.
+You can enable debug logging either by:
+1. Adding an `ACTIONS_STEP_DEBUG` variable to your repository configuration ([see here](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging)).
+2. By re-running a Job and checking the "Enable debug logging" box ([see here](https://github.blog/changelog/2022-05-24-github-actions-re-run-jobs-with-debug-logging/)).
 
 ### Increased logging from Gradle builds
 
