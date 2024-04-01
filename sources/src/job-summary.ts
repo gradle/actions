@@ -96,8 +96,8 @@ function renderSummaryTable(results: BuildResult[]): string {
 function renderBuildResultRow(result: BuildResult): string {
     return `
     <tr>
-        <td>${result.rootProjectName}</td>
-        <td>${result.requestedTasks}</td>
+        <td>${truncateString(result.rootProjectName, 30)}</td>
+        <td>${truncateString(result.requestedTasks, 60)}</td>
         <td align='center'>${result.gradleVersion}</td>
         <td align='center'>${renderOutcome(result)}</td>
         <td>${renderBuildScan(result)}</td>
@@ -155,5 +155,13 @@ function shouldAddJobSummary(option: params.JobSummaryOption, buildResults: Buil
         case params.JobSummaryOption.OnFailure:
             core.info(`Got these build results: ${JSON.stringify(buildResults)}`)
             return buildResults.some(result => result.buildFailed)
+    }
+}
+
+function truncateString(str: string, maxLength: number): string {
+    if (str.length > maxLength) {
+        return `<div title='${str}'>${str.slice(0, maxLength - 1)}…</div>`
+    } else {
+        return str
     }
 }
