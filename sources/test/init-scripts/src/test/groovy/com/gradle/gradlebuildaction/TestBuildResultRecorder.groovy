@@ -171,15 +171,12 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         when:
         settingsFile.text = """
             plugins {
-                id 'com.gradle.enterprise' version '3.17' apply(false)
+                id 'com.gradle.develocity' version '3.17' apply(false)
             }
             gradle.settingsEvaluated {
-                apply plugin: 'com.gradle.enterprise'
-                gradleEnterprise {
+                apply plugin: 'com.gradle.develocity'
+                develocity {
                     server = '$mockScansServer.address'
-                    buildScan {
-                        publishAlways()
-                    }
                 }
             }
         """ + settingsFile.text

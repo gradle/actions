@@ -31,10 +31,10 @@ jobs:
       uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
-        # Add "enterprise" to main cache entry but omit "notifications"
+        # Add "application" to main cache entry but omit "notifications"
         gradle-home-cache-includes: |
             caches
-            enterprise
+            application
         # Exclude build-cache from main cache entry
         gradle-home-cache-excludes: |
             caches/build-cache-*
@@ -61,7 +61,7 @@ jobs:
         # Use the same configuration as used in the seed build
         gradle-home-cache-includes: |
             caches
-            enterprise
+            application
         gradle-home-cache-excludes: |
             caches/build-cache-*
             caches/*/executionHistory

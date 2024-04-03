@@ -660,11 +660,11 @@ jobs:
       run: ./gradlew build
 ```
 
-This configuration will automatically apply `v3.17` of the [Develocity Gradle plugin](https://docs.gradle.com/enterprise/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
+This configuration will automatically apply `v3.17` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
 
 This example assumes that the `develocity.your-server.com` server allows anonymous publishing of build scans.
 In the likely scenario that your Develocity server requires authentication, you will also need to configure an additional environment variable
-with a valid [Develocity access key](https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable).
+with a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable).
 
 ## Configuring Develocity injection
 
@@ -677,7 +677,7 @@ The `init-script` supports several additional configuration parameters that you 
 | DEVELOCITY_ALLOW_UNTRUSTED_SERVER    | | allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed certificate                                              |
 | DEVELOCITY_CAPTURE_FILE_FINGERPRINTS | | enables capturing the paths and content hashes of each individual input file                                                                                            |
 | DEVELOCITY_ENFORCE_URL               | | enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL |
-| DEVELOCITY_PLUGIN_VERSION            | :white_check_mark: | the version of the [Develocity Gradle plugin](https://docs.gradle.com/enterprise/gradle-plugin/) to apply                                                               |
+| DEVELOCITY_PLUGIN_VERSION            | :white_check_mark: | the version of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/) to apply                                                               |
 | DEVELOCITY_CCUD_PLUGIN_VERSION       |  | the version of the [Common Custom User Data Gradle plugin](https://github.com/gradle/common-custom-user-data-gradle-plugin) to apply, if any                            |
 | GRADLE_PLUGIN_REPOSITORY_URL         |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default                                            |
 | GRADLE_PLUGIN_REPOSITORY_USERNAME    |  | the username for the repository URL to use when resolving the Develocity and CCUD plugins                                                                               |

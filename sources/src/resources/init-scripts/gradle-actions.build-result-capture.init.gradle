@@ -62,7 +62,7 @@ def captureUsingBuildScanPublished(buildScanExtension, rootProject, invocationId
             if (githubOutput) {
                 new File(githubOutput) << "build-scan-url=${buildScan.buildScanUri}\n"
             } else {
-                // Retained for compatibility with older GitHub Enterprise versions
+                // Retained for compatibility with older GHES versions
                 println("::set-output name=build-scan-url::${buildScan.buildScanUri}")
             }
         }

@@ -55,7 +55,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         given:
-        settingsFile.text = maybeAddGradleEnterprisePlugin(testGradleVersion.gradleVersion, '3.16.2')
+        settingsFile.text = maybeAddDevelocityPlugin(testGradleVersion.gradleVersion, '3.16.2')
         buildFile.text = maybeAddBuildScanPlugin(testGradleVersion.gradleVersion, '3.16.2')
 
         when:
@@ -443,15 +443,15 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         }
     }
 
-    private String maybeAddGradleEnterprisePlugin(GradleVersion gradleVersion, String gePluginVersion) {
+    private String maybeAddDevelocityPlugin(GradleVersion gradleVersion, String gePluginVersion) {
         if (gradleVersion < GradleVersion.version('6.0')) {
             '' // applied in build.gradle
         } else {
             """
               plugins {
-                id 'com.gradle.enterprise' version '${gePluginVersion}'
+                id 'com.gradle.develocity' version '${gePluginVersion}'
               }
-              gradleEnterprise {
+              develocity {
                 server = '${mockScansServer.address}'
                 buildScan {
                     publishAlways()
@@ -475,7 +475,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         } else if (gradleVersion < GradleVersion.version('6.0')) {
             """
               plugins {
-                id 'com.gradle.build-scan' version '${buildScanPluginVersion}'
+                id 'com.gradle.develocity' version '${buildScanPluginVersion}'
               }
               buildScan {
                 server = '${mockScansServer.address}'
