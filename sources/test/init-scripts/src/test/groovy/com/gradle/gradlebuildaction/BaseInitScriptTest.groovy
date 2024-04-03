@@ -16,7 +16,7 @@ import java.nio.file.Files
 import java.util.zip.GZIPOutputStream
 
 class BaseInitScriptTest extends Specification {
-    static final String DEVELOCITY_PLUGIN_VERSION = '3.16.2'
+    static final String DEVELOCITY_PLUGIN_VERSION = '3.17'
     static final String CCUD_PLUGIN_VERSION = '1.13'
 
     static final TestGradleVersion GRADLE_3_X = new TestGradleVersion(GradleVersion.version('3.5.1'), 7, 9)
@@ -129,33 +129,26 @@ class BaseInitScriptTest extends Specification {
         buildFile << ''
     }
 
-    def declareGePluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
+    def declareDevelocityPluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
         settingsFile.text = maybeAddPluginsToSettings(gradleVersion, null, serverUrl) + settingsFile.text
         buildFile.text = maybeAddPluginsToRootProject(gradleVersion, null, serverUrl) + buildFile.text
     }
 
-    def declareGePluginAndCcudPluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
+    def declareDevelocityPluginAndCcudPluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
         settingsFile.text = maybeAddPluginsToSettings(gradleVersion, CCUD_PLUGIN_VERSION, serverUrl) + settingsFile.text
         buildFile.text = maybeAddPluginsToRootProject(gradleVersion, CCUD_PLUGIN_VERSION, serverUrl) + buildFile.text
     }
 
     String maybeAddPluginsToSettings(GradleVersion gradleVersion, String ccudPluginVersion, URI serverUri) {
-        if (gradleVersion < GradleVersion.version('5.0')) {
-            '' // applied in build.gradle
-        } else if (gradleVersion < GradleVersion.version('6.0')) {
+        if (gradleVersion < GradleVersion.version('6.0')) {
             '' // applied in build.gradle
         } else {
             """
               plugins {
-                id 'com.gradle.enterprise' version '${DEVELOCITY_PLUGIN_VERSION}'
+                id 'com.gradle.develocity' version '${DEVELOCITY_PLUGIN_VERSION}'
                 ${ccudPluginVersion ? "id 'com.gradle.common-custom-user-data-gradle-plugin' version '$ccudPluginVersion'" : ""}
               }
-              gradleEnterprise {
-                server = '$serverUri'
-                buildScan {
-                  publishAlways()
-                }
-              }
+              develocity.server = '$serverUri'
             """
         }
     }
@@ -175,15 +168,10 @@ class BaseInitScriptTest extends Specification {
         } else if (gradleVersion < GradleVersion.version('6.0')) {
             """
               plugins {
-                id 'com.gradle.build-scan' version '${DEVELOCITY_PLUGIN_VERSION}'
+                id 'com.gradle.develocity' version '${DEVELOCITY_PLUGIN_VERSION}'
                 ${ccudPluginVersion ? "id 'com.gradle.common-custom-user-data-gradle-plugin' version '$ccudPluginVersion'" : ""}
               }
-              gradleEnterprise {
-                server = '$serverUrl'
-                buildScan {
-                  publishAlways()
-                }
-              }
+              develocity.server = '$serverUrl'
             """
         } else {
             '' // applied in settings.gradle

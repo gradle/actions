@@ -28,6 +28,9 @@ if (isTopLevelBuild) {
             settings.pluginManager.withPlugin("com.gradle.enterprise") {
                 captureUsingBuildScanPublished(settings.extensions["gradleEnterprise"].buildScan, settings.rootProject, invocationId)
             }
+            settings.pluginManager.withPlugin("com.gradle.develocity") {
+                captureUsingBuildScanPublished(settings.extensions["develocity"].buildScan, settings.rootProject, invocationId)
+            }
         }
     } else if (atLeastGradle3) {
         projectsEvaluated { gradle ->
@@ -104,7 +107,13 @@ class BuildResults {
     }
 
     def setBuildResult(def result) {
-        buildResults['buildFailed'] = result.failure != null
+        try {
+            // Gradle and old Build Scan/Gradle Enterprise plugins report a single optional failure in the build result
+            buildResults['buildFailed'] = result.failure != null
+        } catch (Exception e) {
+            // Develocity plugin unwraps all build failures and reports them as a mandatory array
+            buildResults['buildFailed'] = !result.failures.empty
+        }
     }
 
     def setBuildScanUri(def buildScanUrl) {
