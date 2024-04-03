@@ -68,6 +68,20 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
+    def "produces build results file for #testGradleVersion with legacy enterprise plugin publishing build scan"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        declareLegacyGradleEnterprisePluginApplication(testGradleVersion.gradleVersion)
+        run(['help'], initScript, testGradleVersion.gradleVersion)
+
+        then:
+        assertResults('help', testGradleVersion, false, true)
+
+        where:
+        testGradleVersion << ALL_VERSIONS
+    }
+
     def "produces build results file for #testGradleVersion with Develocity plugin and no build scan published"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 

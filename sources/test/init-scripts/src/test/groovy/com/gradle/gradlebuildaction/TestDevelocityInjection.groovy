@@ -55,8 +55,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         given:
-        settingsFile.text = maybeAddDevelocityPlugin(testGradleVersion.gradleVersion, '3.16.2')
-        buildFile.text = maybeAddBuildScanPlugin(testGradleVersion.gradleVersion, '3.16.2')
+        declareLegacyGradleEnterprisePluginApplication(testGradleVersion.gradleVersion)
 
         when:
         def result = run(testGradleVersion, testConfig())
@@ -440,50 +439,6 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             return gradleVersion >= GRADLE_6_X.gradleVersion
         } else {
             return gradleVersion >= GRADLE_3_X.gradleVersion
-        }
-    }
-
-    private String maybeAddDevelocityPlugin(GradleVersion gradleVersion, String gePluginVersion) {
-        if (gradleVersion < GradleVersion.version('6.0')) {
-            '' // applied in build.gradle
-        } else {
-            """
-              plugins {
-                id 'com.gradle.develocity' version '${gePluginVersion}'
-              }
-              develocity {
-                server = '${mockScansServer.address}'
-                buildScan {
-                    publishAlways()
-                }
-              }
-            """
-        }
-    }
-
-    private String maybeAddBuildScanPlugin(GradleVersion gradleVersion, String buildScanPluginVersion) {
-        if (gradleVersion < GradleVersion.version('5.0')) {
-            """
-              plugins {
-                id 'com.gradle.build-scan' version '1.16'
-              }
-              buildScan {
-                server = '${mockScansServer.address}'
-                publishAlways()
-              }
-            """
-        } else if (gradleVersion < GradleVersion.version('6.0')) {
-            """
-              plugins {
-                id 'com.gradle.develocity' version '${buildScanPluginVersion}'
-              }
-              buildScan {
-                server = '${mockScansServer.address}'
-                publishAlways()
-              }
-            """
-        } else {
-            '' // applied in settings.gradle
         }
     }
 
