@@ -113,7 +113,7 @@ function renderBuildScan(result: BuildResult): string {
         return renderBuildScanBadge(
             'PUBLISH_FAILED',
             'orange',
-            'https://docs.gradle.com/enterprise/gradle-plugin/#troubleshooting'
+            'https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting'
         )
     }
     if (result.buildScanUri) {

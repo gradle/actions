@@ -130,30 +130,29 @@ class BaseInitScriptTest extends Specification {
     }
 
     def declareDevelocityPluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
-        settingsFile.text = maybeAddPluginsToSettings(gradleVersion, null, serverUrl) + settingsFile.text
-        buildFile.text = maybeAddPluginsToRootProject(gradleVersion, null, serverUrl) + buildFile.text
+        settingsFile.text = maybeAddPluginsToSettings(gradleVersion, false, null, serverUrl) + settingsFile.text
+        buildFile.text = maybeAddPluginsToRootProject(gradleVersion, false, null, serverUrl) + buildFile.text
+    }
+
+    def declareLegacyGradleEnterprisePluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
+        settingsFile.text = maybeAddPluginsToSettings(gradleVersion, true, null, serverUrl) + settingsFile.text
+        buildFile.text = maybeAddPluginsToRootProject(gradleVersion, true, null, serverUrl) + buildFile.text
     }
 
     def declareDevelocityPluginAndCcudPluginApplication(GradleVersion gradleVersion, URI serverUrl = mockScansServer.address) {
-        settingsFile.text = maybeAddPluginsToSettings(gradleVersion, CCUD_PLUGIN_VERSION, serverUrl) + settingsFile.text
-        buildFile.text = maybeAddPluginsToRootProject(gradleVersion, CCUD_PLUGIN_VERSION, serverUrl) + buildFile.text
+        settingsFile.text = maybeAddPluginsToSettings(gradleVersion, false, CCUD_PLUGIN_VERSION, serverUrl) + settingsFile.text
+        buildFile.text = maybeAddPluginsToRootProject(gradleVersion, false, CCUD_PLUGIN_VERSION, serverUrl) + buildFile.text
     }
 
-    String maybeAddPluginsToSettings(GradleVersion gradleVersion, String ccudPluginVersion, URI serverUri) {
+    String maybeAddPluginsToSettings(GradleVersion gradleVersion, boolean legacy, String ccudPluginVersion, URI serverUri) {
         if (gradleVersion < GradleVersion.version('6.0')) {
             '' // applied in build.gradle
         } else {
-            """
-              plugins {
-                id 'com.gradle.develocity' version '${DEVELOCITY_PLUGIN_VERSION}'
-                ${ccudPluginVersion ? "id 'com.gradle.common-custom-user-data-gradle-plugin' version '$ccudPluginVersion'" : ""}
-              }
-              develocity.server = '$serverUri'
-            """
+            configuredPlugin(gradleVersion, legacy, ccudPluginVersion, serverUri)
         }
     }
 
-    String maybeAddPluginsToRootProject(GradleVersion gradleVersion, String ccudPluginVersion, URI serverUrl) {
+    String maybeAddPluginsToRootProject(GradleVersion gradleVersion, boolean legacy, String ccudPluginVersion, URI serverUrl) {
         if (gradleVersion < GradleVersion.version('5.0')) {
             """
               plugins {
@@ -166,16 +165,28 @@ class BaseInitScriptTest extends Specification {
               }
             """
         } else if (gradleVersion < GradleVersion.version('6.0')) {
-            """
-              plugins {
-                id 'com.gradle.develocity' version '${DEVELOCITY_PLUGIN_VERSION}'
-                ${ccudPluginVersion ? "id 'com.gradle.common-custom-user-data-gradle-plugin' version '$ccudPluginVersion'" : ""}
-              }
-              develocity.server = '$serverUrl'
-            """
+            configuredPlugin(gradleVersion, legacy, ccudPluginVersion, serverUrl)
         } else {
             '' // applied in settings.gradle
         }
+    }
+
+    String configuredPlugin(GradleVersion gradleVersion, boolean legacy, String ccudPluginVersion, URI serverUri) {
+        def pluginId = legacy
+            ? (gradleVersion < GradleVersion.version('6.0') ? 'com.gradle.build-scan' : 'com.gradle.enterprise')
+            : 'com.gradle.develocity'
+        def pluginVersion = legacy ? "3.16.2" : DEVELOCITY_PLUGIN_VERSION
+        def configBlock = legacy ? 'gradleEnterprise' : 'develocity'
+        """
+              plugins {
+                id '$pluginId' version '$pluginVersion'
+                ${ccudPluginVersion ? "id 'com.gradle.common-custom-user-data-gradle-plugin' version '$ccudPluginVersion'" : ""}
+              }
+              $configBlock {
+                 server = '$serverUri'
+                 ${legacy ? "buildScan { publishAlways() }" : ""}
+              }
+            """
     }
 
     def addFailingTaskToBuild() {

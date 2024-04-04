@@ -68,6 +68,20 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
+    def "produces build results file for #testGradleVersion with legacy enterprise plugin publishing build scan"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        declareLegacyGradleEnterprisePluginApplication(testGradleVersion.gradleVersion)
+        run(['help'], initScript, testGradleVersion.gradleVersion)
+
+        then:
+        assertResults('help', testGradleVersion, false, true)
+
+        where:
+        testGradleVersion << ALL_VERSIONS
+    }
+
     def "produces build results file for #testGradleVersion with Develocity plugin and no build scan published"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
@@ -171,15 +185,12 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         when:
         settingsFile.text = """
             plugins {
-                id 'com.gradle.enterprise' version '3.16.2' apply(false)
+                id 'com.gradle.develocity' version '3.17' apply(false)
             }
             gradle.settingsEvaluated {
-                apply plugin: 'com.gradle.enterprise'
-                gradleEnterprise {
+                apply plugin: 'com.gradle.develocity'
+                develocity {
                     server = '$mockScansServer.address'
-                    buildScan {
-                        publishAlways()
-                    }
                 }
             }
         """ + settingsFile.text

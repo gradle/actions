@@ -6,7 +6,7 @@ export function setup(): void {
     maybeExportVariable('DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE', 'gradle-actions')
     if (getBuildScanPublishEnabled() && verifyTermsOfUseAgreement()) {
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
-        maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.16.2')
+        maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.17')
         maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', getBuildScanTermsOfUseUrl())
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', getBuildScanTermsOfUseAgree())
