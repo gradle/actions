@@ -8,7 +8,7 @@ The `setup-gradle` action can be used to configure Gradle for optimal execution 
 
 This replaces the previous `gradle/gradle-build-action`, which now delegates to this implementation.
 
-The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), and the examples assume that the Gradle Wrapper has been configured for the project. See [this example](setup-gradle/README.md#build-with-a-specific-gradle-version) if your project doesn't use the Gradle Wrapper.
+The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), and the examples assume that the Gradle Wrapper has been configured for the project. See [this example](docs/setup-gradle.md#build-with-a-specific-gradle-version) if your project doesn't use the Gradle Wrapper.
 
 ### Example usage
 
@@ -29,7 +29,7 @@ jobs:
       run: ./gradlew build
 ```
 
-See the [full action documentation](setup-gradle/README.md) for more advanced usage scenarios.
+See the [full action documentation](docs/setup-gradle.md) for more advanced usage scenarios.
 
 ## The `dependency-submission` action
 
@@ -58,4 +58,4 @@ jobs:
       uses: gradle/actions/dependency-submission@v3
 ```
 
-See the [full action documentation](dependency-submission/README.md) for more advanced usage scenarios.
+See the [full action documentation](docs/dependency-submission.md) for more advanced usage scenarios.
