@@ -137,7 +137,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
 
         then:
         assert reportFile.exists()
-        assert result.output.contains("Resolving dependency graph plugin 1.2.2 from plugin repository: https://plugins.grdev.net/m2")
+        assert result.output.contains("Resolving dependency graph plugin 1.3.0 from plugin repository: https://plugins.grdev.net/m2")
 
         where:
         testGradleVersion << DEPENDENCY_GRAPH_VERSIONS
@@ -155,7 +155,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
 
         then:
         assert reportFile.exists()
-        assert result.output.contains("Resolving dependency graph plugin 1.2.2 from plugin repository: https://plugins.grdev.net/m2")
+        assert result.output.contains("Resolving dependency graph plugin 1.3.0 from plugin repository: https://plugins.grdev.net/m2")
         assert result.output.contains("Applying credentials for plugin repository: https://plugins.grdev.net/m2")
 
         where:
