@@ -555,7 +555,9 @@ graph cannot be generated or submitted. You can enable this behavior with the `d
 ### Using a custom plugin repository
 
 By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use. 
+
 Do so by setting the `GRADLE_PLUGIN_REPOSITORY_URL` environment variable with your Gradle invocation.
+The `GRADLE_PLUGIN_REPOSITORY_USERNAME` and `GRADLE_PLUGIN_REPOSITORY_PASSWORD` can be used when the plugin repository requires authentication.
 
 ```yaml
 jobs:
@@ -571,6 +573,10 @@ jobs:
       run: ./gradlew build
       env:
         GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
+
+        # Set the following variables if your custom plugin repository requires authentication
+        # GRADLE_PLUGIN_REPOSITORY_USERNAME: "username"
+        # GRADLE_PLUGIN_REPOSITORY_PASSWORD: ${secrets.MY_REPOSITORY_PASSWORD}
 ```
 
 ### Choosing which Gradle invocations will generate a dependency graph
