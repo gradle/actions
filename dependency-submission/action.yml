@@ -47,6 +47,17 @@ inputs:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
     required: false
 
+  # DEPRECATED ACTION INPUTS
+  build-scan-terms-of-service-url:
+    description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.
+    required: false
+    deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-url' instead.
+
+  build-scan-terms-of-service-agree:
+    description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
+    required: false
+    deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-agree' instead.
+
 runs:
   using: "composite"
   steps:
@@ -59,7 +70,7 @@ runs:
         fi
     - name: Generate dependency graph
       if: ${{ inputs.dependency-graph == 'generate-and-submit' || inputs.dependency-graph == 'generate-and-upload' }}
-      uses: gradle/actions/setup-gradle@v3.1.0
+      uses: gradle/actions/setup-gradle@v3.2.0
       with:
         dependency-graph: ${{ inputs.dependency-graph }}
         dependency-graph-continue-on-failure: false
@@ -67,8 +78,8 @@ runs:
         build-root-directory: ${{ inputs.build-root-directory }}
         cache-encryption-key: ${{ inputs.cache-encryption-key }}
         build-scan-publish: ${{ inputs.build-scan-publish }}
-        build-scan-terms-of-use-url: ${{ inputs.build-scan-terms-of-use-url }}
-        build-scan-terms-of-use-agree: ${{ inputs.build-scan-terms-of-use-agree }}
+        build-scan-terms-of-use-url: ${{ inputs.build-scan-terms-of-use-url || inputs.build-scan-terms-of-service-url }}
+        build-scan-terms-of-use-agree: ${{ inputs.build-scan-terms-of-use-agree || inputs.build-scan-terms-of-service-agree }}
         artifact-retention-days: 1
         arguments: |
           -Dorg.gradle.configureondemand=false
@@ -78,7 +89,7 @@ runs:
           ${{ inputs.additional-arguments }}
     - name: Download and submit dependency graph
       if: ${{ inputs.dependency-graph == 'download-and-submit' }}
-      uses: gradle/actions/setup-gradle@v3.1.0
+      uses: gradle/actions/setup-gradle@v3.2.0
       with:
         dependency-graph: download-and-submit
         dependency-graph-continue-on-failure: false
