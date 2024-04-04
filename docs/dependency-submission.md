@@ -13,6 +13,8 @@ The generated dependency graph includes all of the dependencies in your build, a
 for vulnerable dependencies, as well as to populate the 
 [Dependency Graph insights view](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exploring-the-dependencies-of-a-repository#viewing-the-dependency-graph).
 
+If your confused by the behaviour you're seeing or have specific questions, please check out [the FAQ](dependency-submission-faq.md) before raising an issue.
+
 ## General usage
 
 The following workflow will generate a dependency graph for a Gradle project and submit it immediately to the repository via the
