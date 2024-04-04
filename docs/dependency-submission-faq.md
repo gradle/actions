@@ -5,6 +5,9 @@ Implementing a `dependency-submission` workflow for your repository is documente
 But getting it working is the easy part: the dependency alerts you recieve can be confusing and surprising.
 Here are some common questions answered.
 
+### How can I easily try this out without experimenting on my main repository?
+The https://github.com/gradle/github-dependency-submission-demo repository is setup as a tutorial for you to fork and play with.
+
 ### How can I tell if the `dependency-submission` action is working?
 Inspect the Dependency Graph for your project (Insights -> Dependency Graph). You should see some dependencies annotated with "Detected by GitHub Dependency Graph Gradle Plugin"
 
