@@ -27,7 +27,9 @@ The recommended way to execute any Gradle build is with the help of the [Gradle 
 
 ```yaml
 name: Run Gradle on every push
+
 on: push
+
 jobs:
   gradle:
     strategy:
@@ -39,8 +41,8 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         distribution: temurin
-        java-version: 11
-        
+        java-version: 17
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
     
@@ -91,7 +93,8 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         distribution: temurin
-        java-version: 11
+        java-version: 17
+
     - uses: gradle/actions/setup-gradle@v3
       id: setup-gradle
       with:
@@ -181,6 +184,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: 8.6
@@ -414,12 +422,17 @@ jobs:
   run-gradle-build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout project sources
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         add-job-summary-as-pr-comment: on-failure # Valid values are 'never' (default), 'always', and 'on-failure'
+
     - run: ./gradlew build --scan
 ```
 
@@ -446,12 +459,18 @@ jobs:
   gradle:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout project sources
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+
     - name: Run build with Gradle wrapper
       run: ./gradlew build --scan
+
     - name: Upload build reports
       uses: actions/upload-artifact@v3
       if: always()
@@ -518,6 +537,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Setup Gradle to generate and submit dependency graphs
       uses: gradle/actions/setup-gradle@v3
       with:
@@ -565,6 +589,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Setup Gradle to generate and submit dependency graphs
       uses: gradle/actions/setup-gradle@v3
       with:
@@ -590,6 +619,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Setup Gradle to generate and submit dependency graphs
       uses: gradle/actions/setup-gradle@v3
       with:
@@ -626,7 +660,6 @@ By default, these artifacts are retained for 30 days (or as configured for the r
 To reduce storage costs for these artifacts, you can set the `artifact-retention-days` value to a lower number.
 
 ```yaml
-    steps:
     - name: Generate dependency graph, but only retain artifact for one day
       uses: gradle/actions/setup-gradle@v3
       with:
@@ -648,22 +681,15 @@ To enable Develocity injection for your build, you must provide the required con
 Here's a minimal example:
 
 ```yaml
-name: Run build with Develocity injection
-  
-env:
-  DEVELOCITY_INJECTION_ENABLED: true
-  DEVELOCITY_URL: https://develocity.your-server.com
-  DEVELOCITY_PLUGIN_VERSION: 3.17
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+
     - name: Run a Gradle build with Develocity injection enabled
       run: ./gradlew build
+      env:
+        DEVELOCITY_INJECTION_ENABLED: true
+        DEVELOCITY_URL: https://develocity.your-server.com
+        DEVELOCITY_PLUGIN_VERSION: 3.17
 ```
 
 This configuration will automatically apply `v3.17` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
@@ -697,13 +723,6 @@ but is also useful for publishing to the public Build Scans instance (https://sc
 To publish to https://scans.gradle.com, you must specify in your workflow that you accept the [Gradle Terms of Use](https://gradle.com/help/legal-terms-of-use).
 
 ```yaml
-name: Run build and publish Build Scan
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
     - name: Setup Gradle to publish build scans
       uses: gradle/actions/setup-gradle@v3
       with:
