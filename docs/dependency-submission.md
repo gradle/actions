@@ -34,11 +34,31 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
 ```
+### Publishing a Develocity Build Scan® from your dependency submission workflow
+
+You can automatically publish a free Develocity Build Scan on every run of `gradle/actions/dependency-submission`. 
+Three input parameters are required, one to enable publishing and two more to accept the 
+[Develocity terms of use](https://gradle.com/help/legal-terms-of-use).
+
+```yaml
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@v3
+      with:
+        build-scan-publish: true
+        build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+        build-scan-terms-of-use-agree: "yes"
+```
+
+A Build Scan makes it easy to determine the source of any dependency vulnerabilities in your project.
 
 ### Configuration parameters
 
@@ -47,19 +67,6 @@ In some cases, the default action configuration will not be sufficient, and addi
 See the example below for a summary, and the [Action Metadata file](action.yml) for a more detailed description of each input parameter.
 
 ```yaml
-name: Dependency Submission with advanced config
-
-on: [ push ]
-
-permissions:
-  contents: read
-
-jobs:
-  dependency-submission:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
     - name: Generate and save dependency graph
       uses: gradle/actions/dependency-submission@v3
       with:
@@ -95,20 +102,6 @@ Knowing the source of the dependency can help determine how to deal with the Dep
 
 Note that you may need to look at both the _Dependencies_ and the _Build Dependencies_ of your project to find the
 offending dependency.
-
-### Publishing a Develocity Build Scan® from your dependency submission workflow
-
-You can automatically publish a Build Scan on every run of `gradle/actions/dependency-submission`. Three input parameters are 
-required, one to enable publishing and two more to accept the [Develocity terms of use](https://gradle.com/help/legal-terms-of-use).
-
-```yaml
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
-      with:
-        build-scan-publish: true
-        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
-        build-scan-terms-of-use-agree: "yes"
-```
 
 ### When you cannot publish a Build Scan®
 
@@ -244,12 +237,6 @@ a Java project, that dependency will be resolved in `compileClasspath`, `runtime
 For example, if you want to exclude dependencies in the `buildSrc` project, and exclude dependencies from the `testCompileClasspath` and `testRuntimeClasspath` configurations, you would use the following configuration:
 
 ```yaml
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
       env:
@@ -269,21 +256,9 @@ has other filtering options that may be useful.
 
 ## Using a custom plugin repository
 
-By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use. 
-Do so by setting the `GRADLE_PLUGIN_REPOSITORY_URL` environment variable.
+By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use with an environment variable.
 
-```yaml
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
-      env:
-        GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
-```
+See [the setup-gradle docs](setup-gradle.md#using-a-custom-plugin-repository) for details.
 
 ## Integrating the `dependency-review-action`
 
@@ -305,8 +280,12 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
   
@@ -343,8 +322,12 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Generate and save dependency graph
       uses: gradle/actions/dependency-submission@v3
       with:

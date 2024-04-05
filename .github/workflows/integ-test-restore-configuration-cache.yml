@@ -36,7 +36,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'liberica'
-        java-version: '21'
+        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -64,7 +64,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'liberica'
-        java-version: '21'
+        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -102,7 +102,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'liberica'
-        java-version: '21'
+        java-version: 17
     - name: Setup Gradle with no extracted cache entries restored
       uses: ./setup-gradle
       env: 
@@ -131,7 +131,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'liberica'
-        java-version: '21'
+        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -159,7 +159,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'liberica'
-        java-version: '21'
+        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -188,7 +188,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'liberica'
-        java-version: '21'
+        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
