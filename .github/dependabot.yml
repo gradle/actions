@@ -34,7 +34,7 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: "github-actions"
-    directory: "/.github/actions/download-dist"
+    directory: "/.github/actions/init-integ-test"
     schedule:
       interval: "weekly"
     groups:

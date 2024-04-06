@@ -13,6 +13,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Generate and save dependency graph
       uses: ./dependency-submission
       with:
