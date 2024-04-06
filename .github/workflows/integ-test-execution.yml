@@ -30,8 +30,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Test use defined Gradle version
       uses: ./setup-gradle
       with:
@@ -68,8 +69,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Java
       uses: actions/setup-java@v4
       with:

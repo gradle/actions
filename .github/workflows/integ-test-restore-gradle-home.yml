@@ -26,8 +26,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -46,8 +47,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -66,8 +68,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -86,8 +89,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle with no extracted cache entries restored
       uses: ./setup-gradle
       env: 
@@ -108,8 +112,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Pre-create Gradle User Home
       shell: bash
       run: |

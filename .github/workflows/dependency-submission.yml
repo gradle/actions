@@ -13,6 +13,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Generate and submit dependencies
       uses: ./dependency-submission
       with:
@@ -33,6 +36,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Generate and submit dependencies
       uses: ./dependency-submission
       with:
@@ -46,6 +52,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
     - name: Generate and submit dependencies

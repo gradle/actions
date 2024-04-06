@@ -17,14 +17,15 @@ jobs:
   seed-build:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Set Gradle User Home
       run: |
         mkdir -p $GITHUB_WORKSPACE/gradle-user-home
         echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/gradle-user-home" >> $GITHUB_ENV
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -38,14 +39,15 @@ jobs:
     needs: seed-build
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Set Gradle User Home
       run: |
         mkdir -p $GITHUB_WORKSPACE/gradle-user-home
         echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/gradle-user-home" >> $GITHUB_ENV
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -59,14 +61,15 @@ jobs:
     needs: seed-build
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Set Gradle User Home
       run: |
         mkdir -p $GITHUB_WORKSPACE/gradle-user-home
         echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/gradle-user-home" >> $GITHUB_ENV
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Download distribution if required
-      uses: ./.github/actions/download-dist
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
