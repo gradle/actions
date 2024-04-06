@@ -47,6 +47,29 @@ inputs:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
     required: false
 
+  # HARD-CODED DEFAULTS - These should be removed from here and set directly in code
+  dependency-graph-continue-on-failure:
+    required: false
+    default: false
+  artifact-retention-days:
+    required: false
+    default: 1
+  add-job-summary:
+    required: false
+    default: 'always'
+  add-job-summary-as-pr-comment:
+    required: false
+    default: 'never'
+  workflow-job-context:
+    required: false
+    default: ${{ toJSON(matrix) }}
+  github-token:
+    default: ${{ github.token }}
+    required: false
+  cache-disabled:
+    required: false
+    default: true
+
   # DEPRECATED ACTION INPUTS
   build-scan-terms-of-service-url:
     description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.
@@ -59,38 +82,6 @@ inputs:
     deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-agree' instead.
 
 runs:
-  using: "composite"
-  steps:
-    - name: Check no setup-gradle
-      shell: bash
-      run: |
-        if [ -n "${GRADLE_BUILD_ACTION_SETUP_COMPLETED}" ]; then
-          echo "The dependency-submission action cannot be used in the same Job as the setup-gradle action. Please use a separate Job for dependency submission."
-          exit 1
-        fi
-    - name: Generate dependency graph
-      if: ${{ inputs.dependency-graph == 'generate-and-submit' || inputs.dependency-graph == 'generate-and-upload' }}
-      uses: gradle/actions/setup-gradle@v3.2.0
-      with:
-        dependency-graph: ${{ inputs.dependency-graph }}
-        dependency-graph-continue-on-failure: false
-        gradle-version: ${{ inputs.gradle-version }}
-        build-root-directory: ${{ inputs.build-root-directory }}
-        cache-encryption-key: ${{ inputs.cache-encryption-key }}
-        build-scan-publish: ${{ inputs.build-scan-publish }}
-        build-scan-terms-of-use-url: ${{ inputs.build-scan-terms-of-use-url || inputs.build-scan-terms-of-service-url }}
-        build-scan-terms-of-use-agree: ${{ inputs.build-scan-terms-of-use-agree || inputs.build-scan-terms-of-service-agree }}
-        artifact-retention-days: 1
-        arguments: |
-          -Dorg.gradle.configureondemand=false
-          -Dorg.gradle.dependency.verification=off
-          -Dorg.gradle.unsafe.isolated-projects=false
-          :ForceDependencyResolutionPlugin_resolveAllDependencies
-          ${{ inputs.additional-arguments }}
-    - name: Download and submit dependency graph
-      if: ${{ inputs.dependency-graph == 'download-and-submit' }}
-      uses: gradle/actions/setup-gradle@v3.2.0
-      with:
-        dependency-graph: download-and-submit
-        dependency-graph-continue-on-failure: false
-        cache-disabled: true
+  using: 'node20'
+  main: '../dist/dependency-submission/main/index.js'
+  post: '../dist/dependency-submission/post/index.js'

@@ -58,6 +58,11 @@ function maybeExportVariable(variableName: string, value: unknown): void {
 }
 
 export async function complete(option: DependencyGraphOption): Promise<void> {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph upload and submit not supported in the ACT environment.')
+        return
+    }
+
     try {
         switch (option) {
             case DependencyGraphOption.Disabled:
@@ -96,6 +101,11 @@ async function uploadDependencyGraphs(dependencyGraphFiles: string[]): Promise<v
 }
 
 async function downloadAndSubmitDependencyGraphs(): Promise<void> {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph download and submit not supported in the ACT environment.')
+        return
+    }
+
     try {
         await submitDependencyGraphs(await downloadDependencyGraphs())
     } catch (e) {
@@ -241,4 +251,8 @@ function sanitize(value: string): string {
         .replace(/[^a-zA-Z0-9_-\s]/g, '')
         .replace(/\s+/g, '_')
         .toLowerCase()
+}
+
+function isRunningInActEnvironment(): boolean {
+    return process.env.ACT !== undefined
 }
