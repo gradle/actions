@@ -88,10 +88,10 @@ jobs:
       uses: ./setup-gradle
       with:
         cache-disabled: true
-    - name: Run Gradle build
+    - name: Build using Gradle wrapper
       id: gradle
-      working-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
-      run: gradle help "-DgradleVersionCheck=${{matrix.gradle}}"
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew help
     - name: Check Build Scan url is captured
       if: ${{ !steps.gradle.outputs.build-scan-url }}
       uses: actions/github-script@v7
@@ -112,10 +112,10 @@ jobs:
       run: mkdir -p ~/.gradle/caches
     - name: Setup Gradle
       uses: ./setup-gradle
-    - name: Run Gradle build
+    - name: Build using Gradle wrapper
       id: gradle
-      working-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
-      run: gradle help "-DgradleVersionCheck=${{matrix.gradle}}"
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew help
     - name: Check Build Scan url is captured
       if: ${{ !steps.gradle.outputs.build-scan-url }}
       uses: actions/github-script@v7

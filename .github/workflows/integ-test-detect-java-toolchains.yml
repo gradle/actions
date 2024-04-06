@@ -36,7 +36,7 @@ jobs:
       shell: bash
       working-directory: .github/workflow-samples/groovy-dsl
       run: | 
-        gradle --info javaToolchains > output.txt
+        ./gradlew --info javaToolchains > output.txt
         cat output.txt
     - name: Verify detected toolchains
       shell: bash
@@ -76,7 +76,7 @@ jobs:
       shell: bash
       working-directory: .github/workflow-samples/groovy-dsl
       run: | 
-        gradle --info javaToolchains > output.txt
+        ./gradlew --info javaToolchains > output.txt
         cat output.txt
     - name: Verify setup JDKs are detected
       shell: bash
