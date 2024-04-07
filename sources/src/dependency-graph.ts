@@ -16,19 +16,20 @@ import {DependencyGraphConfig, DependencyGraphOption, getGithubToken} from './in
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 
 export async function setup(config: DependencyGraphConfig): Promise<void> {
-    if (config.dependencyGraphOption === DependencyGraphOption.Disabled) {
+    const option = config.getDependencyGraphOption()
+    if (option === DependencyGraphOption.Disabled) {
         core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'false')
         return
     }
     // Download and submit early, for compatability with dependency review.
-    if (config.dependencyGraphOption === DependencyGraphOption.DownloadAndSubmit) {
+    if (option === DependencyGraphOption.DownloadAndSubmit) {
         await downloadAndSubmitDependencyGraphs(config)
         return
     }
 
     core.info('Enabling dependency graph generation')
     core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'true')
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.continueOnFailure)
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.getDependencyGraphContinueOnFailure())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', config.getJobCorrelator())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', github.context.ref)
@@ -40,7 +41,7 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     )
 
     // To clear the dependency graph, we generate an empty graph by excluding all projects and configurations
-    if (config.dependencyGraphOption === DependencyGraphOption.Clear) {
+    if (option === DependencyGraphOption.Clear) {
         core.exportVariable('DEPENDENCY_GRAPH_INCLUDE_PROJECTS', '')
         core.exportVariable('DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS', '')
     }
@@ -53,13 +54,9 @@ function maybeExportVariable(variableName: string, value: unknown): void {
 }
 
 export async function complete(config: DependencyGraphConfig): Promise<void> {
-    if (isRunningInActEnvironment()) {
-        core.info('Dependency graph upload and submit not supported in the ACT environment.')
-        return
-    }
-
+    const option = config.getDependencyGraphOption()
     try {
-        switch (config.dependencyGraphOption) {
+        switch (option) {
             case DependencyGraphOption.Disabled:
             case DependencyGraphOption.Generate: // Performed via init-script: nothing to do here
             case DependencyGraphOption.DownloadAndSubmit: // Performed in setup
@@ -72,7 +69,7 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
                 await uploadDependencyGraphs(await findGeneratedDependencyGraphFiles(), config)
         }
     } catch (e) {
-        warnOrFail(config, e)
+        warnOrFail(config, option, e)
     }
 }
 
@@ -82,6 +79,12 @@ async function findGeneratedDependencyGraphFiles(): Promise<string[]> {
 }
 
 async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: DependencyGraphConfig): Promise<void> {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph upload not supported in the ACT environment.')
+        core.info(`Would upload: ${dependencyGraphFiles.join(', ')}`)
+        return
+    }
+
     const workspaceDirectory = layout.workspaceDirectory()
 
     const artifactClient = new DefaultArtifactClient()
@@ -90,7 +93,7 @@ async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: De
         core.info(`Uploading dependency graph file: ${relativePath}`)
         const artifactName = `${DEPENDENCY_GRAPH_PREFIX}${path.basename(dependencyGraphFile)}`
         await artifactClient.uploadArtifact(artifactName, [dependencyGraphFile], workspaceDirectory, {
-            retentionDays: config.artifactRetentionDays
+            retentionDays: config.getArtifactRetentionDays()
         })
     }
 }
@@ -104,17 +107,23 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
     try {
         await submitDependencyGraphs(await downloadDependencyGraphs())
     } catch (e) {
-        warnOrFail(config, e)
+        warnOrFail(config, DependencyGraphOption.DownloadAndSubmit, e)
     }
 }
 
 async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<void> {
-    for (const jsonFile of dependencyGraphFiles) {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph submit not supported in the ACT environment.')
+        core.info(`Would submit: ${dependencyGraphFiles.join(', ')}`)
+        return
+    }
+
+    for (const dependencyGraphFile of dependencyGraphFiles) {
         try {
-            await submitDependencyGraphFile(jsonFile)
+            await submitDependencyGraphFile(dependencyGraphFile)
         } catch (error) {
             if (error instanceof RequestError) {
-                throw new Error(translateErrorMessage(jsonFile, error))
+                throw new Error(translateErrorMessage(dependencyGraphFile, error))
             } else {
                 throw error
             }
@@ -182,16 +191,28 @@ async function downloadDependencyGraphs(): Promise<string[]> {
 
 async function findDependencyGraphFiles(dir: string): Promise<string[]> {
     const globber = await glob.create(`${dir}/dependency-graph-reports/*.json`)
-    const graphFiles = globber.glob()
-    return graphFiles
+    const allFiles = await globber.glob()
+    const unprocessedFiles = allFiles.filter(file => !isProcessed(file))
+    unprocessedFiles.forEach(markProcessed)
+    return unprocessedFiles
 }
 
-function warnOrFail(config: DependencyGraphConfig, error: unknown): void {
-    if (!config.continueOnFailure) {
+function isProcessed(dependencyGraphFile: string): boolean {
+    const markerFile = `${dependencyGraphFile}.processed`
+    return fs.existsSync(markerFile)
+}
+
+function markProcessed(dependencyGraphFile: string): void {
+    const markerFile = `${dependencyGraphFile}.processed`
+    fs.writeFileSync(markerFile, '')
+}
+
+function warnOrFail(config: DependencyGraphConfig, option: String, error: unknown): void {
+    if (!config.getDependencyGraphContinueOnFailure()) {
         throw new PostActionJobFailure(error)
     }
 
-    core.warning(`Failed to ${config.dependencyGraphOption} dependency graph. Will continue.\n${String(error)}`)
+    core.warning(`Failed to ${option} dependency graph. Will continue.\n${String(error)}`)
 }
 
 function getOctokit(): InstanceType<typeof GitHub> {

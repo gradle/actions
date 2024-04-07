@@ -40,6 +40,11 @@ jobs:
       working-directory: .github/workflow-samples/groovy-dsl
       continue-on-error: true
       run: ./gradlew not-a-real-task
+    - name: Dependency submission
+      uses: ./dependency-submission
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
+        dependency-graph: generate-and-upload
 
   successful-builds-with-no-summary:
     runs-on: ubuntu-latest

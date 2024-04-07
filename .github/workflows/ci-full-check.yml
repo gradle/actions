@@ -38,15 +38,15 @@ jobs:
     with:
       cache-key-prefix: ${{github.run_number}}-
 
-  dependency-graph-failures:
-    uses: ./.github/workflows/integ-test-dependency-graph-failures.yml
-    with:
-      cache-key-prefix: ${{github.run_number}}-
-
   dependency-submission:
     uses: ./.github/workflows/integ-test-dependency-submission.yml
     permissions:
       contents: write
+    with:
+      cache-key-prefix: ${{github.run_number}}-
+
+  dependency-submission-failures:
+    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
     with:
       cache-key-prefix: ${{github.run_number}}-
 

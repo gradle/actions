@@ -6,11 +6,7 @@ import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 import {parseArgsStringToArgv} from 'string-argv'
 
 export class DependencyGraphConfig {
-    dependencyGraphOption = this.getDependencyGraphOption()
-    continueOnFailure = this.getDependencyGraphContinueOnFailure()
-    artifactRetentionDays = this.getArtifactRetentionDays()
-
-    private getDependencyGraphOption(): DependencyGraphOption {
+    getDependencyGraphOption(): DependencyGraphOption {
         const val = core.getInput('dependency-graph')
         switch (val.toLowerCase().trim()) {
             case 'disabled':
@@ -31,11 +27,11 @@ export class DependencyGraphConfig {
         )
     }
 
-    private getDependencyGraphContinueOnFailure(): boolean {
+    getDependencyGraphContinueOnFailure(): boolean {
         return getBooleanInput('dependency-graph-continue-on-failure', true)
     }
 
-    private getArtifactRetentionDays(): number {
+    getArtifactRetentionDays(): number {
         const val = core.getInput('artifact-retention-days')
         return parseNumericInput('artifact-retention-days', val, 0)
         // Zero indicates that the default repository settings should be used
@@ -185,9 +181,6 @@ export enum JobSummaryOption {
 
 export class BuildScanConfig {
     getBuildScanPublishEnabled(): boolean {
-        if (!this.verifyTermsOfUseAgreement()) {
-            return false
-        }
         return getBooleanInput('build-scan-publish') && this.verifyTermsOfUseAgreement()
     }
 

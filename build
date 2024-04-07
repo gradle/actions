@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd sources
+npm install
+
+if [ "$1" == "all" ]; then
+    npm run all
+else
+    npm run build
+fi

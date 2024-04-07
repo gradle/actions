@@ -288,17 +288,10 @@ jobs:
 
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
-  
-  dependency-review:
-    needs: dependency-submission
-    runs-on: ubuntu-latest
-    steps:
+
     - name: Perform dependency review
       uses: actions/dependency-review-action@v3
 ```
-
-Note that the `dependency-submission` action submits the dependency graph at the completion of the workflow Job.
-For this reason, the `dependency-review-action` must be executed in a dependent job, and not as a subsequent step in the job that generates the dependency graph.
 
 ## Usage with pull requests from public forked repositories
 
