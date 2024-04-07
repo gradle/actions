@@ -34,15 +34,6 @@ inputs:
       Additional arguments to pass to Gradle. For example, `--no-configuration-cache --stacktrace`.
     required: false
 
-  add-job-summary:
-    description: Specifies when a Job Summary should be inluded in the action results. Valid values are 'never', 'always' (default), and 'on-failure'.
-    required: false
-    default: 'always'
-  add-job-summary-as-pr-comment:
-    description: Specifies when each Job Summary should be added as a PR comment. Valid values are 'never' (default), 'always', and 'on-failure'. No action will be taken if the workflow was not triggered from a pull request.
-    required: false
-    default: 'never'
-
   build-scan-publish:
     description: |
       Set to 'true' to automatically publish build results as a Build Scan on scans.gradle.com.
@@ -56,6 +47,29 @@ inputs:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
     required: false
 
+  # HARD-CODED DEFAULTS - These should be removed from here and set directly in code
+  dependency-graph-continue-on-failure:
+    required: false
+    default: false
+  artifact-retention-days:
+    required: false
+    default: 1
+  add-job-summary:
+    required: false
+    default: 'always'
+  add-job-summary-as-pr-comment:
+    required: false
+    default: 'never'
+  workflow-job-context:
+    required: false
+    default: ${{ toJSON(matrix) }}
+  github-token:
+    default: ${{ github.token }}
+    required: false
+  cache-disabled:
+    required: false
+    default: true
+
   # DEPRECATED ACTION INPUTS
   build-scan-terms-of-service-url:
     description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.
@@ -66,15 +80,6 @@ inputs:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
     required: false
     deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-agree' instead.
-
-  # INTERNAL ACTION INPUTS
-  # These inputs should not be configured directly, and are only used to pass environmental information to the action
-  workflow-job-context:
-    required: false
-    default: ${{ toJSON(matrix) }}
-  github-token:
-    default: ${{ github.token }}
-    required: false
 
 runs:
   using: 'node20'

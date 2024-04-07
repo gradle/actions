@@ -19,12 +19,9 @@ export async function run(): Promise<void> {
 
         // Configure the dependency graph submission
         const config = new DependencyGraphConfig()
-        config.artifactRetentionDays = 1
-        config.continueOnFailure = false
-
         await dependencyGraph.setup(config)
 
-        if (config.dependencyGraphOption === DependencyGraphOption.DownloadAndSubmit) {
+        if (config.getDependencyGraphOption() === DependencyGraphOption.DownloadAndSubmit) {
             // No execution to perform
             return
         }
@@ -43,6 +40,7 @@ export async function run(): Promise<void> {
         `
 
         const args: string[] = parseArgsStringToArgv(executionArgs)
+        core.info(args.join('!!!'))
         const buildRootDirectory = layout.buildRootDirectory()
         await execution.executeGradleBuild(executable, buildRootDirectory, args)
     } catch (error) {
