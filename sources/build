@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cd sources
-npm run build
