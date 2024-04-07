@@ -185,9 +185,6 @@ export enum JobSummaryOption {
 
 export class BuildScanConfig {
     getBuildScanPublishEnabled(): boolean {
-        if (!this.verifyTermsOfUseAgreement()) {
-            return false
-        }
         return getBooleanInput('build-scan-publish') && this.verifyTermsOfUseAgreement()
     }
 
