@@ -62,16 +62,18 @@ jobs:
       runner-os: '["ubuntu-latest"]'
       download-dist: true
 
-  dependency-graph-failures:
+  dependency-submission:
     needs: build-distribution
-    uses: ./.github/workflows/integ-test-dependency-graph-failures.yml
+    uses: ./.github/workflows/integ-test-dependency-submission.yml
+    permissions:
+      contents: write
     with:
       runner-os: '["ubuntu-latest"]'
       download-dist: true
 
-  dependency-submission:
+  dependency-submission-failures:
     needs: build-distribution
-    uses: ./.github/workflows/integ-test-dependency-submission.yml
+    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
     permissions:
       contents: write
     with:

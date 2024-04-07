@@ -1,0 +1,98 @@
+name: Test dependency graph
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+      runner-os:
+        type: string
+        default: '["ubuntu-latest"]'
+      download-dist:
+        type: boolean
+        default: false
+
+env:
+  DOWNLOAD_DIST: ${{ inputs.download-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-graph-${{ inputs.cache-key-prefix }}
+
+jobs:
+  failing-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Submit with failing build
+      id: gradle-build
+      uses: ./dependency-submission
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
+        additional-arguments: fail
+      continue-on-error: true
+    - name: Check step failed
+      if: steps.gradle-build.outcome != 'failure'
+      run: |
+        echo "Expected dependency submission step to fail"
+        exit 1
+    - name: Check no dependency graph is generated
+      shell: bash
+      run: |
+        if [ ! -z "$(ls -A dependency-graph-reports)" ]; then
+            echo "Expected no dependency graph files to be generated"
+            ls -l dependency-graph-reports
+            exit 1
+        fi
+
+  unsupported-gradle-version:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Submit with unsupported Gradle version
+      id: gradle-build
+      uses: ./dependency-submission
+      with:
+        gradle-version: 7.0.1
+        build-root-directory: .github/workflow-samples/groovy-dsl
+      continue-on-error: true
+    - name: Check step failed
+      if: steps.gradle-build.outcome != 'failure'
+      run: |
+        echo "Expected dependency submission step to fail"
+        exit 1
+    - name: Check no dependency graph is generated
+      shell: bash
+      run: |
+        if [ ! -z "$(ls -A dependency-graph-reports)" ]; then
+            echo "Expected no dependency graph files to be generated"
+            ls -l dependency-graph-reports
+            exit 1
+        fi
+
+  insufficient-permissions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Submit with insufficient permissions
+      id: gradle-build
+      uses: ./dependency-submission
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
+      continue-on-error: true
+    - name: Check step failed
+      if: steps.gradle-build.outcome != 'failure'
+      run: |
+        echo "Expected dependency submission step to fail"
+        exit 1

@@ -8,7 +8,7 @@ name: CI-dependency-review
 on: [pull_request]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   dependency-review:
@@ -16,9 +16,13 @@ jobs:
     steps:
       - name: 'Checkout Repository'
         uses: actions/checkout@v4
-      - name: 'Dependency Submission'
+      - name: Dependencies for groovy-dsl
         uses: ./dependency-submission
         with:
           build-root-directory: .github/workflow-samples/groovy-dsl
+      - name: Dependencies for kotlin-dsl
+        uses: ./dependency-submission
+        with:
+          build-root-directory: .github/workflow-samples/kotlin-dsl
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v4
