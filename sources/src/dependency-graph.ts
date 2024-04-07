@@ -11,31 +11,26 @@ import fs from 'fs'
 
 import * as layout from './repository-layout'
 import {PostActionJobFailure} from './errors'
-import {
-    DependencyGraphOption,
-    getDependencyGraphContinueOnFailure,
-    getGithubToken,
-    getJobMatrix,
-    getArtifactRetentionDays
-} from './input-params'
+import {DependencyGraphConfig, DependencyGraphOption, getGithubToken} from './input-params'
 
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 
-export async function setup(option: DependencyGraphOption): Promise<void> {
+export async function setup(config: DependencyGraphConfig): Promise<void> {
+    const option = config.getDependencyGraphOption()
     if (option === DependencyGraphOption.Disabled) {
         core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'false')
         return
     }
     // Download and submit early, for compatability with dependency review.
     if (option === DependencyGraphOption.DownloadAndSubmit) {
-        await downloadAndSubmitDependencyGraphs()
+        await downloadAndSubmitDependencyGraphs(config)
         return
     }
 
     core.info('Enabling dependency graph generation')
     core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'true')
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', getDependencyGraphContinueOnFailure())
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', getJobCorrelator())
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.getDependencyGraphContinueOnFailure())
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', config.getJobCorrelator())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', github.context.ref)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_SHA', getShaFromContext())
@@ -58,12 +53,13 @@ function maybeExportVariable(variableName: string, value: unknown): void {
     }
 }
 
-export async function complete(option: DependencyGraphOption): Promise<void> {
+export async function complete(config: DependencyGraphConfig): Promise<void> {
     if (isRunningInActEnvironment()) {
         core.info('Dependency graph upload and submit not supported in the ACT environment.')
         return
     }
 
+    const option = config.getDependencyGraphOption()
     try {
         switch (option) {
             case DependencyGraphOption.Disabled:
@@ -75,10 +71,10 @@ export async function complete(option: DependencyGraphOption): Promise<void> {
                 await submitDependencyGraphs(await findGeneratedDependencyGraphFiles())
                 return
             case DependencyGraphOption.GenerateAndUpload:
-                await uploadDependencyGraphs(await findGeneratedDependencyGraphFiles())
+                await uploadDependencyGraphs(await findGeneratedDependencyGraphFiles(), config)
         }
     } catch (e) {
-        warnOrFail(option, e)
+        warnOrFail(config, option, e)
     }
 }
 
@@ -87,7 +83,7 @@ async function findGeneratedDependencyGraphFiles(): Promise<string[]> {
     return await findDependencyGraphFiles(workspaceDirectory)
 }
 
-async function uploadDependencyGraphs(dependencyGraphFiles: string[]): Promise<void> {
+async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: DependencyGraphConfig): Promise<void> {
     const workspaceDirectory = layout.workspaceDirectory()
 
     const artifactClient = new DefaultArtifactClient()
@@ -96,12 +92,12 @@ async function uploadDependencyGraphs(dependencyGraphFiles: string[]): Promise<v
         core.info(`Uploading dependency graph file: ${relativePath}`)
         const artifactName = `${DEPENDENCY_GRAPH_PREFIX}${path.basename(dependencyGraphFile)}`
         await artifactClient.uploadArtifact(artifactName, [dependencyGraphFile], workspaceDirectory, {
-            retentionDays: getArtifactRetentionDays()
+            retentionDays: config.getArtifactRetentionDays()
         })
     }
 }
 
-async function downloadAndSubmitDependencyGraphs(): Promise<void> {
+async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig): Promise<void> {
     if (isRunningInActEnvironment()) {
         core.info('Dependency graph download and submit not supported in the ACT environment.')
         return
@@ -110,7 +106,7 @@ async function downloadAndSubmitDependencyGraphs(): Promise<void> {
     try {
         await submitDependencyGraphs(await downloadDependencyGraphs())
     } catch (e) {
-        warnOrFail(DependencyGraphOption.DownloadAndSubmit, e)
+        warnOrFail(config, DependencyGraphOption.DownloadAndSubmit, e)
     }
 }
 
@@ -192,8 +188,8 @@ async function findDependencyGraphFiles(dir: string): Promise<string[]> {
     return graphFiles
 }
 
-function warnOrFail(option: String, error: unknown): void {
-    if (!getDependencyGraphContinueOnFailure()) {
+function warnOrFail(config: DependencyGraphConfig, option: String, error: unknown): void {
+    if (!config.getDependencyGraphContinueOnFailure()) {
         throw new PostActionJobFailure(error)
     }
 
@@ -226,32 +222,6 @@ function getShaFromContext(): string {
     } else {
         return context.sha
     }
-}
-
-function getJobCorrelator(): string {
-    return constructJobCorrelator(github.context.workflow, github.context.job, getJobMatrix())
-}
-
-export function constructJobCorrelator(workflow: string, jobId: string, matrixJson: string): string {
-    const matrixString = describeMatrix(matrixJson)
-    const label = matrixString ? `${workflow}-${jobId}-${matrixString}` : `${workflow}-${jobId}`
-    return sanitize(label)
-}
-
-function describeMatrix(matrixJson: string): string {
-    core.debug(`Got matrix json: ${matrixJson}`)
-    const matrix = JSON.parse(matrixJson)
-    if (matrix) {
-        return Object.values(matrix).join('-')
-    }
-    return ''
-}
-
-function sanitize(value: string): string {
-    return value
-        .replace(/[^a-zA-Z0-9_-\s]/g, '')
-        .replace(/\s+/g, '_')
-        .toLowerCase()
 }
 
 function isRunningInActEnvironment(): boolean {

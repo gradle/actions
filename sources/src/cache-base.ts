@@ -4,7 +4,7 @@ import * as glob from '@actions/glob'
 
 import path from 'path'
 import fs from 'fs'
-import * as params from './input-params'
+import {CacheConfig} from './input-params'
 import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete, generateCacheKey} from './cache-utils'
 import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './cache-extract-entries'
@@ -14,15 +14,17 @@ const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 export const META_FILE_DIR = '.setup-gradle'
 
 export class GradleStateCache {
+    private cacheConfig: CacheConfig
     private cacheName: string
     private cacheDescription: string
 
     protected readonly userHome: string
     protected readonly gradleUserHome: string
 
-    constructor(userHome: string, gradleUserHome: string) {
+    constructor(userHome: string, gradleUserHome: string, cacheConfig: CacheConfig) {
         this.userHome = userHome
         this.gradleUserHome = gradleUserHome
+        this.cacheConfig = cacheConfig
         this.cacheName = 'gradle'
         this.cacheDescription = 'Gradle User Home'
     }
@@ -31,7 +33,7 @@ export class GradleStateCache {
         this.initializeGradleUserHome()
 
         // Export the GRADLE_ENCRYPTION_KEY variable if provided
-        const encryptionKey = params.getCacheEncryptionKey()
+        const encryptionKey = this.cacheConfig.getCacheEncryptionKey()
         if (encryptionKey) {
             core.exportVariable('GRADLE_ENCRYPTION_KEY', encryptionKey)
         }
@@ -52,7 +54,7 @@ export class GradleStateCache {
     async restore(listener: CacheListener): Promise<void> {
         const entryListener = listener.entry(this.cacheDescription)
 
-        const cacheKey = generateCacheKey(this.cacheName)
+        const cacheKey = generateCacheKey(this.cacheName, this.cacheConfig)
 
         cacheDebug(
             `Requesting ${this.cacheDescription} with
@@ -82,8 +84,8 @@ export class GradleStateCache {
      */
     async afterRestore(listener: CacheListener): Promise<void> {
         await this.debugReportGradleUserHomeSize('as restored from cache')
-        await new GradleHomeEntryExtractor(this.gradleUserHome).restore(listener)
-        await new ConfigurationCacheEntryExtractor(this.gradleUserHome).restore(listener)
+        await new GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener)
+        await new ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener)
         await this.debugReportGradleUserHomeSize('after restoring common artifacts')
     }
 
@@ -95,7 +97,7 @@ export class GradleStateCache {
      * it is saved with the exact key.
      */
     async save(listener: CacheListener): Promise<void> {
-        const cacheKey = generateCacheKey(this.cacheName).key
+        const cacheKey = generateCacheKey(this.cacheName, this.cacheConfig).key
         const restoredCacheKey = core.getState(RESTORED_CACHE_KEY_KEY)
         const gradleHomeEntryListener = listener.entry(this.cacheDescription)
 
@@ -133,8 +135,8 @@ export class GradleStateCache {
         await this.debugReportGradleUserHomeSize('before saving common artifacts')
         await this.deleteExcludedPaths()
         await Promise.all([
-            new GradleHomeEntryExtractor(this.gradleUserHome).extract(listener),
-            new ConfigurationCacheEntryExtractor(this.gradleUserHome).extract(listener)
+            new GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener),
+            new ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
         ])
         await this.debugReportGradleUserHomeSize(
             "after extracting common artifacts (only 'caches' and 'notifications' will be stored)"
@@ -145,7 +147,7 @@ export class GradleStateCache {
      * Delete any file paths that are excluded by the `gradle-home-cache-excludes` parameter.
      */
     private async deleteExcludedPaths(): Promise<void> {
-        const rawPaths: string[] = params.getCacheExcludes()
+        const rawPaths: string[] = this.cacheConfig.getCacheExcludes()
         rawPaths.push('caches/*/cc-keystore')
         const resolvedPaths = rawPaths.map(x => path.resolve(this.gradleUserHome, x))
 
@@ -168,7 +170,7 @@ export class GradleStateCache {
      * but this can be overridden by the `gradle-home-cache-includes` parameter.
      */
     protected getCachePath(): string[] {
-        const rawPaths: string[] = params.getCacheIncludes()
+        const rawPaths: string[] = this.cacheConfig.getCacheIncludes()
         rawPaths.push(META_FILE_DIR)
         const resolvedPaths = rawPaths.map(x => this.resolveCachePath(x))
         cacheDebug(`Using cache paths: ${resolvedPaths}`)

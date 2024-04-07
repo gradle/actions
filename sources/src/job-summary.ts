@@ -1,17 +1,21 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 import {RequestError} from '@octokit/request-error'
 
-import * as params from './input-params'
 import {BuildResult} from './build-results'
 import {CacheListener, generateCachingReport} from './cache-reporting'
+import {SummaryConfig, getGithubToken} from './input-params'
 
-export async function generateJobSummary(buildResults: BuildResult[], cacheListener: CacheListener): Promise<void> {
+export async function generateJobSummary(
+    buildResults: BuildResult[],
+    cacheListener: CacheListener,
+    config: SummaryConfig
+): Promise<void> {
     const summaryTable = renderSummaryTable(buildResults)
     const cachingReport = generateCachingReport(cacheListener)
 
-    if (shouldGenerateJobSummary(buildResults)) {
+    const hasFailure = buildResults.some(result => result.buildFailed)
+    if (config.shouldGenerateJobSummary(hasFailure)) {
         core.info('Generating Job Summary')
 
         core.summary.addRaw(summaryTable)
@@ -25,7 +29,7 @@ export async function generateJobSummary(buildResults: BuildResult[], cacheListe
         core.info('============================')
     }
 
-    if (shouldAddPRComment(buildResults)) {
+    if (config.shouldAddPRComment(hasFailure)) {
         await addPRComment(summaryTable)
     }
 }
@@ -47,7 +51,7 @@ async function addPRComment(jobSummary: string): Promise<void> {
 
 ${jobSummary}`
 
-    const github_token = params.getGithubToken()
+    const github_token = getGithubToken()
     const octokit = github.getOctokit(github_token)
     try {
         await octokit.rest.issues.createComment({
@@ -126,36 +130,6 @@ function renderBuildScanBadge(outcomeText: string, outcomeColor: string, targetU
     const badgeUrl = `https://img.shields.io/badge/Build%20Scan%C2%AE-${outcomeText}-${outcomeColor}?logo=Gradle`
     const badgeHtml = `<img src="${badgeUrl}" alt="Build Scan ${outcomeText}" />`
     return `<a href="${targetUrl}" rel="nofollow" target="_blank">${badgeHtml}</a>`
-}
-
-function shouldGenerateJobSummary(buildResults: BuildResult[]): boolean {
-    // Check if Job Summary is supported on this platform
-    if (!process.env[SUMMARY_ENV_VAR]) {
-        return false
-    }
-
-    // Check if Job Summary is disabled using the deprecated input
-    if (!params.isJobSummaryEnabled()) {
-        return false
-    }
-
-    return shouldAddJobSummary(params.getJobSummaryOption(), buildResults)
-}
-
-function shouldAddPRComment(buildResults: BuildResult[]): boolean {
-    return shouldAddJobSummary(params.getPRCommentOption(), buildResults)
-}
-
-function shouldAddJobSummary(option: params.JobSummaryOption, buildResults: BuildResult[]): boolean {
-    switch (option) {
-        case params.JobSummaryOption.Always:
-            return true
-        case params.JobSummaryOption.Never:
-            return false
-        case params.JobSummaryOption.OnFailure:
-            core.info(`Got these build results: ${JSON.stringify(buildResults)}`)
-            return buildResults.some(result => result.buildFailed)
-    }
 }
 
 function truncateString(str: string, maxLength: number): string {

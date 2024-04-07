@@ -10,13 +10,14 @@ import * as buildScan from './build-scan'
 import {loadBuildResults} from './build-results'
 import {CacheListener} from './cache-reporting'
 import {DaemonController} from './daemon-controller'
+import {BuildScanConfig, CacheConfig, SummaryConfig} from './input-params'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
 const CACHE_LISTENER = 'CACHE_LISTENER'
 
-export async function setup(): Promise<boolean> {
+export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScanConfig): Promise<boolean> {
     const userHome = await determineUserHome()
     const gradleUserHome = await determineGradleUserHome()
 
@@ -35,16 +36,16 @@ export async function setup(): Promise<boolean> {
     core.saveState(GRADLE_USER_HOME, gradleUserHome)
 
     const cacheListener = new CacheListener()
-    await caches.restore(userHome, gradleUserHome, cacheListener)
+    await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig)
 
     core.saveState(CACHE_LISTENER, cacheListener.stringify())
 
-    buildScan.setup()
+    buildScan.setup(buildScanConfig)
 
     return true
 }
 
-export async function complete(): Promise<boolean> {
+export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryConfig): Promise<boolean> {
     if (!core.getState(GRADLE_SETUP_VAR)) {
         core.info('Gradle setup post-action only performed for first gradle/actions step in workflow.')
         return false
@@ -58,9 +59,9 @@ export async function complete(): Promise<boolean> {
     const cacheListener: CacheListener = CacheListener.rehydrate(core.getState(CACHE_LISTENER))
     const daemonController = new DaemonController(buildResults)
 
-    await caches.save(userHome, gradleUserHome, cacheListener, daemonController)
+    await caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig)
 
-    await jobSummary.generateJobSummary(buildResults, cacheListener)
+    await jobSummary.generateJobSummary(buildResults, cacheListener, summaryConfig)
 
     core.info('Completed post-action step')
 

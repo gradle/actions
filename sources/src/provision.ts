@@ -8,7 +8,8 @@ import * as toolCache from '@actions/tool-cache'
 
 import * as gradlew from './gradlew'
 import * as params from './input-params'
-import {handleCacheFailure, isCacheDisabled, isCacheReadOnly} from './cache-utils'
+import {handleCacheFailure} from './cache-utils'
+import {CacheConfig} from './input-params'
 
 const gradleVersionsBaseUrl = 'https://services.gradle.org/versions'
 
@@ -122,7 +123,9 @@ async function locateGradleAndDownloadIfRequired(versionInfo: GradleVersionInfo)
 async function downloadAndCacheGradleDistribution(versionInfo: GradleVersionInfo): Promise<string> {
     const downloadPath = path.join(os.homedir(), `gradle-installations/downloads/gradle-${versionInfo.version}-bin.zip`)
 
-    if (isCacheDisabled()) {
+    // TODO: Convert this to a class and inject config
+    const cacheConfig = new CacheConfig()
+    if (cacheConfig.isCacheDisabled()) {
         await downloadGradleDistribution(versionInfo, downloadPath)
         return downloadPath
     }
@@ -141,7 +144,7 @@ async function downloadAndCacheGradleDistribution(versionInfo: GradleVersionInfo
     core.info(`Gradle distribution ${versionInfo.version} not found in cache. Will download.`)
     await downloadGradleDistribution(versionInfo, downloadPath)
 
-    if (!isCacheReadOnly()) {
+    if (!cacheConfig.isCacheReadOnly()) {
         try {
             await cache.saveCache([downloadPath], cacheKey)
         } catch (error) {

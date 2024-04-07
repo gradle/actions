@@ -7,7 +7,7 @@ import * as layout from '../repository-layout'
 import * as dependencyGraph from '../dependency-graph'
 
 import {parseArgsStringToArgv} from 'string-argv'
-import {DependencyGraphOption, getDependencyGraphOption} from '../input-params'
+import {BuildScanConfig, CacheConfig, DependencyGraphConfig, DependencyGraphOption} from '../input-params'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -15,12 +15,13 @@ import {DependencyGraphOption, getDependencyGraphOption} from '../input-params'
 export async function run(): Promise<void> {
     try {
         // Configure Gradle environment (Gradle User Home)
-        await setupGradle.setup()
+        await setupGradle.setup(new CacheConfig(), new BuildScanConfig())
 
         // Configure the dependency graph submission
-        await dependencyGraph.setup(getDependencyGraphOption())
+        const config = new DependencyGraphConfig()
+        await dependencyGraph.setup(config)
 
-        if (getDependencyGraphOption() === DependencyGraphOption.DownloadAndSubmit) {
+        if (config.getDependencyGraphOption() === DependencyGraphOption.DownloadAndSubmit) {
             // No execution to perform
             return
         }
