@@ -36,10 +36,32 @@ jobs:
       with:
         dependency-graph: generate-and-upload
         build-root-directory: .github/workflow-samples/groovy-dsl
+        cache-read-only: false
+
+  groovy-restore-cache:
+    needs: [groovy-generate-and-upload]
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Restore dependency graph
+      uses: ./dependency-submission
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
+        additional-arguments: --offline
 
   groovy-download-and-submit:
     needs: [groovy-generate-and-upload]
-    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4

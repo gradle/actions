@@ -40,7 +40,6 @@ export async function run(): Promise<void> {
         `
 
         const args: string[] = parseArgsStringToArgv(executionArgs)
-        core.info(args.join('!!!'))
         const buildRootDirectory = layout.buildRootDirectory()
         await execution.executeGradleBuild(executable, buildRootDirectory, args)
     } catch (error) {
