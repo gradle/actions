@@ -4,6 +4,8 @@ import * as setupGradle from '../setup-gradle'
 import * as execution from '../execution'
 import * as provisioner from '../provision'
 import * as layout from '../repository-layout'
+import * as dependencyGraph from '../dependency-graph'
+
 import {parseArgsStringToArgv} from 'string-argv'
 import {DependencyGraphOption, getDependencyGraphOption} from '../input-params'
 
@@ -12,15 +14,11 @@ import {DependencyGraphOption, getDependencyGraphOption} from '../input-params'
  */
 export async function run(): Promise<void> {
     try {
-        if (process.env['GRADLE_BUILD_ACTION_SETUP_COMPLETED']) {
-            core.setFailed(
-                'The dependency-submission action cannot be used in the same Job as the setup-gradle action. Please use a separate Job for dependency submission.'
-            )
-            return
-        }
-
         // Configure Gradle environment (Gradle User Home)
         await setupGradle.setup()
+
+        // Configure the dependency graph submission
+        await dependencyGraph.setup(getDependencyGraphOption())
 
         if (getDependencyGraphOption() === DependencyGraphOption.DownloadAndSubmit) {
             // No execution to perform

@@ -23,6 +23,7 @@ const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 
 export async function setup(option: DependencyGraphOption): Promise<void> {
     if (option === DependencyGraphOption.Disabled) {
+        core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'false')
         return
     }
     // Download and submit early, for compatability with dependency review.
@@ -32,7 +33,7 @@ export async function setup(option: DependencyGraphOption): Promise<void> {
     }
 
     core.info('Enabling dependency graph generation')
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'true')
+    core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'true')
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', getDependencyGraphContinueOnFailure())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', getJobCorrelator())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId)

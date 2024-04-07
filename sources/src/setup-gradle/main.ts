@@ -5,6 +5,7 @@ import * as execution from '../execution'
 import * as provisioner from '../provision'
 import * as layout from '../repository-layout'
 import * as params from '../input-params'
+import * as dependencyGraph from '../dependency-graph'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -13,6 +14,9 @@ export async function run(): Promise<void> {
     try {
         // Configure Gradle environment (Gradle User Home)
         await setupGradle.setup()
+
+        // Configure the dependency graph submission
+        await dependencyGraph.setup(params.getDependencyGraphOption())
 
         // Download and install Gradle if required
         const executable = await provisioner.provisionGradle()

@@ -60,11 +60,5 @@ jobs:
     - name: Generate and submit dependencies
       id: dependency-submission
       uses: ./dependency-submission
-      continue-on-error: true
       with:
         build-root-directory: .github/workflow-samples/groovy-dsl
-    - name: Assert step failure
-      if: steps.dependency-submission.outcome != 'failure'
-      run: |
-        echo "Dependency submission step should fail after setup-gradle"
-        exit 1
