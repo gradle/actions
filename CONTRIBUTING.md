@@ -30,6 +30,9 @@ Example running a single job:
 Known issues:
 - `integ-test-cache-cleanup.yml` fails because `gradle` is not installed on the runner. Should be fixed by #33.
 - `integ-test-detect-java-toolchains.yml` fails when running on a `linux/amd64` container, since the expected pre-installed JDKs are not present. Should be fixed by #89.
+- `act` is not yet compatible with `actions/upload-artifact@v4` (or related toolkit functions)
+    - See https://github.com/nektos/act/pull/2224
+- Workflows run by `act` cannot submit to the dependency-submission API, as no `GITHUB_TOKEN` is available by default.
 
 Tips:
 - Add the following lines to `~/.actrc`:

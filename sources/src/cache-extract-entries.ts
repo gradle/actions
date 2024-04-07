@@ -4,12 +4,19 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import * as semver from 'semver'
 
-import * as params from './input-params'
-
 import {META_FILE_DIR} from './cache-base'
 import {CacheEntryListener, CacheListener} from './cache-reporting'
-import {cacheDebug, getCacheKeyPrefix, hashFileNames, restoreCache, saveCache, tryDelete} from './cache-utils'
+import {
+    cacheDebug,
+    getCacheKeyPrefix,
+    hashFileNames,
+    isCacheDebuggingEnabled,
+    restoreCache,
+    saveCache,
+    tryDelete
+} from './cache-utils'
 import {BuildResult, loadBuildResults} from './build-results'
+import {CacheConfig} from './input-params'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
 
@@ -80,12 +87,14 @@ class ExtractedCacheEntryDefinition {
  * for more efficient storage.
  */
 abstract class AbstractEntryExtractor {
+    protected readonly cacheConfig: CacheConfig
     protected readonly gradleUserHome: string
     private extractorName: string
 
-    constructor(gradleUserHome: string, extractorName: string) {
+    constructor(gradleUserHome: string, extractorName: string, cacheConfig: CacheConfig) {
         this.gradleUserHome = gradleUserHome
         this.extractorName = extractorName
+        this.cacheConfig = cacheConfig
     }
 
     /**
@@ -261,7 +270,7 @@ abstract class AbstractEntryExtractor {
 
     // Run actions sequentially if debugging is enabled
     private async awaitForDebugging(p: Promise<ExtractedCacheEntry>): Promise<ExtractedCacheEntry> {
-        if (params.isCacheDebuggingEnabled()) {
+        if (isCacheDebuggingEnabled()) {
             await p
         }
         return p
@@ -306,8 +315,8 @@ abstract class AbstractEntryExtractor {
 }
 
 export class GradleHomeEntryExtractor extends AbstractEntryExtractor {
-    constructor(gradleUserHome: string) {
-        super(gradleUserHome, 'gradle-home')
+    constructor(gradleUserHome: string, cacheConfig: CacheConfig) {
+        super(gradleUserHome, 'gradle-home', cacheConfig)
     }
 
     async extract(listener: CacheListener): Promise<void> {
@@ -363,8 +372,8 @@ export class GradleHomeEntryExtractor extends AbstractEntryExtractor {
 }
 
 export class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
-    constructor(gradleUserHome: string) {
-        super(gradleUserHome, 'configuration-cache')
+    constructor(gradleUserHome: string, cacheConfig: CacheConfig) {
+        super(gradleUserHome, 'configuration-cache', cacheConfig)
     }
 
     /**
@@ -377,7 +386,7 @@ export class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
             return
         }
 
-        if (!params.getCacheEncryptionKey()) {
+        if (!this.cacheConfig.getCacheEncryptionKey()) {
             this.markNotRestored(listener, 'Encryption Key was not provided')
             return
         }
@@ -399,7 +408,7 @@ export class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
     }
 
     async extract(listener: CacheListener): Promise<void> {
-        if (!params.getCacheEncryptionKey()) {
+        if (!this.cacheConfig.getCacheEncryptionKey()) {
             const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions()
             if (cacheEntryDefinitions.length > 0) {
                 core.info('Not saving configuration-cache state, as no encryption key was provided')

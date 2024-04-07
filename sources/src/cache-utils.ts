@@ -7,9 +7,8 @@ import * as crypto from 'crypto'
 import * as path from 'path'
 import * as fs from 'fs'
 
-import * as params from './input-params'
-
 import {CacheEntryListener} from './cache-reporting'
+import {CacheConfig, getJobMatrix} from './input-params'
 
 const CACHE_PROTOCOL_VERSION = 'v9-'
 
@@ -22,31 +21,11 @@ const CACHE_KEY_JOB_EXECUTION_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION
 const SEGMENT_DOWNLOAD_TIMEOUT_VAR = 'SEGMENT_DOWNLOAD_TIMEOUT_MINS'
 const SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT = 10 * 60 * 1000 // 10 minutes
 
-export function isCacheDisabled(): boolean {
-    if (!cache.isFeatureAvailable()) {
+export function isCacheDebuggingEnabled(): boolean {
+    if (core.isDebug()) {
         return true
     }
-    return params.isCacheDisabled()
-}
-
-export function isCacheReadOnly(): boolean {
-    return !isCacheWriteOnly() && params.isCacheReadOnly()
-}
-
-export function isCacheWriteOnly(): boolean {
-    return params.isCacheWriteOnly()
-}
-
-export function isCacheOverwriteExisting(): boolean {
-    return params.isCacheOverwriteExisting()
-}
-
-export function isCacheDebuggingEnabled(): boolean {
-    return params.isCacheDebuggingEnabled()
-}
-
-export function isCacheCleanupEnabled(): boolean {
-    return params.isCacheCleanupEnabled()
+    return process.env['GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED'] ? true : false
 }
 
 /**
@@ -80,7 +59,7 @@ export class CacheKey {
  * - Any previous key for this Job (any matrix)
  * - Any previous key for this cache on the current OS
  */
-export function generateCacheKey(cacheName: string): CacheKey {
+export function generateCacheKey(cacheName: string, config: CacheConfig): CacheKey {
     const cacheKeyBase = `${getCacheKeyPrefix()}${CACHE_PROTOCOL_VERSION}${cacheName}`
 
     // At the most general level, share caches for all executions on the same OS
@@ -95,7 +74,7 @@ export function generateCacheKey(cacheName: string): CacheKey {
     // Exact match on Git SHA
     const cacheKey = `${cacheKeyForJobContext}-${getCacheKeyJobExecution()}`
 
-    if (params.isCacheStrictMatch()) {
+    if (config.isCacheStrictMatch()) {
         return new CacheKey(cacheKey, [cacheKeyForJobContext])
     }
 
@@ -125,7 +104,7 @@ function getCacheKeyJobInstance(): string {
     // By default, we hash the workflow name and the full `matrix` data for the run, to uniquely identify this job invocation
     // The only way we can obtain the `matrix` data is via the `workflow-job-context` parameter in action.yml.
     const workflowName = github.context.workflow
-    const workflowJobContext = params.getJobMatrix()
+    const workflowJobContext = getJobMatrix()
     return hashStrings([workflowName, workflowJobContext])
 }
 

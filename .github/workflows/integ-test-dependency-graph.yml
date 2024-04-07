@@ -39,7 +39,21 @@ jobs:
       run: ./gradlew build
       working-directory: .github/workflow-samples/groovy-dsl
 
-  kotlin-generate:
+  groovy-submit:
+    needs: [groovy-generate]
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Submit dependency graphs
+      uses: ./setup-gradle
+      with:
+        dependency-graph: download-and-submit
+
+  kotlin-generate-and-submit:
     strategy:
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -57,20 +71,6 @@ jobs:
     - name: Run gradle build
       run: ./gradlew build
       working-directory: .github/workflow-samples/kotlin-dsl
-  
-  submit:
-    needs: [groovy-generate]
-    runs-on: "ubuntu-latest"
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Initialize integ-test
-      uses: ./.github/actions/init-integ-test
-
-    - name: Submit dependency graphs
-      uses: ./setup-gradle
-      with:
-        dependency-graph: download-and-submit
 
   multiple-builds:
     strategy:

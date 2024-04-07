@@ -4,28 +4,27 @@ import * as path from 'path'
 import * as os from 'os'
 import * as caches from './caches'
 import * as layout from './repository-layout'
-import * as params from './input-params'
-import * as dependencyGraph from './dependency-graph'
 import * as jobSummary from './job-summary'
 import * as buildScan from './build-scan'
 
 import {loadBuildResults} from './build-results'
 import {CacheListener} from './cache-reporting'
 import {DaemonController} from './daemon-controller'
+import {BuildScanConfig, CacheConfig, SummaryConfig} from './input-params'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
 const CACHE_LISTENER = 'CACHE_LISTENER'
 
-export async function setup(): Promise<void> {
+export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScanConfig): Promise<boolean> {
     const userHome = await determineUserHome()
     const gradleUserHome = await determineGradleUserHome()
 
     // Bypass setup on all but first action step in workflow.
     if (process.env[GRADLE_SETUP_VAR]) {
         core.info('Gradle setup only performed on first gradle/actions step in workflow.')
-        return
+        return false
     }
     // Record setup complete: visible to all subsequent actions and prevents duplicate setup
     core.exportVariable(GRADLE_SETUP_VAR, true)
@@ -37,19 +36,19 @@ export async function setup(): Promise<void> {
     core.saveState(GRADLE_USER_HOME, gradleUserHome)
 
     const cacheListener = new CacheListener()
-    await caches.restore(userHome, gradleUserHome, cacheListener)
+    await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig)
 
     core.saveState(CACHE_LISTENER, cacheListener.stringify())
 
-    await dependencyGraph.setup(params.getDependencyGraphOption())
+    buildScan.setup(buildScanConfig)
 
-    buildScan.setup()
+    return true
 }
 
-export async function complete(): Promise<void> {
+export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryConfig): Promise<boolean> {
     if (!core.getState(GRADLE_SETUP_VAR)) {
         core.info('Gradle setup post-action only performed for first gradle/actions step in workflow.')
-        return
+        return false
     }
     core.info('In post-action step')
 
@@ -60,13 +59,13 @@ export async function complete(): Promise<void> {
     const cacheListener: CacheListener = CacheListener.rehydrate(core.getState(CACHE_LISTENER))
     const daemonController = new DaemonController(buildResults)
 
-    await caches.save(userHome, gradleUserHome, cacheListener, daemonController)
+    await caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig)
 
-    await jobSummary.generateJobSummary(buildResults, cacheListener)
-
-    await dependencyGraph.complete(params.getDependencyGraphOption())
+    await jobSummary.generateJobSummary(buildResults, cacheListener, summaryConfig)
 
     core.info('Completed post-action step')
+
+    return true
 }
 
 async function determineGradleUserHome(): Promise<string> {

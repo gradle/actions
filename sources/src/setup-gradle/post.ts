@@ -1,5 +1,8 @@
 import * as core from '@actions/core'
 import * as setupGradle from '../setup-gradle'
+import * as dependencyGraph from '../dependency-graph'
+
+import {CacheConfig, DependencyGraphConfig, SummaryConfig} from '../input-params'
 import {PostActionJobFailure} from '../errors'
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
@@ -12,7 +15,10 @@ process.on('uncaughtException', e => handleFailure(e))
  */
 export async function run(): Promise<void> {
     try {
-        await setupGradle.complete()
+        if (await setupGradle.complete(new CacheConfig(), new SummaryConfig())) {
+            // Only submit the dependency graphs once per job
+            await dependencyGraph.complete(new DependencyGraphConfig())
+        }
     } catch (error) {
         if (error instanceof PostActionJobFailure) {
             core.setFailed(String(error))

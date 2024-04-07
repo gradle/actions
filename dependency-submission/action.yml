@@ -34,6 +34,15 @@ inputs:
       Additional arguments to pass to Gradle. For example, `--no-configuration-cache --stacktrace`.
     required: false
 
+  add-job-summary:
+    description: Specifies when a Job Summary should be inluded in the action results. Valid values are 'never', 'always' (default), and 'on-failure'.
+    required: false
+    default: 'always'
+  add-job-summary-as-pr-comment:
+    description: Specifies when each Job Summary should be added as a PR comment. Valid values are 'never' (default), 'always', and 'on-failure'. No action will be taken if the workflow was not triggered from a pull request.
+    required: false
+    default: 'never'
+
   build-scan-publish:
     description: |
       Set to 'true' to automatically publish build results as a Build Scan on scans.gradle.com.
@@ -58,39 +67,16 @@ inputs:
     required: false
     deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-agree' instead.
 
+  # INTERNAL ACTION INPUTS
+  # These inputs should not be configured directly, and are only used to pass environmental information to the action
+  workflow-job-context:
+    required: false
+    default: ${{ toJSON(matrix) }}
+  github-token:
+    default: ${{ github.token }}
+    required: false
+
 runs:
-  using: "composite"
-  steps:
-    - name: Check no setup-gradle
-      shell: bash
-      run: |
-        if [ -n "${GRADLE_BUILD_ACTION_SETUP_COMPLETED}" ]; then
-          echo "The dependency-submission action cannot be used in the same Job as the setup-gradle action. Please use a separate Job for dependency submission."
-          exit 1
-        fi
-    - name: Generate dependency graph
-      if: ${{ inputs.dependency-graph == 'generate-and-submit' || inputs.dependency-graph == 'generate-and-upload' }}
-      uses: gradle/actions/setup-gradle@v3.2.0
-      with:
-        dependency-graph: ${{ inputs.dependency-graph }}
-        dependency-graph-continue-on-failure: false
-        gradle-version: ${{ inputs.gradle-version }}
-        build-root-directory: ${{ inputs.build-root-directory }}
-        cache-encryption-key: ${{ inputs.cache-encryption-key }}
-        build-scan-publish: ${{ inputs.build-scan-publish }}
-        build-scan-terms-of-use-url: ${{ inputs.build-scan-terms-of-use-url || inputs.build-scan-terms-of-service-url }}
-        build-scan-terms-of-use-agree: ${{ inputs.build-scan-terms-of-use-agree || inputs.build-scan-terms-of-service-agree }}
-        artifact-retention-days: 1
-        arguments: |
-          -Dorg.gradle.configureondemand=false
-          -Dorg.gradle.dependency.verification=off
-          -Dorg.gradle.unsafe.isolated-projects=false
-          :ForceDependencyResolutionPlugin_resolveAllDependencies
-          ${{ inputs.additional-arguments }}
-    - name: Download and submit dependency graph
-      if: ${{ inputs.dependency-graph == 'download-and-submit' }}
-      uses: gradle/actions/setup-gradle@v3.2.0
-      with:
-        dependency-graph: download-and-submit
-        dependency-graph-continue-on-failure: false
-        cache-disabled: true
+  using: 'node20'
+  main: '../dist/dependency-submission/main/index.js'
+  post: '../dist/dependency-submission/post/index.js'
