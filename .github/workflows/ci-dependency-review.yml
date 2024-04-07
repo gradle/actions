@@ -16,5 +16,9 @@ jobs:
     steps:
       - name: 'Checkout Repository'
         uses: actions/checkout@v4
+      - name: 'Dependency Submission'
+        uses: ./dependency-submission
+        with:
+          build-root-directory: .github/workflow-samples/groovy-dsl
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v4

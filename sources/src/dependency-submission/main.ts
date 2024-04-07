@@ -42,6 +42,8 @@ export async function run(): Promise<void> {
         const args: string[] = parseArgsStringToArgv(executionArgs)
         const buildRootDirectory = layout.buildRootDirectory()
         await execution.executeGradleBuild(executable, buildRootDirectory, args)
+
+        await dependencyGraph.complete(config)
     } catch (error) {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {

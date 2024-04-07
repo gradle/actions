@@ -54,11 +54,6 @@ function maybeExportVariable(variableName: string, value: unknown): void {
 }
 
 export async function complete(config: DependencyGraphConfig): Promise<void> {
-    if (isRunningInActEnvironment()) {
-        core.info('Dependency graph upload and submit not supported in the ACT environment.')
-        return
-    }
-
     const option = config.getDependencyGraphOption()
     try {
         switch (option) {
@@ -84,6 +79,12 @@ async function findGeneratedDependencyGraphFiles(): Promise<string[]> {
 }
 
 async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: DependencyGraphConfig): Promise<void> {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph upload not supported in the ACT environment.')
+        core.info(`Would upload: ${dependencyGraphFiles.join(', ')}`)
+        return
+    }
+
     const workspaceDirectory = layout.workspaceDirectory()
 
     const artifactClient = new DefaultArtifactClient()
@@ -111,12 +112,18 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
 }
 
 async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<void> {
-    for (const jsonFile of dependencyGraphFiles) {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph submit not supported in the ACT environment.')
+        core.info(`Would submit: ${dependencyGraphFiles.join(', ')}`)
+        return
+    }
+
+    for (const dependencyGraphFile of dependencyGraphFiles) {
         try {
-            await submitDependencyGraphFile(jsonFile)
+            await submitDependencyGraphFile(dependencyGraphFile)
         } catch (error) {
             if (error instanceof RequestError) {
-                throw new Error(translateErrorMessage(jsonFile, error))
+                throw new Error(translateErrorMessage(dependencyGraphFile, error))
             } else {
                 throw error
             }
@@ -184,8 +191,20 @@ async function downloadDependencyGraphs(): Promise<string[]> {
 
 async function findDependencyGraphFiles(dir: string): Promise<string[]> {
     const globber = await glob.create(`${dir}/dependency-graph-reports/*.json`)
-    const graphFiles = globber.glob()
-    return graphFiles
+    const allFiles = await globber.glob()
+    const unprocessedFiles = allFiles.filter(file => !isProcessed(file))
+    unprocessedFiles.forEach(markProcessed)
+    return unprocessedFiles
+}
+
+function isProcessed(dependencyGraphFile: string): boolean {
+    const markerFile = `${dependencyGraphFile}.processed`
+    return fs.existsSync(markerFile)
+}
+
+function markProcessed(dependencyGraphFile: string): void {
+    const markerFile = `${dependencyGraphFile}.processed`
+    fs.writeFileSync(markerFile, '')
 }
 
 function warnOrFail(config: DependencyGraphConfig, option: String, error: unknown): void {
