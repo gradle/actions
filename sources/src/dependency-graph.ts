@@ -16,20 +16,19 @@ import {DependencyGraphConfig, DependencyGraphOption, getGithubToken} from './in
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 
 export async function setup(config: DependencyGraphConfig): Promise<void> {
-    const option = config.getDependencyGraphOption()
-    if (option === DependencyGraphOption.Disabled) {
+    if (config.dependencyGraphOption === DependencyGraphOption.Disabled) {
         core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'false')
         return
     }
     // Download and submit early, for compatability with dependency review.
-    if (option === DependencyGraphOption.DownloadAndSubmit) {
+    if (config.dependencyGraphOption === DependencyGraphOption.DownloadAndSubmit) {
         await downloadAndSubmitDependencyGraphs(config)
         return
     }
 
     core.info('Enabling dependency graph generation')
     core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'true')
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.getDependencyGraphContinueOnFailure())
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.continueOnFailure)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', config.getJobCorrelator())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', github.context.ref)
@@ -41,7 +40,7 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     )
 
     // To clear the dependency graph, we generate an empty graph by excluding all projects and configurations
-    if (option === DependencyGraphOption.Clear) {
+    if (config.dependencyGraphOption === DependencyGraphOption.Clear) {
         core.exportVariable('DEPENDENCY_GRAPH_INCLUDE_PROJECTS', '')
         core.exportVariable('DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS', '')
     }
@@ -59,9 +58,8 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
         return
     }
 
-    const option = config.getDependencyGraphOption()
     try {
-        switch (option) {
+        switch (config.dependencyGraphOption) {
             case DependencyGraphOption.Disabled:
             case DependencyGraphOption.Generate: // Performed via init-script: nothing to do here
             case DependencyGraphOption.DownloadAndSubmit: // Performed in setup
@@ -74,7 +72,7 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
                 await uploadDependencyGraphs(await findGeneratedDependencyGraphFiles(), config)
         }
     } catch (e) {
-        warnOrFail(config, option, e)
+        warnOrFail(config, e)
     }
 }
 
@@ -92,7 +90,7 @@ async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: De
         core.info(`Uploading dependency graph file: ${relativePath}`)
         const artifactName = `${DEPENDENCY_GRAPH_PREFIX}${path.basename(dependencyGraphFile)}`
         await artifactClient.uploadArtifact(artifactName, [dependencyGraphFile], workspaceDirectory, {
-            retentionDays: config.getArtifactRetentionDays()
+            retentionDays: config.artifactRetentionDays
         })
     }
 }
@@ -106,7 +104,7 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
     try {
         await submitDependencyGraphs(await downloadDependencyGraphs())
     } catch (e) {
-        warnOrFail(config, DependencyGraphOption.DownloadAndSubmit, e)
+        warnOrFail(config, e)
     }
 }
 
@@ -188,12 +186,12 @@ async function findDependencyGraphFiles(dir: string): Promise<string[]> {
     return graphFiles
 }
 
-function warnOrFail(config: DependencyGraphConfig, option: String, error: unknown): void {
-    if (!config.getDependencyGraphContinueOnFailure()) {
+function warnOrFail(config: DependencyGraphConfig, error: unknown): void {
+    if (!config.continueOnFailure) {
         throw new PostActionJobFailure(error)
     }
 
-    core.warning(`Failed to ${option} dependency graph. Will continue.\n${String(error)}`)
+    core.warning(`Failed to ${config.dependencyGraphOption} dependency graph. Will continue.\n${String(error)}`)
 }
 
 function getOctokit(): InstanceType<typeof GitHub> {

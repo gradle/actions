@@ -6,7 +6,11 @@ import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 import {parseArgsStringToArgv} from 'string-argv'
 
 export class DependencyGraphConfig {
-    getDependencyGraphOption(): DependencyGraphOption {
+    dependencyGraphOption = this.getDependencyGraphOption()
+    continueOnFailure = this.getDependencyGraphContinueOnFailure()
+    artifactRetentionDays = this.getArtifactRetentionDays()
+
+    private getDependencyGraphOption(): DependencyGraphOption {
         const val = core.getInput('dependency-graph')
         switch (val.toLowerCase().trim()) {
             case 'disabled':
@@ -27,11 +31,11 @@ export class DependencyGraphConfig {
         )
     }
 
-    getDependencyGraphContinueOnFailure(): boolean {
+    private getDependencyGraphContinueOnFailure(): boolean {
         return getBooleanInput('dependency-graph-continue-on-failure', true)
     }
 
-    getArtifactRetentionDays(): number {
+    private getArtifactRetentionDays(): number {
         const val = core.getInput('artifact-retention-days')
         return parseNumericInput('artifact-retention-days', val, 0)
         // Zero indicates that the default repository settings should be used
