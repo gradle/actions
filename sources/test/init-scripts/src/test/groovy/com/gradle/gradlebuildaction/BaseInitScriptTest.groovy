@@ -211,18 +211,29 @@ task expectFailure {
         File initScriptsDir = new File(testProjectDir, "initScripts")
         args << '-I' << new File(initScriptsDir, initScript).absolutePath
 
-        envVars.putIfAbsent('RUNNER_TEMP', testProjectDir.absolutePath)
-        envVars.putIfAbsent('GITHUB_ACTION', 'github-step-id')
-
         def runner = ((DefaultGradleRunner) GradleRunner.create())
-            .withJvmArguments(jvmArgs)
             .withGradleVersion(gradleVersion.version)
             .withProjectDir(testProjectDir)
             .withArguments(args)
-            .withEnvironment(envVars)
             .forwardOutput()
 
+        if (testKitSupportsEnvVars(gradleVersion)) {
+            runner.withEnvironment(envVars)
+        } else {
+            (runner as DefaultGradleRunner).withJvmArguments(jvmArgs)
+        }
+
         runner
+    }
+
+    private boolean testKitSupportsEnvVars(GradleVersion gradleVersion) {
+        // TestKit supports env vars for Gradle 3.5+, except on M1 Mac where only 6.9+ is supported
+        def isM1Mac = System.getProperty("os.arch") == "aarch64"
+        if (isM1Mac) {
+            return gradleVersion >= GRADLE_6_X.gradleVersion
+        } else {
+            return gradleVersion >= GRADLE_3_X.gradleVersion
+        }
     }
 
     static final class TestGradleVersion {

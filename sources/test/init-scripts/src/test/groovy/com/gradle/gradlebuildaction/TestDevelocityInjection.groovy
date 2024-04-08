@@ -425,21 +425,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     }
 
     private BuildResult run(TestGradleVersion testGradleVersion, TestConfig config, List<String> args = ["help"]) {
-        if (testKitSupportsEnvVars(testGradleVersion.gradleVersion)) {
-            return run(args, initScript, testGradleVersion.gradleVersion, [], config.envVars)
-        } else {
-            return run(args, initScript, testGradleVersion.gradleVersion, config.jvmArgs, [:])
-        }
-    }
-
-    private boolean testKitSupportsEnvVars(GradleVersion gradleVersion) {
-        // TestKit supports env vars for Gradle 3.5+, except on M1 Mac where only 6.9+ is supported
-        def isM1Mac = System.getProperty("os.arch") == "aarch64"
-        if (isM1Mac) {
-            return gradleVersion >= GRADLE_6_X.gradleVersion
-        } else {
-            return gradleVersion >= GRADLE_3_X.gradleVersion
-        }
+        return run(args, initScript, testGradleVersion.gradleVersion, config.jvmArgs, config.envVars)
     }
 
     private TestConfig testConfig(String develocityPluginVersion = DEVELOCITY_PLUGIN_VERSION) {

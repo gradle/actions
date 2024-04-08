@@ -11,7 +11,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        run(['help'], initScript, testGradleVersion.gradleVersion)
+        run(testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, false)
@@ -25,7 +25,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
 
         when:
         addFailingTaskToBuild()
-        runAndFail(['expectFailure'], initScript, testGradleVersion.gradleVersion)
+        runAndFail(testGradleVersion.gradleVersion)
 
         then:
         assertResults('expectFailure', testGradleVersion, true, false)
@@ -38,14 +38,14 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion)
+        run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, false)
         assert buildResultFile.delete()
 
         when:
-        run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion)
+        run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, false)
@@ -59,7 +59,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
 
         when:
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
-        run(['help'], initScript, testGradleVersion.gradleVersion)
+        run(testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, true)
@@ -73,7 +73,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
 
         when:
         declareLegacyGradleEnterprisePluginApplication(testGradleVersion.gradleVersion)
-        run(['help'], initScript, testGradleVersion.gradleVersion)
+        run(testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, true)
@@ -87,7 +87,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
 
         when:
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
-        run(['help', '--no-scan'], initScript, testGradleVersion.gradleVersion)
+        run(['help', '--no-scan'], testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, false)
@@ -102,7 +102,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         when:
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         addFailingTaskToBuild()
-        runAndFail(['expectFailure'], initScript, testGradleVersion.gradleVersion)
+        runAndFail(testGradleVersion.gradleVersion)
 
         then:
         assertResults('expectFailure', testGradleVersion, true, true)
@@ -116,14 +116,14 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
 
         when:
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
-        run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion)
+        run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, true)
         assert buildResultFile.delete()
 
         when:
-        run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion)
+        run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, true)
@@ -139,7 +139,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
         addFailingTaskToBuild()
         failScanUpload = true
-        runAndFail(['expectFailure'], initScript, testGradleVersion.gradleVersion)
+        runAndFail(testGradleVersion.gradleVersion)
 
         then:
         assertResults('expectFailure', testGradleVersion, true, false, true)
@@ -152,7 +152,9 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        run(['help'], initScript, testGradleVersion.gradleVersion, [], [RUNNER_TEMP: '', GITHUB_ACTION: ''])
+        run(['help'], initScript, testGradleVersion.gradleVersion,
+            ["-DRUNNER_TEMP=", "-DGITHUB_ACTION="],
+            [RUNNER_TEMP: '', GITHUB_ACTION: ''])
 
         then:
         def buildResultsDir = new File(testProjectDir, '.build-results')
@@ -169,7 +171,9 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         def invalidDir = new File(testProjectDir, 'invalid-runner-temp')
         invalidDir.createNewFile()
 
-        run(['help'], initScript, testGradleVersion.gradleVersion, [], [RUNNER_TEMP: invalidDir.absolutePath])
+        run(['help'], initScript, testGradleVersion.gradleVersion,
+            ["-DRUNNER_TEMP=${invalidDir.absolutePath}".toString()],
+            [RUNNER_TEMP: invalidDir.absolutePath])
 
         then:
         def buildResultsDir = new File(testProjectDir, '.build-results')
@@ -195,13 +199,35 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
             }
         """ + settingsFile.text
         
-        run(['help'], initScript, testGradleVersion.gradleVersion)
+        run(testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, true)
 
         where:
         testGradleVersion << SETTINGS_PLUGIN_VERSIONS
+    }
+
+    def run(def args = ['help'], def gradleVersion) {
+        return run(args, initScript, gradleVersion, jvmArgs, envVars)
+    }
+
+    def runAndFail(def gradleVersion) {
+        return runAndFail(['expectFailure'], initScript, gradleVersion, jvmArgs, envVars)
+    }
+
+    def getJvmArgs() {
+        [
+            "-DRUNNER_TEMP=${testProjectDir.absolutePath}".toString(),
+            "-DGITHUB_ACTION=github-step-id".toString()
+        ]
+    }
+
+    def getEnvVars() {
+        [
+            RUNNER_TEMP: testProjectDir.absolutePath,
+            GITHUB_ACTION: 'github-step-id'
+        ]
     }
 
     void assertResults(String task, TestGradleVersion testGradleVersion, boolean hasFailure, boolean hasBuildScan, boolean scanUploadFailed = false) {
