@@ -3,6 +3,13 @@
  */
 import org.gradle.util.GradleVersion
 
+def BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan"
+def BUILD_SCAN_EXTENSION = "buildScan"
+def DEVELOCITY_PLUGIN_ID = "com.gradle.develocity"
+def DEVELOCITY_EXTENSION = "develocity"
+def GE_PLUGIN_ID = "com.gradle.enterprise"
+def GE_EXTENSION = "gradleEnterprise"
+
 // Only run against root build. Do not run against included builds.
 def isTopLevelBuild = gradle.getParent() == null
 if (isTopLevelBuild) {
@@ -22,14 +29,17 @@ if (isTopLevelBuild) {
             } else {
                 captureUsingBuildFinished(gradle, invocationId)
             }
-            
-            // The `buildScanPublished` hook allows the capture of the Build Scan URI.
-            // Results captured this way will overwrite any results from the other mechanism.
-            settings.pluginManager.withPlugin("com.gradle.enterprise") {
-                captureUsingBuildScanPublished(settings.extensions["gradleEnterprise"].buildScan, settings.rootProject, invocationId)
+
+
+            settings.pluginManager.withPlugin(GE_PLUGIN_ID) {
+                // Only execute if develocity plugin isn't applied.
+                if (!settings.extensions.findByName(DEVELOCITY_EXTENSION)) {
+                    captureUsingBuildScanPublished(settings.extensions[GE_EXTENSION].buildScan, settings.rootProject, invocationId)
+                }
             }
-            settings.pluginManager.withPlugin("com.gradle.develocity") {
-                captureUsingBuildScanPublished(settings.extensions["develocity"].buildScan, settings.rootProject, invocationId)
+
+            settings.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
+                captureUsingBuildScanPublished(settings.extensions[DEVELOCITY_EXTENSION].buildScan, settings.rootProject, invocationId)
             }
         }
     } else if (atLeastGradle3) {
@@ -37,15 +47,22 @@ if (isTopLevelBuild) {
             // By default, use 'buildFinished' to capture build results
             captureUsingBuildFinished(gradle, invocationId)
 
-            // The `buildScanPublished` hook allows the capture of the Build Scan URI.
-            // Results captured this way will overwrite any results from 'buildFinished'.
-            gradle.rootProject.pluginManager.withPlugin("com.gradle.build-scan") {
-                captureUsingBuildScanPublished(gradle.rootProject.extensions["buildScan"], gradle.rootProject, invocationId)
+            gradle.rootProject.pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
+                // Only execute if develocity plugin isn't applied.
+                if (!gradle.rootProject.extensions.findByName(DEVELOCITY_EXTENSION)) {
+                    captureUsingBuildScanPublished(gradle.rootProject.extensions[BUILD_SCAN_EXTENSION], gradle.rootProject, invocationId)
+                }
+            }
+
+            gradle.rootProject.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
+                captureUsingBuildScanPublished(gradle.rootProject.extensions[DEVELOCITY_EXTENSION].buildScan, gradle.rootProject, invocationId)
             }
         }
     }
 }
 
+// The `buildScanPublished` hook allows the capture of the Build Scan URI.
+// Results captured this way will overwrite any results from 'buildFinished'.
 def captureUsingBuildScanPublished(buildScanExtension, rootProject, invocationId) {
     buildScanExtension.with {
         def buildResults = new BuildResults(invocationId, gradle, rootProject)
