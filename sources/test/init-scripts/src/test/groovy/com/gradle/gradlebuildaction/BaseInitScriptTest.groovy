@@ -17,7 +17,7 @@ import java.util.zip.GZIPOutputStream
 
 class BaseInitScriptTest extends Specification {
     static final String DEVELOCITY_PLUGIN_VERSION = '3.17'
-    static final String CCUD_PLUGIN_VERSION = '1.13'
+    static final String CCUD_PLUGIN_VERSION = '2.0'
 
     static final TestGradleVersion GRADLE_3_X = new TestGradleVersion(GradleVersion.version('3.5.1'), 7, 9)
     static final TestGradleVersion GRADLE_4_X = new TestGradleVersion(GradleVersion.version('4.10.3'), 7, 10)
@@ -53,6 +53,8 @@ class BaseInitScriptTest extends Specification {
 
     File settingsFile
     File buildFile
+
+    boolean allowDevelocityDeprecationWarning = false
 
     @TempDir
     File testProjectDir
@@ -200,29 +202,49 @@ task expectFailure {
     }
 
     BuildResult run(List<String> args, String initScript, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
-        createRunner(initScript, args, gradleVersion, jvmArgs, envVars).build()
+        def result = createRunner(args, initScript, gradleVersion, jvmArgs, envVars).build()
+        assertNoDeprecationWarning(result)
     }
 
     BuildResult runAndFail(List<String> args, String initScript, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
-        createRunner(initScript, args, gradleVersion, jvmArgs, envVars).buildAndFail()
+        def result = createRunner(args, initScript, gradleVersion, jvmArgs, envVars).buildAndFail()
+        assertNoDeprecationWarning(result)
     }
 
-    GradleRunner createRunner(String initScript, List<String> args, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
+    GradleRunner createRunner(List<String> args, String initScript, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
         File initScriptsDir = new File(testProjectDir, "initScripts")
         args << '-I' << new File(initScriptsDir, initScript).absolutePath
 
-        envVars.putIfAbsent('RUNNER_TEMP', testProjectDir.absolutePath)
-        envVars.putIfAbsent('GITHUB_ACTION', 'github-step-id')
-
         def runner = ((DefaultGradleRunner) GradleRunner.create())
-            .withJvmArguments(jvmArgs)
             .withGradleVersion(gradleVersion.version)
             .withProjectDir(testProjectDir)
             .withArguments(args)
-            .withEnvironment(envVars)
             .forwardOutput()
 
+        if (testKitSupportsEnvVars(gradleVersion)) {
+            runner.withEnvironment(envVars)
+        } else {
+            (runner as DefaultGradleRunner).withJvmArguments(jvmArgs)
+        }
+
         runner
+    }
+
+    private boolean testKitSupportsEnvVars(GradleVersion gradleVersion) {
+        // TestKit supports env vars for Gradle 3.5+, except on M1 Mac where only 6.9+ is supported
+        def isM1Mac = System.getProperty("os.arch") == "aarch64"
+        if (isM1Mac) {
+            return gradleVersion >= GRADLE_6_X.gradleVersion
+        } else {
+            return gradleVersion >= GRADLE_3_X.gradleVersion
+        }
+    }
+
+    BuildResult assertNoDeprecationWarning(BuildResult result) {
+        if (!allowDevelocityDeprecationWarning) {
+            assert !result.output.contains("WARNING: The following functionality has been deprecated")
+        }
+        return result
     }
 
     static final class TestGradleVersion {

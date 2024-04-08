@@ -134,6 +134,10 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
 
         when:
+        // Init-script emits deprecation warnings when CCUD plugin is applied on Gradle 5.6.4
+        if (testGradleVersion.gradleVersion.version == "5.6.4") {
+            allowDevelocityDeprecationWarning = true
+        }
         def result = run(testGradleVersion, testConfig().withCCUDPlugin())
 
         then:
@@ -315,7 +319,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         when:
         def config = testConfig().withCCUDPlugin().withServer(URI.create('https://develocity-server.invalid'))
-        def result = run(testGradleVersion, config, ["help", "-Dgradle.enterprise.url=${mockScansServer.address}".toString()])
+        def result = run(testGradleVersion, config, ["help", "-Ddevelocity.url=${mockScansServer.address}".toString()])
 
         then:
         outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
@@ -425,21 +429,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     }
 
     private BuildResult run(TestGradleVersion testGradleVersion, TestConfig config, List<String> args = ["help"]) {
-        if (testKitSupportsEnvVars(testGradleVersion.gradleVersion)) {
-            return run(args, initScript, testGradleVersion.gradleVersion, [], config.envVars)
-        } else {
-            return run(args, initScript, testGradleVersion.gradleVersion, config.jvmArgs, [:])
-        }
-    }
-
-    private boolean testKitSupportsEnvVars(GradleVersion gradleVersion) {
-        // TestKit supports env vars for Gradle 3.5+, except on M1 Mac where only 6.9+ is supported
-        def isM1Mac = System.getProperty("os.arch") == "aarch64"
-        if (isM1Mac) {
-            return gradleVersion >= GRADLE_6_X.gradleVersion
-        } else {
-            return gradleVersion >= GRADLE_3_X.gradleVersion
-        }
+        return run(args, initScript, testGradleVersion.gradleVersion, config.jvmArgs, config.envVars)
     }
 
     private TestConfig testConfig(String develocityPluginVersion = DEVELOCITY_PLUGIN_VERSION) {

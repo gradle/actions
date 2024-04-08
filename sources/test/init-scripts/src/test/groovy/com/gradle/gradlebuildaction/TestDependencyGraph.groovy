@@ -30,7 +30,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        run(['help'], initScript, testGradleVersion.gradleVersion, [], envVars)
+        run(['help'], initScript, testGradleVersion.gradleVersion, jvmArgs, envVars)
 
         then:
         assert reportFile.exists()
@@ -43,7 +43,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion, [], envVars)
+        run(['help', '--configuration-cache'], initScript, testGradleVersion.gradleVersion, jvmArgs, envVars)
 
         then:
         assert reportFile.exists()
@@ -57,7 +57,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
-        def result = run(['help'], initScript, testGradleVersion.gradleVersion, [], envVars)
+        def result = run(['help'], initScript, testGradleVersion.gradleVersion, jvmArgs, envVars)
 
         then:
         assert !reportsDir.exists()
@@ -73,7 +73,12 @@ class TestDependencyGraph extends BaseInitScriptTest {
         when:
         def vars = envVars
         vars.put('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', 'false')
-        def result = runAndFail(['help'], initScript, testGradleVersion.gradleVersion, [], vars)
+        def args = jvmArgs
+        Collections.replaceAll(args,
+            '-DGITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE=true',
+            '-DGITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE=false'
+        )
+        def result = runAndFail(['help'], initScript, testGradleVersion.gradleVersion, args, vars)
 
         then:
         assert !reportsDir.exists()
@@ -103,20 +108,20 @@ class TestDependencyGraph extends BaseInitScriptTest {
         """
 
         when:
-        run(['help'], initScript, testGradleVersion.gradleVersion, [], envVars)
+        run(['help'], initScript, testGradleVersion.gradleVersion, jvmArgs, envVars)
 
         then:
         assert reportFile.exists()
 
         when:
-        run(['first'], initScript, testGradleVersion.gradleVersion, [], envVars)
+        run(['first'], initScript, testGradleVersion.gradleVersion, jvmArgs, envVars)
 
         then:
         assert reportFile.exists()
         assert reportFile1.exists()
         
         when:
-        run(['second'], initScript, testGradleVersion.gradleVersion, [], envVars)
+        run(['second'], initScript, testGradleVersion.gradleVersion, jvmArgs, envVars)
 
         then:
         assert reportFile.exists()
@@ -133,7 +138,11 @@ class TestDependencyGraph extends BaseInitScriptTest {
         when:
         def vars = envVars
         vars.put('GRADLE_PLUGIN_REPOSITORY_URL', 'https://plugins.grdev.net/m2')
-        def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, [], vars)
+        // TODO:DAZ This props are set too late to control init-script plugin resolution
+        // This makes the tests fail on Mac with Gradle < 6
+        def args = jvmArgs
+        args.add('-DGRADLE_PLUGIN_REPOSITORY_URL=https://plugins.grdev.net/m2')
+        def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, args, vars)
 
         then:
         assert reportFile.exists()
@@ -151,7 +160,13 @@ class TestDependencyGraph extends BaseInitScriptTest {
         vars.put('GRADLE_PLUGIN_REPOSITORY_URL', 'https://plugins.grdev.net/m2')
         vars.put('GRADLE_PLUGIN_REPOSITORY_USERNAME', 'REPO_USER')
         vars.put('GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'REPO_PASSWORD')
-        def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, [], vars)
+        // TODO:DAZ This props are set too late to control init-script plugin resolution
+        // This makes the tests fail on Mac with Gradle < 6
+        def args = jvmArgs
+        args.add('-DGRADLE_PLUGIN_REPOSITORY_URL=https://plugins.grdev.net/m2')
+        args.add('-DGRADLE_PLUGIN_REPOSITORY_USERNAME=REPO_USER')
+        args.add('-DGRADLE_PLUGIN_REPOSITORY_PASSWORD=REPO_PASSWORD')
+        def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, args, vars)
 
         then:
         assert reportFile.exists()
@@ -173,6 +188,19 @@ class TestDependencyGraph extends BaseInitScriptTest {
             GITHUB_DEPENDENCY_GRAPH_WORKSPACE: testProjectDir.absolutePath,
             DEPENDENCY_GRAPH_REPORT_DIR: reportsDir.absolutePath,
         ]
+    }
+
+    def getJvmArgs() {
+        return [
+            "-DGITHUB_DEPENDENCY_GRAPH_ENABLED=true",
+            "-DGITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE=true",
+            "-DGITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR=CORRELATOR",
+            "-DGITHUB_DEPENDENCY_GRAPH_JOB_ID=1",
+            "-DGITHUB_DEPENDENCY_GRAPH_REF=main",
+            "-DGITHUB_DEPENDENCY_GRAPH_SHA=123456",
+            "-DGITHUB_DEPENDENCY_GRAPH_WORKSPACE=" + testProjectDir.absolutePath,
+            "-DDEPENDENCY_GRAPH_REPORT_DIR=" + reportsDir.absolutePath,
+        ].collect {it.toString() } // Convert from GString to String
     }
 
     def getReportsDir() {
