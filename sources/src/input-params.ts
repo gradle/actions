@@ -240,6 +240,10 @@ export function getGithubToken(): string {
     return core.getInput('github-token', {required: true})
 }
 
+export function getWorkspaceDirectory(): string {
+    return process.env[`GITHUB_WORKSPACE`] || ''
+}
+
 export function parseNumericInput(paramName: string, paramValue: string, paramDefault: number): number {
     if (paramValue.length === 0) {
         return paramDefault

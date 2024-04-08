@@ -9,9 +9,8 @@ import type {PullRequestEvent} from '@octokit/webhooks-types'
 import * as path from 'path'
 import fs from 'fs'
 
-import * as layout from './repository-layout'
 import {PostActionJobFailure} from './errors'
-import {DependencyGraphConfig, DependencyGraphOption, getGithubToken} from './input-params'
+import {DependencyGraphConfig, DependencyGraphOption, getGithubToken, getWorkspaceDirectory} from './input-params'
 
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 
@@ -34,10 +33,10 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', github.context.ref)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_SHA', getShaFromContext())
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_WORKSPACE', layout.workspaceDirectory())
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_WORKSPACE', getWorkspaceDirectory())
     maybeExportVariable(
         'DEPENDENCY_GRAPH_REPORT_DIR',
-        path.resolve(layout.workspaceDirectory(), 'dependency-graph-reports')
+        path.resolve(getWorkspaceDirectory(), 'dependency-graph-reports')
     )
 
     // To clear the dependency graph, we generate an empty graph by excluding all projects and configurations
@@ -74,7 +73,7 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
 }
 
 async function findGeneratedDependencyGraphFiles(): Promise<string[]> {
-    const workspaceDirectory = layout.workspaceDirectory()
+    const workspaceDirectory = getWorkspaceDirectory()
     return await findDependencyGraphFiles(workspaceDirectory)
 }
 
@@ -85,7 +84,7 @@ async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: De
         return
     }
 
-    const workspaceDirectory = layout.workspaceDirectory()
+    const workspaceDirectory = getWorkspaceDirectory()
 
     const artifactClient = new DefaultArtifactClient()
     for (const dependencyGraphFile of dependencyGraphFiles) {
@@ -157,7 +156,7 @@ async function submitDependencyGraphFile(jsonFile: string): Promise<void> {
 }
 
 async function downloadDependencyGraphs(): Promise<string[]> {
-    const workspaceDirectory = layout.workspaceDirectory()
+    const workspaceDirectory = getWorkspaceDirectory()
 
     const findBy = github.context.payload.workflow_run
         ? {
@@ -220,7 +219,7 @@ function getOctokit(): InstanceType<typeof GitHub> {
 }
 
 function getRelativePathFromWorkspace(file: string): string {
-    const workspaceDirectory = layout.workspaceDirectory()
+    const workspaceDirectory = getWorkspaceDirectory()
     return path.relative(workspaceDirectory, file)
 }
 

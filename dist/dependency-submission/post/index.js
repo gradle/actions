@@ -50047,7 +50047,7 @@ const diag_api_1 = __nccwpck_require__(9721);
 Object.defineProperty(exports, "diag", ({ enumerable: true, get: function () { return diag_api_1.diag; } }));
 const metrics_api_1 = __nccwpck_require__(2601);
 Object.defineProperty(exports, "metrics", ({ enumerable: true, get: function () { return metrics_api_1.metrics; } }));
-const propagation_api_1 = __nccwpck_require__(6723);
+const propagation_api_1 = __nccwpck_require__(7591);
 Object.defineProperty(exports, "propagation", ({ enumerable: true, get: function () { return propagation_api_1.propagation; } }));
 const trace_api_1 = __nccwpck_require__(8989);
 Object.defineProperty(exports, "trace", ({ enumerable: true, get: function () { return trace_api_1.trace; } }));
@@ -50588,7 +50588,7 @@ __exportStar(__nccwpck_require__(9406), exports);
 
 /***/ }),
 
-/***/ 6723:
+/***/ 7591:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -91176,273 +91176,7 @@ function maybeExportVariable(variableName, value) {
 
 /***/ }),
 
-/***/ 7591:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GradleStateCache = exports.META_FILE_DIR = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const exec = __importStar(__nccwpck_require__(1514));
-const glob = __importStar(__nccwpck_require__(8090));
-const path_1 = __importDefault(__nccwpck_require__(1017));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
-const cache_utils_1 = __nccwpck_require__(1678);
-const cache_extract_entries_1 = __nccwpck_require__(6161);
-const RESTORED_CACHE_KEY_KEY = 'restored-cache-key';
-exports.META_FILE_DIR = '.setup-gradle';
-class GradleStateCache {
-    constructor(userHome, gradleUserHome, cacheConfig) {
-        this.userHome = userHome;
-        this.gradleUserHome = gradleUserHome;
-        this.cacheConfig = cacheConfig;
-        this.cacheName = 'gradle';
-        this.cacheDescription = 'Gradle User Home';
-    }
-    init() {
-        this.initializeGradleUserHome();
-        const encryptionKey = this.cacheConfig.getCacheEncryptionKey();
-        if (encryptionKey) {
-            core.exportVariable('GRADLE_ENCRYPTION_KEY', encryptionKey);
-        }
-    }
-    cacheOutputExists() {
-        const cachesDir = path_1.default.resolve(this.gradleUserHome, 'caches');
-        if (fs_1.default.existsSync(cachesDir)) {
-            (0, cache_utils_1.cacheDebug)(`Cache output exists at ${cachesDir}`);
-            return true;
-        }
-        return false;
-    }
-    restore(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const entryListener = listener.entry(this.cacheDescription);
-            const cacheKey = (0, cache_utils_1.generateCacheKey)(this.cacheName, this.cacheConfig);
-            (0, cache_utils_1.cacheDebug)(`Requesting ${this.cacheDescription} with
-    key:${cacheKey.key}
-    restoreKeys:[${cacheKey.restoreKeys}]`);
-            const cacheResult = yield (0, cache_utils_1.restoreCache)(this.getCachePath(), cacheKey.key, cacheKey.restoreKeys, entryListener);
-            if (!cacheResult) {
-                core.info(`${this.cacheDescription} cache not found. Will initialize empty.`);
-                return;
-            }
-            core.saveState(RESTORED_CACHE_KEY_KEY, cacheResult.key);
-            core.info(`Restored ${this.cacheDescription} from cache key: ${cacheResult.key}`);
-            try {
-                yield this.afterRestore(listener);
-            }
-            catch (error) {
-                core.warning(`Restore ${this.cacheDescription} failed in 'afterRestore': ${error}`);
-            }
-        });
-    }
-    afterRestore(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.debugReportGradleUserHomeSize('as restored from cache');
-            yield new cache_extract_entries_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
-            yield new cache_extract_entries_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
-            yield this.debugReportGradleUserHomeSize('after restoring common artifacts');
-        });
-    }
-    save(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const cacheKey = (0, cache_utils_1.generateCacheKey)(this.cacheName, this.cacheConfig).key;
-            const restoredCacheKey = core.getState(RESTORED_CACHE_KEY_KEY);
-            const gradleHomeEntryListener = listener.entry(this.cacheDescription);
-            if (restoredCacheKey && cacheKey === restoredCacheKey) {
-                core.info(`Cache hit occurred on the cache key ${cacheKey}, not saving cache.`);
-                for (const entryListener of listener.cacheEntries) {
-                    if (entryListener === gradleHomeEntryListener) {
-                        entryListener.markNotSaved('cache key not changed');
-                    }
-                    else {
-                        entryListener.markNotSaved(`referencing '${this.cacheDescription}' cache entry not saved`);
-                    }
-                }
-                return;
-            }
-            try {
-                yield this.beforeSave(listener);
-            }
-            catch (error) {
-                core.warning(`Save ${this.cacheDescription} failed in 'beforeSave': ${error}`);
-                return;
-            }
-            core.info(`Caching ${this.cacheDescription} with cache key: ${cacheKey}`);
-            const cachePath = this.getCachePath();
-            yield (0, cache_utils_1.saveCache)(cachePath, cacheKey, gradleHomeEntryListener);
-            return;
-        });
-    }
-    beforeSave(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.debugReportGradleUserHomeSize('before saving common artifacts');
-            yield this.deleteExcludedPaths();
-            yield Promise.all([
-                new cache_extract_entries_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener),
-                new cache_extract_entries_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
-            ]);
-            yield this.debugReportGradleUserHomeSize("after extracting common artifacts (only 'caches' and 'notifications' will be stored)");
-        });
-    }
-    deleteExcludedPaths() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const rawPaths = this.cacheConfig.getCacheExcludes();
-            rawPaths.push('caches/*/cc-keystore');
-            const resolvedPaths = rawPaths.map(x => path_1.default.resolve(this.gradleUserHome, x));
-            for (const p of resolvedPaths) {
-                (0, cache_utils_1.cacheDebug)(`Removing excluded path: ${p}`);
-                const globber = yield glob.create(p, {
-                    implicitDescendants: false
-                });
-                for (const toDelete of yield globber.glob()) {
-                    (0, cache_utils_1.cacheDebug)(`Removing excluded file: ${toDelete}`);
-                    yield (0, cache_utils_1.tryDelete)(toDelete);
-                }
-            }
-        });
-    }
-    getCachePath() {
-        const rawPaths = this.cacheConfig.getCacheIncludes();
-        rawPaths.push(exports.META_FILE_DIR);
-        const resolvedPaths = rawPaths.map(x => this.resolveCachePath(x));
-        (0, cache_utils_1.cacheDebug)(`Using cache paths: ${resolvedPaths}`);
-        return resolvedPaths;
-    }
-    resolveCachePath(rawPath) {
-        if (rawPath.startsWith('!')) {
-            const resolved = this.resolveCachePath(rawPath.substring(1));
-            return `!${resolved}`;
-        }
-        return path_1.default.resolve(this.gradleUserHome, rawPath);
-    }
-    initializeGradleUserHome() {
-        const actionCacheDir = path_1.default.resolve(this.gradleUserHome, exports.META_FILE_DIR);
-        fs_1.default.mkdirSync(actionCacheDir, { recursive: true });
-        this.copyInitScripts();
-        this.registerToolchains();
-        if (core.isDebug()) {
-            this.configureInfoLogLevel();
-        }
-    }
-    copyInitScripts() {
-        const initScriptsDir = path_1.default.resolve(this.gradleUserHome, 'init.d');
-        fs_1.default.mkdirSync(initScriptsDir, { recursive: true });
-        const initScriptFilenames = [
-            'gradle-actions.build-result-capture.init.gradle',
-            'gradle-actions.build-result-capture-service.plugin.groovy',
-            'gradle-actions.github-dependency-graph.init.gradle',
-            'gradle-actions.github-dependency-graph-gradle-plugin-apply.groovy',
-            'gradle-actions.inject-develocity.init.gradle'
-        ];
-        for (const initScriptFilename of initScriptFilenames) {
-            const initScriptContent = this.readResourceFileAsString('init-scripts', initScriptFilename);
-            const initScriptPath = path_1.default.resolve(initScriptsDir, initScriptFilename);
-            fs_1.default.writeFileSync(initScriptPath, initScriptContent);
-        }
-    }
-    registerToolchains() {
-        const preInstalledToolchains = this.readResourceFileAsString('toolchains.xml');
-        const m2dir = path_1.default.resolve(this.userHome, '.m2');
-        const toolchainXmlTarget = path_1.default.resolve(m2dir, 'toolchains.xml');
-        if (!fs_1.default.existsSync(toolchainXmlTarget)) {
-            fs_1.default.mkdirSync(m2dir, { recursive: true });
-            fs_1.default.writeFileSync(toolchainXmlTarget, preInstalledToolchains);
-            core.info(`Wrote default JDK locations to ${toolchainXmlTarget}`);
-        }
-        else {
-            const existingToolchainContent = fs_1.default.readFileSync(toolchainXmlTarget, 'utf8');
-            const appendedContent = preInstalledToolchains.split('<toolchains>').pop();
-            const mergedContent = existingToolchainContent.replace('</toolchains>', appendedContent);
-            fs_1.default.writeFileSync(toolchainXmlTarget, mergedContent);
-            core.info(`Merged default JDK locations into ${toolchainXmlTarget}`);
-        }
-    }
-    readResourceFileAsString(...paths) {
-        const absolutePath = path_1.default.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths);
-        return fs_1.default.readFileSync(absolutePath, 'utf8');
-    }
-    configureInfoLogLevel() {
-        const infoProperties = `org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n`;
-        const propertiesFile = path_1.default.resolve(this.gradleUserHome, 'gradle.properties');
-        if (fs_1.default.existsSync(propertiesFile)) {
-            core.info(`Merged --info and --stacktrace into existing ${propertiesFile} file`);
-            const existingProperties = fs_1.default.readFileSync(propertiesFile, 'utf-8');
-            fs_1.default.writeFileSync(propertiesFile, `${infoProperties}\n${existingProperties}`);
-        }
-        else {
-            core.info(`Created a new ${propertiesFile} with --info and --stacktrace`);
-            fs_1.default.writeFileSync(propertiesFile, infoProperties);
-        }
-    }
-    debugReportGradleUserHomeSize(label) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!(0, cache_utils_1.isCacheDebuggingEnabled)() && !core.isDebug()) {
-                return;
-            }
-            if (!fs_1.default.existsSync(this.gradleUserHome)) {
-                return;
-            }
-            const result = yield exec.getExecOutput('du', ['-h', '-c', '-t', '5M'], {
-                cwd: this.gradleUserHome,
-                silent: true,
-                ignoreReturnCode: true
-            });
-            core.info(`Gradle User Home (directories >5M): ${label}`);
-            core.info(result.stdout
-                .trimEnd()
-                .replace(/\t/g, '    ')
-                .split('\n')
-                .map(it => {
-                return `  ${it}`;
-            })
-                .join('\n'));
-            core.info('-----------------------');
-        });
-    }
-}
-exports.GradleStateCache = GradleStateCache;
-
-
-/***/ }),
-
-/***/ 57:
+/***/ 651:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -91564,7 +91298,7 @@ exports.CacheCleaner = CacheCleaner;
 
 /***/ }),
 
-/***/ 6161:
+/***/ 100:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -91592,324 +91326,65 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ConfigurationCacheEntryExtractor = exports.GradleHomeEntryExtractor = void 0;
-const path_1 = __importDefault(__nccwpck_require__(1017));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
-const core = __importStar(__nccwpck_require__(2186));
-const glob = __importStar(__nccwpck_require__(8090));
-const semver = __importStar(__nccwpck_require__(1383));
-const cache_base_1 = __nccwpck_require__(7591);
-const cache_utils_1 = __nccwpck_require__(1678);
-const build_results_1 = __nccwpck_require__(2107);
-const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE';
-class ExtractedCacheEntry {
-    constructor(artifactType, pattern, cacheKey) {
-        this.artifactType = artifactType;
-        this.pattern = pattern;
-        this.cacheKey = cacheKey;
+exports.getCacheKeyBase = exports.generateCacheKey = exports.CacheKey = void 0;
+const github = __importStar(__nccwpck_require__(5438));
+const input_params_1 = __nccwpck_require__(3885);
+const cache_utils_1 = __nccwpck_require__(1044);
+const CACHE_PROTOCOL_VERSION = 'v1';
+const CACHE_KEY_PREFIX_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX';
+const CACHE_KEY_OS_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_ENVIRONMENT';
+const CACHE_KEY_JOB_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB';
+const CACHE_KEY_JOB_INSTANCE_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB_INSTANCE';
+const CACHE_KEY_JOB_EXECUTION_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION';
+class CacheKey {
+    constructor(key, restoreKeys) {
+        this.key = key;
+        this.restoreKeys = restoreKeys;
     }
 }
-class ExtractedCacheEntryMetadata {
-    constructor() {
-        this.entries = [];
+exports.CacheKey = CacheKey;
+function generateCacheKey(cacheName, config) {
+    const prefix = process.env[CACHE_KEY_PREFIX_VAR] || '';
+    const cacheKeyBase = `${prefix}${getCacheKeyBase(cacheName, CACHE_PROTOCOL_VERSION)}`;
+    const cacheKeyForEnvironment = `${cacheKeyBase}|${getCacheKeyEnvironment()}`;
+    const cacheKeyForJob = `${cacheKeyForEnvironment}|${getCacheKeyJob()}`;
+    const cacheKeyForJobContext = `${cacheKeyForJob}[${getCacheKeyJobInstance()}]`;
+    const cacheKey = `${cacheKeyForJobContext}-${getCacheKeyJobExecution()}`;
+    if (config.isCacheStrictMatch()) {
+        return new CacheKey(cacheKey, [cacheKeyForJobContext]);
     }
+    return new CacheKey(cacheKey, [cacheKeyForJobContext, cacheKeyForJob, cacheKeyForEnvironment]);
 }
-class ExtractedCacheEntryDefinition {
-    constructor(artifactType, pattern, bundle) {
-        this.uniqueFileNames = true;
-        this.artifactType = artifactType;
-        this.pattern = pattern;
-        this.bundle = bundle;
-    }
-    withNonUniqueFileNames() {
-        this.uniqueFileNames = false;
-        return this;
-    }
-    notCacheableBecause(reason) {
-        this.notCacheableReason = reason;
-        return this;
-    }
+exports.generateCacheKey = generateCacheKey;
+function getCacheKeyBase(cacheName, cacheProtocolVersion) {
+    return `gradle-${cacheName}-${cacheProtocolVersion}`;
 }
-class AbstractEntryExtractor {
-    constructor(gradleUserHome, extractorName, cacheConfig) {
-        this.gradleUserHome = gradleUserHome;
-        this.extractorName = extractorName;
-        this.cacheConfig = cacheConfig;
-    }
-    restore(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const previouslyExtractedCacheEntries = this.loadExtractedCacheEntries();
-            const processes = [];
-            for (const cacheEntry of previouslyExtractedCacheEntries) {
-                const artifactType = cacheEntry.artifactType;
-                const entryListener = listener.entry(cacheEntry.pattern);
-                const skipRestore = process.env[SKIP_RESTORE_VAR] || '';
-                if (skipRestore.includes(artifactType)) {
-                    core.info(`Not restoring extracted cache entry for ${artifactType}`);
-                    entryListener.markRequested('SKIP_RESTORE');
-                }
-                else {
-                    processes.push(this.awaitForDebugging(this.restoreExtractedCacheEntry(artifactType, cacheEntry.cacheKey, cacheEntry.pattern, entryListener)));
-                }
-            }
-            this.saveMetadataForCacheResults(yield Promise.all(processes));
-        });
-    }
-    restoreExtractedCacheEntry(artifactType, cacheKey, pattern, listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const restoredEntry = yield (0, cache_utils_1.restoreCache)([pattern], cacheKey, [], listener);
-            if (restoredEntry) {
-                core.info(`Restored ${artifactType} with key ${cacheKey} to ${pattern}`);
-                return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
-            }
-            else {
-                core.info(`Did not restore ${artifactType} with key ${cacheKey} to ${pattern}`);
-                return new ExtractedCacheEntry(artifactType, pattern, undefined);
-            }
-        });
-    }
-    extract(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
-            (0, cache_utils_1.cacheDebug)(`Extracting cache entries for ${this.extractorName}: ${JSON.stringify(cacheEntryDefinitions, null, 2)}`);
-            const previouslyRestoredEntries = this.loadExtractedCacheEntries();
-            const cacheActions = [];
-            for (const cacheEntryDefinition of cacheEntryDefinitions) {
-                const artifactType = cacheEntryDefinition.artifactType;
-                const pattern = cacheEntryDefinition.pattern;
-                if (cacheEntryDefinition.notCacheableReason) {
-                    listener.entry(pattern).markNotSaved(cacheEntryDefinition.notCacheableReason);
-                    continue;
-                }
-                const globber = yield glob.create(pattern, {
-                    implicitDescendants: false
-                });
-                const matchingFiles = yield globber.glob();
-                if (matchingFiles.length === 0) {
-                    (0, cache_utils_1.cacheDebug)(`No files found to cache for ${artifactType}`);
-                    continue;
-                }
-                if (cacheEntryDefinition.bundle) {
-                    cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry(matchingFiles, artifactType, pattern, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(pattern))));
-                }
-                else {
-                    for (const cacheFile of matchingFiles) {
-                        cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry([cacheFile], artifactType, cacheFile, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(cacheFile))));
-                    }
-                }
-            }
-            this.saveMetadataForCacheResults(yield Promise.all(cacheActions));
-        });
-    }
-    saveExtractedCacheEntry(matchingFiles, artifactType, pattern, uniqueFileNames, previouslyRestoredEntries, entryListener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const cacheKey = uniqueFileNames
-                ? this.createCacheKeyFromFileNames(artifactType, matchingFiles)
-                : yield this.createCacheKeyFromFileContents(artifactType, pattern);
-            const previouslyRestoredKey = (_a = previouslyRestoredEntries.find(x => x.artifactType === artifactType && x.pattern === pattern)) === null || _a === void 0 ? void 0 : _a.cacheKey;
-            if (previouslyRestoredKey === cacheKey) {
-                (0, cache_utils_1.cacheDebug)(`No change to previously restored ${artifactType}. Not saving.`);
-                entryListener.markNotSaved('contents unchanged');
-            }
-            else {
-                core.info(`Caching ${artifactType} with path '${pattern}' and cache key: ${cacheKey}`);
-                yield (0, cache_utils_1.saveCache)([pattern], cacheKey, entryListener);
-            }
-            for (const file of matchingFiles) {
-                (0, cache_utils_1.tryDelete)(file);
-            }
-            return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
-        });
-    }
-    createCacheKeyFromFileNames(artifactType, files) {
-        const cacheKeyPrefix = (0, cache_utils_1.getCacheKeyPrefix)();
-        const relativeFiles = files.map(x => path_1.default.relative(this.gradleUserHome, x));
-        const key = (0, cache_utils_1.hashFileNames)(relativeFiles);
-        (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from file names: ${relativeFiles}`);
-        return `${cacheKeyPrefix}${artifactType}-${key}`;
-    }
-    createCacheKeyFromFileContents(artifactType, pattern) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const cacheKeyPrefix = (0, cache_utils_1.getCacheKeyPrefix)();
-            const key = yield glob.hashFiles(pattern);
-            (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from files matching: ${pattern}`);
-            return `${cacheKeyPrefix}${artifactType}-${key}`;
-        });
-    }
-    awaitForDebugging(p) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if ((0, cache_utils_1.isCacheDebuggingEnabled)()) {
-                yield p;
-            }
-            return p;
-        });
-    }
-    loadExtractedCacheEntries() {
-        const cacheMetadataFile = this.getCacheMetadataFile();
-        if (!fs_1.default.existsSync(cacheMetadataFile)) {
-            return [];
-        }
-        const filedata = fs_1.default.readFileSync(cacheMetadataFile, 'utf-8');
-        (0, cache_utils_1.cacheDebug)(`Loaded cache metadata for ${this.extractorName}: ${filedata}`);
-        const extractedCacheEntryMetadata = JSON.parse(filedata);
-        return extractedCacheEntryMetadata.entries;
-    }
-    saveMetadataForCacheResults(results) {
-        const extractedCacheEntryMetadata = new ExtractedCacheEntryMetadata();
-        extractedCacheEntryMetadata.entries = results.filter(x => x.cacheKey !== undefined);
-        const filedata = JSON.stringify(extractedCacheEntryMetadata);
-        (0, cache_utils_1.cacheDebug)(`Saving cache metadata for ${this.extractorName}: ${filedata}`);
-        fs_1.default.writeFileSync(this.getCacheMetadataFile(), filedata, 'utf-8');
-    }
-    getCacheMetadataFile() {
-        const actionMetadataDirectory = path_1.default.resolve(this.gradleUserHome, cache_base_1.META_FILE_DIR);
-        fs_1.default.mkdirSync(actionMetadataDirectory, { recursive: true });
-        return path_1.default.resolve(actionMetadataDirectory, `${this.extractorName}-entry-metadata.json`);
-    }
+exports.getCacheKeyBase = getCacheKeyBase;
+function getCacheKeyEnvironment() {
+    const runnerOs = process.env['RUNNER_OS'] || '';
+    return process.env[CACHE_KEY_OS_VAR] || runnerOs;
 }
-class GradleHomeEntryExtractor extends AbstractEntryExtractor {
-    constructor(gradleUserHome, cacheConfig) {
-        super(gradleUserHome, 'gradle-home', cacheConfig);
-    }
-    extract(listener) {
-        const _super = Object.create(null, {
-            extract: { get: () => super.extract }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.deleteWrapperZips();
-            return _super.extract.call(this, listener);
-        });
-    }
-    deleteWrapperZips() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const wrapperZips = path_1.default.resolve(this.gradleUserHome, 'wrapper/dists/*/*/*.zip');
-            const globber = yield glob.create(wrapperZips, {
-                implicitDescendants: false
-            });
-            for (const wrapperZip of yield globber.glob()) {
-                (0, cache_utils_1.cacheDebug)(`Deleting wrapper zip: ${wrapperZip}`);
-                yield (0, cache_utils_1.tryDelete)(wrapperZip);
-            }
-        });
-    }
-    getExtractedCacheEntryDefinitions() {
-        const entryDefinition = (artifactType, patterns, bundle) => {
-            const resolvedPatterns = patterns
-                .map(x => {
-                const isDir = x.endsWith('/');
-                const resolved = path_1.default.resolve(this.gradleUserHome, x);
-                return isDir ? `${resolved}/` : resolved;
-            })
-                .join('\n');
-            return new ExtractedCacheEntryDefinition(artifactType, resolvedPatterns, bundle);
-        };
-        return [
-            entryDefinition('generated-gradle-jars', ['caches/*/generated-gradle-jars/*.jar'], false),
-            entryDefinition('wrapper-zips', ['wrapper/dists/*/*/'], false),
-            entryDefinition('java-toolchains', ['jdks/*/'], false),
-            entryDefinition('dependencies', ['caches/modules-*/files-*/*/*/*/*'], true),
-            entryDefinition('instrumented-jars', ['caches/jars-*/*'], true),
-            entryDefinition('kotlin-dsl', ['caches/*/kotlin-dsl/*/*'], true)
-        ];
-    }
+function getCacheKeyJob() {
+    return process.env[CACHE_KEY_JOB_VAR] || github.context.job;
 }
-exports.GradleHomeEntryExtractor = GradleHomeEntryExtractor;
-class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
-    constructor(gradleUserHome, cacheConfig) {
-        super(gradleUserHome, 'configuration-cache', cacheConfig);
+function getCacheKeyJobInstance() {
+    const override = process.env[CACHE_KEY_JOB_INSTANCE_VAR];
+    if (override) {
+        return override;
     }
-    restore(listener) {
-        const _super = Object.create(null, {
-            restore: { get: () => super.restore }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!listener.fullyRestored) {
-                this.markNotRestored(listener, 'Gradle User Home was not fully restored');
-                return;
-            }
-            if (!this.cacheConfig.getCacheEncryptionKey()) {
-                this.markNotRestored(listener, 'Encryption Key was not provided');
-                return;
-            }
-            return yield _super.restore.call(this, listener);
-        });
-    }
-    markNotRestored(listener, reason) {
-        const cacheEntries = this.loadExtractedCacheEntries();
-        if (cacheEntries.length > 0) {
-            core.info(`Not restoring configuration-cache state, as ${reason}`);
-            for (const cacheEntry of cacheEntries) {
-                listener.entry(cacheEntry.pattern).markNotRestored(reason);
-            }
-            this.saveMetadataForCacheResults([]);
-        }
-    }
-    extract(listener) {
-        const _super = Object.create(null, {
-            extract: { get: () => super.extract }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.cacheConfig.getCacheEncryptionKey()) {
-                const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
-                if (cacheEntryDefinitions.length > 0) {
-                    core.info('Not saving configuration-cache state, as no encryption key was provided');
-                    for (const cacheEntry of cacheEntryDefinitions) {
-                        listener.entry(cacheEntry.pattern).markNotSaved('No encryption key provided');
-                    }
-                }
-                return;
-            }
-            yield _super.extract.call(this, listener);
-        });
-    }
-    getExtractedCacheEntryDefinitions() {
-        const groupedResults = this.getConfigCacheDirectoriesWithAssociatedBuildResults();
-        return Object.entries(groupedResults).map(([configCachePath, pathResults]) => {
-            const definition = new ExtractedCacheEntryDefinition('configuration-cache', configCachePath, true).withNonUniqueFileNames();
-            if (pathResults.find(result => {
-                const gradleVersion = semver.coerce(result.gradleVersion);
-                return gradleVersion && semver.lt(gradleVersion, '8.6.0');
-            })) {
-                core.info(`Not saving config-cache data for ${configCachePath}. Configuration cache data is only saved for Gradle 8.6+`);
-                definition.notCacheableBecause('Configuration cache data only saved for Gradle 8.6+');
-            }
-            return definition;
-        });
-    }
-    getConfigCacheDirectoriesWithAssociatedBuildResults() {
-        return (0, build_results_1.loadBuildResults)().reduce((acc, buildResult) => {
-            const configCachePath = path_1.default.resolve(buildResult.rootProjectDir, '.gradle/configuration-cache');
-            if (!fs_1.default.existsSync(configCachePath)) {
-                return acc;
-            }
-            if (!acc[configCachePath]) {
-                acc[configCachePath] = [];
-            }
-            acc[configCachePath].push(buildResult);
-            return acc;
-        }, {});
-    }
+    const workflowName = github.context.workflow;
+    const workflowJobContext = (0, input_params_1.getJobMatrix)();
+    return (0, cache_utils_1.hashStrings)([workflowName, workflowJobContext]);
 }
-exports.ConfigurationCacheEntryExtractor = ConfigurationCacheEntryExtractor;
+function getCacheKeyJobExecution() {
+    return process.env[CACHE_KEY_JOB_EXECUTION_VAR] || github.context.sha;
+}
 
 
 /***/ }),
 
-/***/ 6674:
+/***/ 7391:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -92125,7 +91600,7 @@ function formatSize(bytes) {
 
 /***/ }),
 
-/***/ 1678:
+/***/ 1044:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -92163,21 +91638,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.tryDelete = exports.handleCacheFailure = exports.cacheDebug = exports.saveCache = exports.restoreCache = exports.hashStrings = exports.hashFileNames = exports.getCacheKeyPrefix = exports.generateCacheKey = exports.CacheKey = exports.isCacheDebuggingEnabled = void 0;
+exports.tryDelete = exports.handleCacheFailure = exports.cacheDebug = exports.saveCache = exports.restoreCache = exports.hashStrings = exports.hashFileNames = exports.isCacheDebuggingEnabled = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(7799));
-const github = __importStar(__nccwpck_require__(5438));
 const exec = __importStar(__nccwpck_require__(1514));
 const crypto = __importStar(__nccwpck_require__(6113));
 const path = __importStar(__nccwpck_require__(1017));
 const fs = __importStar(__nccwpck_require__(7147));
-const input_params_1 = __nccwpck_require__(3885);
-const CACHE_PROTOCOL_VERSION = 'v9-';
-const CACHE_KEY_PREFIX_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX';
-const CACHE_KEY_OS_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_ENVIRONMENT';
-const CACHE_KEY_JOB_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB';
-const CACHE_KEY_JOB_INSTANCE_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB_INSTANCE';
-const CACHE_KEY_JOB_EXECUTION_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION';
 const SEGMENT_DOWNLOAD_TIMEOUT_VAR = 'SEGMENT_DOWNLOAD_TIMEOUT_MINS';
 const SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT = 10 * 60 * 1000;
 function isCacheDebuggingEnabled() {
@@ -92187,48 +91654,6 @@ function isCacheDebuggingEnabled() {
     return process.env['GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED'] ? true : false;
 }
 exports.isCacheDebuggingEnabled = isCacheDebuggingEnabled;
-class CacheKey {
-    constructor(key, restoreKeys) {
-        this.key = key;
-        this.restoreKeys = restoreKeys;
-    }
-}
-exports.CacheKey = CacheKey;
-function generateCacheKey(cacheName, config) {
-    const cacheKeyBase = `${getCacheKeyPrefix()}${CACHE_PROTOCOL_VERSION}${cacheName}`;
-    const cacheKeyForEnvironment = `${cacheKeyBase}|${getCacheKeyEnvironment()}`;
-    const cacheKeyForJob = `${cacheKeyForEnvironment}|${getCacheKeyJob()}`;
-    const cacheKeyForJobContext = `${cacheKeyForJob}[${getCacheKeyJobInstance()}]`;
-    const cacheKey = `${cacheKeyForJobContext}-${getCacheKeyJobExecution()}`;
-    if (config.isCacheStrictMatch()) {
-        return new CacheKey(cacheKey, [cacheKeyForJobContext]);
-    }
-    return new CacheKey(cacheKey, [cacheKeyForJobContext, cacheKeyForJob, cacheKeyForEnvironment]);
-}
-exports.generateCacheKey = generateCacheKey;
-function getCacheKeyPrefix() {
-    return process.env[CACHE_KEY_PREFIX_VAR] || '';
-}
-exports.getCacheKeyPrefix = getCacheKeyPrefix;
-function getCacheKeyEnvironment() {
-    const runnerOs = process.env['RUNNER_OS'] || '';
-    return process.env[CACHE_KEY_OS_VAR] || runnerOs;
-}
-function getCacheKeyJob() {
-    return process.env[CACHE_KEY_JOB_VAR] || github.context.job;
-}
-function getCacheKeyJobInstance() {
-    const override = process.env[CACHE_KEY_JOB_INSTANCE_VAR];
-    if (override) {
-        return override;
-    }
-    const workflowName = github.context.workflow;
-    const workflowJobContext = (0, input_params_1.getJobMatrix)();
-    return hashStrings([workflowName, workflowJobContext]);
-}
-function getCacheKeyJobExecution() {
-    return process.env[CACHE_KEY_JOB_EXECUTION_VAR] || github.context.sha;
-}
 function hashFileNames(fileNames) {
     return hashStrings(fileNames.map(x => x.replace(new RegExp(`\\${path.sep}`, 'g'), '/')));
 }
@@ -92352,7 +91777,7 @@ function getJavaProcesses() {
 
 /***/ }),
 
-/***/ 3800:
+/***/ 7504:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -92392,8 +91817,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.save = exports.restore = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const cache_base_1 = __nccwpck_require__(7591);
-const cache_cleaner_1 = __nccwpck_require__(57);
+const gradle_user_home_cache_1 = __nccwpck_require__(7655);
+const cache_cleaner_1 = __nccwpck_require__(651);
 const CACHE_RESTORED_VAR = 'GRADLE_BUILD_ACTION_CACHE_RESTORED';
 function restore(userHome, gradleUserHome, cacheListener, cacheConfig) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -92402,7 +91827,7 @@ function restore(userHome, gradleUserHome, cacheListener, cacheConfig) {
             return;
         }
         core.exportVariable(CACHE_RESTORED_VAR, true);
-        const gradleStateCache = new cache_base_1.GradleStateCache(userHome, gradleUserHome, cacheConfig);
+        const gradleStateCache = new gradle_user_home_cache_1.GradleUserHomeCache(userHome, gradleUserHome, cacheConfig);
         if (cacheConfig.isCacheDisabled()) {
             core.info('Cache is disabled: will not restore state from previous builds.');
             gradleStateCache.init();
@@ -92464,11 +91889,623 @@ function save(userHome, gradleUserHome, cacheListener, daemonController, cacheCo
             }
         }
         yield core.group('Caching Gradle state', () => __awaiter(this, void 0, void 0, function* () {
-            return new cache_base_1.GradleStateCache(userHome, gradleUserHome, cacheConfig).save(cacheListener);
+            return new gradle_user_home_cache_1.GradleUserHomeCache(userHome, gradleUserHome, cacheConfig).save(cacheListener);
         }));
     });
 }
 exports.save = save;
+
+
+/***/ }),
+
+/***/ 862:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConfigurationCacheEntryExtractor = exports.GradleHomeEntryExtractor = void 0;
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const core = __importStar(__nccwpck_require__(2186));
+const glob = __importStar(__nccwpck_require__(8090));
+const semver = __importStar(__nccwpck_require__(1383));
+const gradle_user_home_cache_1 = __nccwpck_require__(7655);
+const cache_utils_1 = __nccwpck_require__(1044);
+const build_results_1 = __nccwpck_require__(2107);
+const cache_key_1 = __nccwpck_require__(100);
+const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE';
+const CACHE_PROTOCOL_VERSION = 'v1';
+class ExtractedCacheEntry {
+    constructor(artifactType, pattern, cacheKey) {
+        this.artifactType = artifactType;
+        this.pattern = pattern;
+        this.cacheKey = cacheKey;
+    }
+}
+class ExtractedCacheEntryMetadata {
+    constructor() {
+        this.entries = [];
+    }
+}
+class ExtractedCacheEntryDefinition {
+    constructor(artifactType, pattern, bundle) {
+        this.uniqueFileNames = true;
+        this.artifactType = artifactType;
+        this.pattern = pattern;
+        this.bundle = bundle;
+    }
+    withNonUniqueFileNames() {
+        this.uniqueFileNames = false;
+        return this;
+    }
+    notCacheableBecause(reason) {
+        this.notCacheableReason = reason;
+        return this;
+    }
+}
+class AbstractEntryExtractor {
+    constructor(gradleUserHome, extractorName, cacheConfig) {
+        this.gradleUserHome = gradleUserHome;
+        this.extractorName = extractorName;
+        this.cacheConfig = cacheConfig;
+    }
+    restore(listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const previouslyExtractedCacheEntries = this.loadExtractedCacheEntries();
+            const processes = [];
+            for (const cacheEntry of previouslyExtractedCacheEntries) {
+                const artifactType = cacheEntry.artifactType;
+                const entryListener = listener.entry(cacheEntry.pattern);
+                const skipRestore = process.env[SKIP_RESTORE_VAR] || '';
+                if (skipRestore.includes(artifactType)) {
+                    core.info(`Not restoring extracted cache entry for ${artifactType}`);
+                    entryListener.markRequested('SKIP_RESTORE');
+                }
+                else {
+                    processes.push(this.awaitForDebugging(this.restoreExtractedCacheEntry(artifactType, cacheEntry.cacheKey, cacheEntry.pattern, entryListener)));
+                }
+            }
+            this.saveMetadataForCacheResults(yield Promise.all(processes));
+        });
+    }
+    restoreExtractedCacheEntry(artifactType, cacheKey, pattern, listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const restoredEntry = yield (0, cache_utils_1.restoreCache)([pattern], cacheKey, [], listener);
+            if (restoredEntry) {
+                core.info(`Restored ${artifactType} with key ${cacheKey} to ${pattern}`);
+                return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
+            }
+            else {
+                core.info(`Did not restore ${artifactType} with key ${cacheKey} to ${pattern}`);
+                return new ExtractedCacheEntry(artifactType, pattern, undefined);
+            }
+        });
+    }
+    extract(listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
+            (0, cache_utils_1.cacheDebug)(`Extracting cache entries for ${this.extractorName}: ${JSON.stringify(cacheEntryDefinitions, null, 2)}`);
+            const previouslyRestoredEntries = this.loadExtractedCacheEntries();
+            const cacheActions = [];
+            for (const cacheEntryDefinition of cacheEntryDefinitions) {
+                const artifactType = cacheEntryDefinition.artifactType;
+                const pattern = cacheEntryDefinition.pattern;
+                if (cacheEntryDefinition.notCacheableReason) {
+                    listener.entry(pattern).markNotSaved(cacheEntryDefinition.notCacheableReason);
+                    continue;
+                }
+                const globber = yield glob.create(pattern, {
+                    implicitDescendants: false
+                });
+                const matchingFiles = yield globber.glob();
+                if (matchingFiles.length === 0) {
+                    (0, cache_utils_1.cacheDebug)(`No files found to cache for ${artifactType}`);
+                    continue;
+                }
+                if (cacheEntryDefinition.bundle) {
+                    cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry(matchingFiles, artifactType, pattern, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(pattern))));
+                }
+                else {
+                    for (const cacheFile of matchingFiles) {
+                        cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry([cacheFile], artifactType, cacheFile, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(cacheFile))));
+                    }
+                }
+            }
+            this.saveMetadataForCacheResults(yield Promise.all(cacheActions));
+        });
+    }
+    saveExtractedCacheEntry(matchingFiles, artifactType, pattern, uniqueFileNames, previouslyRestoredEntries, entryListener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const cacheKey = uniqueFileNames
+                ? this.createCacheKeyFromFileNames(artifactType, matchingFiles)
+                : yield this.createCacheKeyFromFileContents(artifactType, pattern);
+            const previouslyRestoredKey = (_a = previouslyRestoredEntries.find(x => x.artifactType === artifactType && x.pattern === pattern)) === null || _a === void 0 ? void 0 : _a.cacheKey;
+            if (previouslyRestoredKey === cacheKey) {
+                (0, cache_utils_1.cacheDebug)(`No change to previously restored ${artifactType}. Not saving.`);
+                entryListener.markNotSaved('contents unchanged');
+            }
+            else {
+                core.info(`Caching ${artifactType} with path '${pattern}' and cache key: ${cacheKey}`);
+                yield (0, cache_utils_1.saveCache)([pattern], cacheKey, entryListener);
+            }
+            for (const file of matchingFiles) {
+                (0, cache_utils_1.tryDelete)(file);
+            }
+            return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
+        });
+    }
+    createCacheKeyFromFileNames(artifactType, files) {
+        const relativeFiles = files.map(x => path_1.default.relative(this.gradleUserHome, x));
+        const key = (0, cache_utils_1.hashFileNames)(relativeFiles);
+        (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from file names: ${relativeFiles}`);
+        return `${(0, cache_key_1.getCacheKeyBase)(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`;
+    }
+    createCacheKeyFromFileContents(artifactType, pattern) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const key = yield glob.hashFiles(pattern);
+            (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from files matching: ${pattern}`);
+            return `${(0, cache_key_1.getCacheKeyBase)(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`;
+        });
+    }
+    awaitForDebugging(p) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if ((0, cache_utils_1.isCacheDebuggingEnabled)()) {
+                yield p;
+            }
+            return p;
+        });
+    }
+    loadExtractedCacheEntries() {
+        const cacheMetadataFile = this.getCacheMetadataFile();
+        if (!fs_1.default.existsSync(cacheMetadataFile)) {
+            return [];
+        }
+        const filedata = fs_1.default.readFileSync(cacheMetadataFile, 'utf-8');
+        (0, cache_utils_1.cacheDebug)(`Loaded cache metadata for ${this.extractorName}: ${filedata}`);
+        const extractedCacheEntryMetadata = JSON.parse(filedata);
+        return extractedCacheEntryMetadata.entries;
+    }
+    saveMetadataForCacheResults(results) {
+        const extractedCacheEntryMetadata = new ExtractedCacheEntryMetadata();
+        extractedCacheEntryMetadata.entries = results.filter(x => x.cacheKey !== undefined);
+        const filedata = JSON.stringify(extractedCacheEntryMetadata);
+        (0, cache_utils_1.cacheDebug)(`Saving cache metadata for ${this.extractorName}: ${filedata}`);
+        fs_1.default.writeFileSync(this.getCacheMetadataFile(), filedata, 'utf-8');
+    }
+    getCacheMetadataFile() {
+        const actionMetadataDirectory = path_1.default.resolve(this.gradleUserHome, gradle_user_home_cache_1.META_FILE_DIR);
+        fs_1.default.mkdirSync(actionMetadataDirectory, { recursive: true });
+        return path_1.default.resolve(actionMetadataDirectory, `${this.extractorName}-entry-metadata.json`);
+    }
+}
+class GradleHomeEntryExtractor extends AbstractEntryExtractor {
+    constructor(gradleUserHome, cacheConfig) {
+        super(gradleUserHome, 'gradle-home', cacheConfig);
+    }
+    extract(listener) {
+        const _super = Object.create(null, {
+            extract: { get: () => super.extract }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.deleteWrapperZips();
+            return _super.extract.call(this, listener);
+        });
+    }
+    deleteWrapperZips() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const wrapperZips = path_1.default.resolve(this.gradleUserHome, 'wrapper/dists/*/*/*.zip');
+            const globber = yield glob.create(wrapperZips, {
+                implicitDescendants: false
+            });
+            for (const wrapperZip of yield globber.glob()) {
+                (0, cache_utils_1.cacheDebug)(`Deleting wrapper zip: ${wrapperZip}`);
+                yield (0, cache_utils_1.tryDelete)(wrapperZip);
+            }
+        });
+    }
+    getExtractedCacheEntryDefinitions() {
+        const entryDefinition = (artifactType, patterns, bundle) => {
+            const resolvedPatterns = patterns
+                .map(x => {
+                const isDir = x.endsWith('/');
+                const resolved = path_1.default.resolve(this.gradleUserHome, x);
+                return isDir ? `${resolved}/` : resolved;
+            })
+                .join('\n');
+            return new ExtractedCacheEntryDefinition(artifactType, resolvedPatterns, bundle);
+        };
+        return [
+            entryDefinition('generated-gradle-jars', ['caches/*/generated-gradle-jars/*.jar'], false),
+            entryDefinition('wrapper-zips', ['wrapper/dists/*/*/'], false),
+            entryDefinition('java-toolchains', ['jdks/*/'], false),
+            entryDefinition('dependencies', ['caches/modules-*/files-*/*/*/*/*'], true),
+            entryDefinition('instrumented-jars', ['caches/jars-*/*'], true),
+            entryDefinition('kotlin-dsl', ['caches/*/kotlin-dsl/*/*'], true)
+        ];
+    }
+}
+exports.GradleHomeEntryExtractor = GradleHomeEntryExtractor;
+class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
+    constructor(gradleUserHome, cacheConfig) {
+        super(gradleUserHome, 'configuration-cache', cacheConfig);
+    }
+    restore(listener) {
+        const _super = Object.create(null, {
+            restore: { get: () => super.restore }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!listener.fullyRestored) {
+                this.markNotRestored(listener, 'Gradle User Home was not fully restored');
+                return;
+            }
+            if (!this.cacheConfig.getCacheEncryptionKey()) {
+                this.markNotRestored(listener, 'Encryption Key was not provided');
+                return;
+            }
+            return yield _super.restore.call(this, listener);
+        });
+    }
+    markNotRestored(listener, reason) {
+        const cacheEntries = this.loadExtractedCacheEntries();
+        if (cacheEntries.length > 0) {
+            core.info(`Not restoring configuration-cache state, as ${reason}`);
+            for (const cacheEntry of cacheEntries) {
+                listener.entry(cacheEntry.pattern).markNotRestored(reason);
+            }
+            this.saveMetadataForCacheResults([]);
+        }
+    }
+    extract(listener) {
+        const _super = Object.create(null, {
+            extract: { get: () => super.extract }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.cacheConfig.getCacheEncryptionKey()) {
+                const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
+                if (cacheEntryDefinitions.length > 0) {
+                    core.info('Not saving configuration-cache state, as no encryption key was provided');
+                    for (const cacheEntry of cacheEntryDefinitions) {
+                        listener.entry(cacheEntry.pattern).markNotSaved('No encryption key provided');
+                    }
+                }
+                return;
+            }
+            yield _super.extract.call(this, listener);
+        });
+    }
+    getExtractedCacheEntryDefinitions() {
+        const groupedResults = this.getConfigCacheDirectoriesWithAssociatedBuildResults();
+        return Object.entries(groupedResults).map(([configCachePath, pathResults]) => {
+            const definition = new ExtractedCacheEntryDefinition('configuration-cache', configCachePath, true).withNonUniqueFileNames();
+            if (pathResults.find(result => {
+                const gradleVersion = semver.coerce(result.gradleVersion);
+                return gradleVersion && semver.lt(gradleVersion, '8.6.0');
+            })) {
+                core.info(`Not saving config-cache data for ${configCachePath}. Configuration cache data is only saved for Gradle 8.6+`);
+                definition.notCacheableBecause('Configuration cache data only saved for Gradle 8.6+');
+            }
+            return definition;
+        });
+    }
+    getConfigCacheDirectoriesWithAssociatedBuildResults() {
+        return (0, build_results_1.loadBuildResults)().reduce((acc, buildResult) => {
+            const configCachePath = path_1.default.resolve(buildResult.rootProjectDir, '.gradle/configuration-cache');
+            if (!fs_1.default.existsSync(configCachePath)) {
+                return acc;
+            }
+            if (!acc[configCachePath]) {
+                acc[configCachePath] = [];
+            }
+            acc[configCachePath].push(buildResult);
+            return acc;
+        }, {});
+    }
+}
+exports.ConfigurationCacheEntryExtractor = ConfigurationCacheEntryExtractor;
+
+
+/***/ }),
+
+/***/ 7655:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GradleUserHomeCache = exports.META_FILE_DIR = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const exec = __importStar(__nccwpck_require__(1514));
+const glob = __importStar(__nccwpck_require__(8090));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const cache_key_1 = __nccwpck_require__(100);
+const cache_utils_1 = __nccwpck_require__(1044);
+const gradle_home_extry_extractor_1 = __nccwpck_require__(862);
+const RESTORED_CACHE_KEY_KEY = 'restored-cache-key';
+exports.META_FILE_DIR = '.setup-gradle';
+class GradleUserHomeCache {
+    constructor(userHome, gradleUserHome, cacheConfig) {
+        this.cacheName = 'home';
+        this.cacheDescription = 'Gradle User Home';
+        this.userHome = userHome;
+        this.gradleUserHome = gradleUserHome;
+        this.cacheConfig = cacheConfig;
+    }
+    init() {
+        this.initializeGradleUserHome();
+        const encryptionKey = this.cacheConfig.getCacheEncryptionKey();
+        if (encryptionKey) {
+            core.exportVariable('GRADLE_ENCRYPTION_KEY', encryptionKey);
+        }
+    }
+    cacheOutputExists() {
+        const cachesDir = path_1.default.resolve(this.gradleUserHome, 'caches');
+        if (fs_1.default.existsSync(cachesDir)) {
+            (0, cache_utils_1.cacheDebug)(`Cache output exists at ${cachesDir}`);
+            return true;
+        }
+        return false;
+    }
+    restore(listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const entryListener = listener.entry(this.cacheDescription);
+            const cacheKey = (0, cache_key_1.generateCacheKey)(this.cacheName, this.cacheConfig);
+            (0, cache_utils_1.cacheDebug)(`Requesting ${this.cacheDescription} with
+    key:${cacheKey.key}
+    restoreKeys:[${cacheKey.restoreKeys}]`);
+            const cacheResult = yield (0, cache_utils_1.restoreCache)(this.getCachePath(), cacheKey.key, cacheKey.restoreKeys, entryListener);
+            if (!cacheResult) {
+                core.info(`${this.cacheDescription} cache not found. Will initialize empty.`);
+                return;
+            }
+            core.saveState(RESTORED_CACHE_KEY_KEY, cacheResult.key);
+            core.info(`Restored ${this.cacheDescription} from cache key: ${cacheResult.key}`);
+            try {
+                yield this.afterRestore(listener);
+            }
+            catch (error) {
+                core.warning(`Restore ${this.cacheDescription} failed in 'afterRestore': ${error}`);
+            }
+        });
+    }
+    afterRestore(listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.debugReportGradleUserHomeSize('as restored from cache');
+            yield new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
+            yield new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
+            yield this.debugReportGradleUserHomeSize('after restoring common artifacts');
+        });
+    }
+    save(listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const cacheKey = (0, cache_key_1.generateCacheKey)(this.cacheName, this.cacheConfig).key;
+            const restoredCacheKey = core.getState(RESTORED_CACHE_KEY_KEY);
+            const gradleHomeEntryListener = listener.entry(this.cacheDescription);
+            if (restoredCacheKey && cacheKey === restoredCacheKey) {
+                core.info(`Cache hit occurred on the cache key ${cacheKey}, not saving cache.`);
+                for (const entryListener of listener.cacheEntries) {
+                    if (entryListener === gradleHomeEntryListener) {
+                        entryListener.markNotSaved('cache key not changed');
+                    }
+                    else {
+                        entryListener.markNotSaved(`referencing '${this.cacheDescription}' cache entry not saved`);
+                    }
+                }
+                return;
+            }
+            try {
+                yield this.beforeSave(listener);
+            }
+            catch (error) {
+                core.warning(`Save ${this.cacheDescription} failed in 'beforeSave': ${error}`);
+                return;
+            }
+            core.info(`Caching ${this.cacheDescription} with cache key: ${cacheKey}`);
+            const cachePath = this.getCachePath();
+            yield (0, cache_utils_1.saveCache)(cachePath, cacheKey, gradleHomeEntryListener);
+            return;
+        });
+    }
+    beforeSave(listener) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.debugReportGradleUserHomeSize('before saving common artifacts');
+            yield this.deleteExcludedPaths();
+            yield Promise.all([
+                new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener),
+                new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
+            ]);
+            yield this.debugReportGradleUserHomeSize("after extracting common artifacts (only 'caches' and 'notifications' will be stored)");
+        });
+    }
+    deleteExcludedPaths() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const rawPaths = this.cacheConfig.getCacheExcludes();
+            rawPaths.push('caches/*/cc-keystore');
+            const resolvedPaths = rawPaths.map(x => path_1.default.resolve(this.gradleUserHome, x));
+            for (const p of resolvedPaths) {
+                (0, cache_utils_1.cacheDebug)(`Removing excluded path: ${p}`);
+                const globber = yield glob.create(p, {
+                    implicitDescendants: false
+                });
+                for (const toDelete of yield globber.glob()) {
+                    (0, cache_utils_1.cacheDebug)(`Removing excluded file: ${toDelete}`);
+                    yield (0, cache_utils_1.tryDelete)(toDelete);
+                }
+            }
+        });
+    }
+    getCachePath() {
+        const rawPaths = this.cacheConfig.getCacheIncludes();
+        rawPaths.push(exports.META_FILE_DIR);
+        const resolvedPaths = rawPaths.map(x => this.resolveCachePath(x));
+        (0, cache_utils_1.cacheDebug)(`Using cache paths: ${resolvedPaths}`);
+        return resolvedPaths;
+    }
+    resolveCachePath(rawPath) {
+        if (rawPath.startsWith('!')) {
+            const resolved = this.resolveCachePath(rawPath.substring(1));
+            return `!${resolved}`;
+        }
+        return path_1.default.resolve(this.gradleUserHome, rawPath);
+    }
+    initializeGradleUserHome() {
+        const actionCacheDir = path_1.default.resolve(this.gradleUserHome, exports.META_FILE_DIR);
+        fs_1.default.mkdirSync(actionCacheDir, { recursive: true });
+        this.copyInitScripts();
+        this.registerToolchains();
+        if (core.isDebug()) {
+            this.configureInfoLogLevel();
+        }
+    }
+    copyInitScripts() {
+        const initScriptsDir = path_1.default.resolve(this.gradleUserHome, 'init.d');
+        fs_1.default.mkdirSync(initScriptsDir, { recursive: true });
+        const initScriptFilenames = [
+            'gradle-actions.build-result-capture.init.gradle',
+            'gradle-actions.build-result-capture-service.plugin.groovy',
+            'gradle-actions.github-dependency-graph.init.gradle',
+            'gradle-actions.github-dependency-graph-gradle-plugin-apply.groovy',
+            'gradle-actions.inject-develocity.init.gradle'
+        ];
+        for (const initScriptFilename of initScriptFilenames) {
+            const initScriptContent = this.readResourceFileAsString('init-scripts', initScriptFilename);
+            const initScriptPath = path_1.default.resolve(initScriptsDir, initScriptFilename);
+            fs_1.default.writeFileSync(initScriptPath, initScriptContent);
+        }
+    }
+    registerToolchains() {
+        const preInstalledToolchains = this.readResourceFileAsString('toolchains.xml');
+        const m2dir = path_1.default.resolve(this.userHome, '.m2');
+        const toolchainXmlTarget = path_1.default.resolve(m2dir, 'toolchains.xml');
+        if (!fs_1.default.existsSync(toolchainXmlTarget)) {
+            fs_1.default.mkdirSync(m2dir, { recursive: true });
+            fs_1.default.writeFileSync(toolchainXmlTarget, preInstalledToolchains);
+            core.info(`Wrote default JDK locations to ${toolchainXmlTarget}`);
+        }
+        else {
+            const existingToolchainContent = fs_1.default.readFileSync(toolchainXmlTarget, 'utf8');
+            const appendedContent = preInstalledToolchains.split('<toolchains>').pop();
+            const mergedContent = existingToolchainContent.replace('</toolchains>', appendedContent);
+            fs_1.default.writeFileSync(toolchainXmlTarget, mergedContent);
+            core.info(`Merged default JDK locations into ${toolchainXmlTarget}`);
+        }
+    }
+    readResourceFileAsString(...paths) {
+        const absolutePath = path_1.default.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths);
+        return fs_1.default.readFileSync(absolutePath, 'utf8');
+    }
+    configureInfoLogLevel() {
+        const infoProperties = `org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n`;
+        const propertiesFile = path_1.default.resolve(this.gradleUserHome, 'gradle.properties');
+        if (fs_1.default.existsSync(propertiesFile)) {
+            core.info(`Merged --info and --stacktrace into existing ${propertiesFile} file`);
+            const existingProperties = fs_1.default.readFileSync(propertiesFile, 'utf-8');
+            fs_1.default.writeFileSync(propertiesFile, `${infoProperties}\n${existingProperties}`);
+        }
+        else {
+            core.info(`Created a new ${propertiesFile} with --info and --stacktrace`);
+            fs_1.default.writeFileSync(propertiesFile, infoProperties);
+        }
+    }
+    debugReportGradleUserHomeSize(label) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!(0, cache_utils_1.isCacheDebuggingEnabled)() && !core.isDebug()) {
+                return;
+            }
+            if (!fs_1.default.existsSync(this.gradleUserHome)) {
+                return;
+            }
+            const result = yield exec.getExecOutput('du', ['-h', '-c', '-t', '5M'], {
+                cwd: this.gradleUserHome,
+                silent: true,
+                ignoreReturnCode: true
+            });
+            core.info(`Gradle User Home (directories >5M): ${label}`);
+            core.info(result.stdout
+                .trimEnd()
+                .replace(/\t/g, '    ')
+                .split('\n')
+                .map(it => {
+                return `  ${it}`;
+            })
+                .join('\n'));
+            core.info('-----------------------');
+        });
+    }
+}
+exports.GradleUserHomeCache = GradleUserHomeCache;
 
 
 /***/ }),
@@ -92671,7 +92708,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseNumericInput = exports.getGithubToken = exports.getJobMatrix = exports.getArguments = exports.getBuildRootDirectory = exports.getGradleVersion = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
+exports.parseNumericInput = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.getArguments = exports.getBuildRootDirectory = exports.getGradleVersion = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
@@ -92870,6 +92907,10 @@ function getGithubToken() {
     return core.getInput('github-token', { required: true });
 }
 exports.getGithubToken = getGithubToken;
+function getWorkspaceDirectory() {
+    return process.env[`GITHUB_WORKSPACE`] || '';
+}
+exports.getWorkspaceDirectory = getWorkspaceDirectory;
 function parseNumericInput(paramName, paramValue, paramDefault) {
     if (paramValue.length === 0) {
         return paramDefault;
@@ -92939,12 +92980,10 @@ exports.generateJobSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
-const cache_reporting_1 = __nccwpck_require__(6674);
 const input_params_1 = __nccwpck_require__(3885);
-function generateJobSummary(buildResults, cacheListener, config) {
+function generateJobSummary(buildResults, cachingReport, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const summaryTable = renderSummaryTable(buildResults);
-        const cachingReport = (0, cache_reporting_1.generateCachingReport)(cacheListener);
         const hasFailure = buildResults.some(result => result.buildFailed);
         if (config.shouldGenerateJobSummary(hasFailure)) {
             core.info('Generating Job Summary');
@@ -93060,55 +93099,6 @@ function truncateString(str, maxLength) {
 
 /***/ }),
 
-/***/ 8182:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildRootDirectory = exports.workspaceDirectory = void 0;
-const params = __importStar(__nccwpck_require__(3885));
-const path = __importStar(__nccwpck_require__(1017));
-function workspaceDirectory() {
-    return process.env[`GITHUB_WORKSPACE`] || '';
-}
-exports.workspaceDirectory = workspaceDirectory;
-function buildRootDirectory() {
-    const baseDirectory = workspaceDirectory();
-    const buildRootDirectoryInput = params.getBuildRootDirectory();
-    const resolvedBuildRootDirectory = buildRootDirectoryInput === ''
-        ? path.resolve(baseDirectory)
-        : path.resolve(baseDirectory, buildRootDirectoryInput);
-    return resolvedBuildRootDirectory;
-}
-exports.buildRootDirectory = buildRootDirectory;
-
-
-/***/ }),
-
 /***/ 8652:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -93152,13 +93142,13 @@ const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
 const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
-const caches = __importStar(__nccwpck_require__(3800));
-const layout = __importStar(__nccwpck_require__(8182));
+const caches = __importStar(__nccwpck_require__(7504));
 const jobSummary = __importStar(__nccwpck_require__(7345));
 const buildScan = __importStar(__nccwpck_require__(5772));
 const build_results_1 = __nccwpck_require__(2107);
-const cache_reporting_1 = __nccwpck_require__(6674);
+const cache_reporting_1 = __nccwpck_require__(7391);
 const daemon_controller_1 = __nccwpck_require__(5146);
+const input_params_1 = __nccwpck_require__(3885);
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED';
 const USER_HOME = 'USER_HOME';
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME';
@@ -93196,7 +93186,8 @@ function complete(cacheConfig, summaryConfig) {
         const cacheListener = cache_reporting_1.CacheListener.rehydrate(core.getState(CACHE_LISTENER));
         const daemonController = new daemon_controller_1.DaemonController(buildResults);
         yield caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig);
-        yield jobSummary.generateJobSummary(buildResults, cacheListener, summaryConfig);
+        const cachingReport = (0, cache_reporting_1.generateCachingReport)(cacheListener);
+        yield jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig);
         core.info('Completed post-action step');
         return true;
     });
@@ -93206,7 +93197,7 @@ function determineGradleUserHome() {
     return __awaiter(this, void 0, void 0, function* () {
         const customGradleUserHome = process.env['GRADLE_USER_HOME'];
         if (customGradleUserHome) {
-            const rootDir = layout.workspaceDirectory();
+            const rootDir = (0, input_params_1.getWorkspaceDirectory)();
             return path.resolve(rootDir, customGradleUserHome);
         }
         return path.resolve(yield determineUserHome(), '.gradle');

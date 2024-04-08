@@ -3,16 +3,14 @@ import * as github from '@actions/github'
 import {RequestError} from '@octokit/request-error'
 
 import {BuildResult} from './build-results'
-import {CacheListener, generateCachingReport} from './cache-reporting'
 import {SummaryConfig, getGithubToken} from './input-params'
 
 export async function generateJobSummary(
     buildResults: BuildResult[],
-    cacheListener: CacheListener,
+    cachingReport: string,
     config: SummaryConfig
 ): Promise<void> {
     const summaryTable = renderSummaryTable(buildResults)
-    const cachingReport = generateCachingReport(cacheListener)
 
     const hasFailure = buildResults.some(result => result.buildFailed)
     if (config.shouldGenerateJobSummary(hasFailure)) {

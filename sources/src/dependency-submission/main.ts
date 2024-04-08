@@ -1,9 +1,7 @@
 import * as core from '@actions/core'
 
 import * as setupGradle from '../setup-gradle'
-import * as execution from '../execution'
-import * as provisioner from '../provision'
-import * as layout from '../repository-layout'
+import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
 
 import {parseArgsStringToArgv} from 'string-argv'
@@ -26,9 +24,6 @@ export async function run(): Promise<void> {
             return
         }
 
-        // Download and install Gradle if required
-        const executable = await provisioner.provisionGradle()
-
         // Only execute if arguments have been provided
         const additionalArgs = core.getInput('additional-arguments')
         const executionArgs = `
@@ -38,10 +33,8 @@ export async function run(): Promise<void> {
               :ForceDependencyResolutionPlugin_resolveAllDependencies
               ${additionalArgs}
         `
-
         const args: string[] = parseArgsStringToArgv(executionArgs)
-        const buildRootDirectory = layout.buildRootDirectory()
-        await execution.executeGradleBuild(executable, buildRootDirectory, args)
+        await gradle.provisionAndMaybeExecute(args)
 
         await dependencyGraph.complete(config)
     } catch (error) {
