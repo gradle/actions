@@ -7,9 +7,9 @@ import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 
 import * as gradlew from './gradlew'
-import * as params from './input-params'
-import {handleCacheFailure} from './caching/cache-utils'
-import {CacheConfig} from './input-params'
+import * as params from '../input-params'
+import {handleCacheFailure} from '../caching/cache-utils'
+import {CacheConfig} from '../input-params'
 
 const gradleVersionsBaseUrl = 'https://services.gradle.org/versions'
 

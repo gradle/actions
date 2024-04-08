@@ -3,14 +3,13 @@ import * as exec from '@actions/exec'
 import * as path from 'path'
 import * as os from 'os'
 import * as caches from './caching/caches'
-import * as layout from './repository-layout'
 import * as jobSummary from './job-summary'
 import * as buildScan from './build-scan'
 
 import {loadBuildResults} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
-import {BuildScanConfig, CacheConfig, SummaryConfig} from './input-params'
+import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './input-params'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
@@ -72,7 +71,7 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
 async function determineGradleUserHome(): Promise<string> {
     const customGradleUserHome = process.env['GRADLE_USER_HOME']
     if (customGradleUserHome) {
-        const rootDir = layout.workspaceDirectory()
+        const rootDir = getWorkspaceDirectory()
         return path.resolve(rootDir, customGradleUserHome)
     }
 
