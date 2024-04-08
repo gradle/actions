@@ -134,6 +134,10 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         declareDevelocityPluginApplication(testGradleVersion.gradleVersion)
 
         when:
+        // Init-script emits deprecation warnings when CCUD plugin is applied on Gradle 5.6.4
+        if (testGradleVersion.gradleVersion.version == "5.6.4") {
+            allowDevelocityDeprecationWarning = true
+        }
         def result = run(testGradleVersion, testConfig().withCCUDPlugin())
 
         then:

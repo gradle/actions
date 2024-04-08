@@ -1,6 +1,7 @@
 package com.gradle.gradlebuildaction
 
 import groovy.json.JsonSlurper
+import org.gradle.util.GradleVersion
 
 import static org.junit.Assume.assumeTrue
 
@@ -198,7 +199,8 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
                 }
             }
         """ + settingsFile.text
-        
+
+        allowDevelocityDeprecationWarning = true
         run(testGradleVersion.gradleVersion)
 
         then:

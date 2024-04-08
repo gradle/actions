@@ -54,6 +54,8 @@ class BaseInitScriptTest extends Specification {
     File settingsFile
     File buildFile
 
+    boolean allowDevelocityDeprecationWarning = false
+
     @TempDir
     File testProjectDir
 
@@ -200,14 +202,16 @@ task expectFailure {
     }
 
     BuildResult run(List<String> args, String initScript, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
-        createRunner(initScript, args, gradleVersion, jvmArgs, envVars).build()
+        def result = createRunner(args, initScript, gradleVersion, jvmArgs, envVars).build()
+        assertNoDeprecationWarning(result)
     }
 
     BuildResult runAndFail(List<String> args, String initScript, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
-        createRunner(initScript, args, gradleVersion, jvmArgs, envVars).buildAndFail()
+        def result = createRunner(args, initScript, gradleVersion, jvmArgs, envVars).buildAndFail()
+        assertNoDeprecationWarning(result)
     }
 
-    GradleRunner createRunner(String initScript, List<String> args, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
+    GradleRunner createRunner(List<String> args, String initScript, GradleVersion gradleVersion = GradleVersion.current(), List<String> jvmArgs = [], Map<String, String> envVars = [:]) {
         File initScriptsDir = new File(testProjectDir, "initScripts")
         args << '-I' << new File(initScriptsDir, initScript).absolutePath
 
@@ -234,6 +238,13 @@ task expectFailure {
         } else {
             return gradleVersion >= GRADLE_3_X.gradleVersion
         }
+    }
+
+    BuildResult assertNoDeprecationWarning(BuildResult result) {
+        if (!allowDevelocityDeprecationWarning) {
+            assert !result.output.contains("WARNING: The following functionality has been deprecated")
+        }
+        return result
     }
 
     static final class TestGradleVersion {
