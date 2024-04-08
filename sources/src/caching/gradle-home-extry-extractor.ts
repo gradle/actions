@@ -10,9 +10,10 @@ import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCa
 
 import {BuildResult, loadBuildResults} from '../build-results'
 import {CacheConfig} from '../input-params'
-import {getCacheKeyPrefix} from './cache-key'
+import {getCacheKeyBase} from './cache-key'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
+const CACHE_PROTOCOL_VERSION = 'v1'
 
 /**
  * Represents the result of attempting to load or store an extracted cache entry.
@@ -244,22 +245,20 @@ abstract class AbstractEntryExtractor {
     }
 
     protected createCacheKeyFromFileNames(artifactType: string, files: string[]): string {
-        const cacheKeyPrefix = getCacheKeyPrefix()
         const relativeFiles = files.map(x => path.relative(this.gradleUserHome, x))
         const key = hashFileNames(relativeFiles)
 
         cacheDebug(`Generating cache key for ${artifactType} from file names: ${relativeFiles}`)
 
-        return `${cacheKeyPrefix}${artifactType}-${key}`
+        return `${getCacheKeyBase(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`
     }
 
     protected async createCacheKeyFromFileContents(artifactType: string, pattern: string): Promise<string> {
-        const cacheKeyPrefix = getCacheKeyPrefix()
         const key = await glob.hashFiles(pattern)
 
         cacheDebug(`Generating cache key for ${artifactType} from files matching: ${pattern}`)
 
-        return `${cacheKeyPrefix}${artifactType}-${key}`
+        return `${getCacheKeyBase(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`
     }
 
     // Run actions sequentially if debugging is enabled

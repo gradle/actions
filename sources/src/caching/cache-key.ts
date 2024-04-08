@@ -3,7 +3,7 @@ import * as github from '@actions/github'
 import {CacheConfig, getJobMatrix} from '../input-params'
 import {hashStrings} from './cache-utils'
 
-const CACHE_PROTOCOL_VERSION = 'v9-'
+const CACHE_PROTOCOL_VERSION = 'v1'
 
 const CACHE_KEY_PREFIX_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX'
 const CACHE_KEY_OS_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_ENVIRONMENT'
@@ -29,8 +29,8 @@ export class CacheKey {
 /**
  * Generates a cache key specific to the current job execution.
  * The key is constructed from the following inputs (with some user overrides):
+ * - The cache key prefix: defaults to 'gradle-' but can be overridden by the user
  * - The cache protocol version
- * - The name of the cache
  * - The runner operating system
  * - The name of the workflow and Job being executed
  * - The matrix values for the Job being executed (job context)
@@ -43,7 +43,9 @@ export class CacheKey {
  * - Any previous key for this cache on the current OS
  */
 export function generateCacheKey(cacheName: string, config: CacheConfig): CacheKey {
-    const cacheKeyBase = `${getCacheKeyPrefix()}${CACHE_PROTOCOL_VERSION}${cacheName}`
+    const prefix = process.env[CACHE_KEY_PREFIX_VAR] || ''
+
+    const cacheKeyBase = `${prefix}${getCacheKeyBase(cacheName, CACHE_PROTOCOL_VERSION)}`
 
     // At the most general level, share caches for all executions on the same OS
     const cacheKeyForEnvironment = `${cacheKeyBase}|${getCacheKeyEnvironment()}`
@@ -64,9 +66,9 @@ export function generateCacheKey(cacheName: string, config: CacheConfig): CacheK
     return new CacheKey(cacheKey, [cacheKeyForJobContext, cacheKeyForJob, cacheKeyForEnvironment])
 }
 
-export function getCacheKeyPrefix(): string {
+export function getCacheKeyBase(cacheName: string, cacheProtocolVersion: string): string {
     // Prefix can be used to force change all cache keys (defaults to cache protocol version)
-    return process.env[CACHE_KEY_PREFIX_VAR] || ''
+    return `gradle-${cacheName}-${cacheProtocolVersion}`
 }
 
 function getCacheKeyEnvironment(): string {

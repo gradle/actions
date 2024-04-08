@@ -15,7 +15,7 @@ const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 export const META_FILE_DIR = '.setup-gradle'
 
 export class GradleUserHomeCache {
-    private readonly cacheName = 'gradle'
+    private readonly cacheName = 'home'
     private readonly cacheDescription = 'Gradle User Home'
 
     private readonly userHome: string
