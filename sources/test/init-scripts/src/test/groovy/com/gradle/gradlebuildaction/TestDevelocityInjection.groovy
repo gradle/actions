@@ -315,7 +315,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         when:
         def config = testConfig().withCCUDPlugin().withServer(URI.create('https://develocity-server.invalid'))
-        def result = run(testGradleVersion, config, ["help", "-Dgradle.enterprise.url=${mockScansServer.address}".toString()])
+        def result = run(testGradleVersion, config, ["help", "-Ddevelocity.url=${mockScansServer.address}".toString()])
 
         then:
         outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
