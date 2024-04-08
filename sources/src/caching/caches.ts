@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import {CacheListener} from './cache-reporting'
-import {DaemonController} from './daemon-controller'
-import {GradleStateCache} from './cache-base'
+import {GradleUserHomeCache} from './gradle-user-home-cache'
 import {CacheCleaner} from './cache-cleaner'
-import {CacheConfig} from './input-params'
+import {DaemonController} from '../daemon-controller'
+import {CacheConfig} from '../input-params'
 
 const CACHE_RESTORED_VAR = 'GRADLE_BUILD_ACTION_CACHE_RESTORED'
 
@@ -20,7 +20,7 @@ export async function restore(
     }
     core.exportVariable(CACHE_RESTORED_VAR, true)
 
-    const gradleStateCache = new GradleStateCache(userHome, gradleUserHome, cacheConfig)
+    const gradleStateCache = new GradleUserHomeCache(userHome, gradleUserHome, cacheConfig)
 
     if (cacheConfig.isCacheDisabled()) {
         core.info('Cache is disabled: will not restore state from previous builds.')
@@ -99,6 +99,6 @@ export async function save(
     }
 
     await core.group('Caching Gradle state', async () => {
-        return new GradleStateCache(userHome, gradleUserHome, cacheConfig).save(cacheListener)
+        return new GradleUserHomeCache(userHome, gradleUserHome, cacheConfig).save(cacheListener)
     })
 }

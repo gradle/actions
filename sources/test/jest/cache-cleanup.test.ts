@@ -1,7 +1,7 @@
 import * as exec from '@actions/exec'
 import fs from 'fs'
 import path from 'path'
-import {CacheCleaner} from '../../src/cache-cleaner'
+import {CacheCleaner} from '../../src/caching/cache-cleaner'
 
 jest.setTimeout(120000)
 

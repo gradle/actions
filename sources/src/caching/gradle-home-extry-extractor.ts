@@ -4,19 +4,13 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import * as semver from 'semver'
 
-import {META_FILE_DIR} from './cache-base'
+import {META_FILE_DIR} from './gradle-user-home-cache'
 import {CacheEntryListener, CacheListener} from './cache-reporting'
-import {
-    cacheDebug,
-    getCacheKeyPrefix,
-    hashFileNames,
-    isCacheDebuggingEnabled,
-    restoreCache,
-    saveCache,
-    tryDelete
-} from './cache-utils'
-import {BuildResult, loadBuildResults} from './build-results'
-import {CacheConfig} from './input-params'
+import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCache, tryDelete} from './cache-utils'
+
+import {BuildResult, loadBuildResults} from '../build-results'
+import {CacheConfig} from '../input-params'
+import {getCacheKeyPrefix} from './cache-key'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
 

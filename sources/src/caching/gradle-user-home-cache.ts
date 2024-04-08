@@ -4,29 +4,28 @@ import * as glob from '@actions/glob'
 
 import path from 'path'
 import fs from 'fs'
-import {CacheConfig} from './input-params'
+import {generateCacheKey} from './cache-key'
 import {CacheListener} from './cache-reporting'
-import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete, generateCacheKey} from './cache-utils'
-import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './cache-extract-entries'
+import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
+import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
+import {CacheConfig} from '../input-params'
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 
 export const META_FILE_DIR = '.setup-gradle'
 
-export class GradleStateCache {
-    private cacheConfig: CacheConfig
-    private cacheName: string
-    private cacheDescription: string
+export class GradleUserHomeCache {
+    private readonly cacheName = 'gradle'
+    private readonly cacheDescription = 'Gradle User Home'
 
-    protected readonly userHome: string
-    protected readonly gradleUserHome: string
+    private readonly userHome: string
+    private readonly gradleUserHome: string
+    private readonly cacheConfig: CacheConfig
 
     constructor(userHome: string, gradleUserHome: string, cacheConfig: CacheConfig) {
         this.userHome = userHome
         this.gradleUserHome = gradleUserHome
         this.cacheConfig = cacheConfig
-        this.cacheName = 'gradle'
-        this.cacheDescription = 'Gradle User Home'
     }
 
     init(): void {

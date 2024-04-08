@@ -2,13 +2,13 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as path from 'path'
 import * as os from 'os'
-import * as caches from './caches'
+import * as caches from './caching/caches'
 import * as layout from './repository-layout'
 import * as jobSummary from './job-summary'
 import * as buildScan from './build-scan'
 
 import {loadBuildResults} from './build-results'
-import {CacheListener} from './cache-reporting'
+import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
 import {BuildScanConfig, CacheConfig, SummaryConfig} from './input-params'
 
@@ -57,11 +57,12 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
     const userHome = core.getState(USER_HOME)
     const gradleUserHome = core.getState(GRADLE_USER_HOME)
     const cacheListener: CacheListener = CacheListener.rehydrate(core.getState(CACHE_LISTENER))
-    const daemonController = new DaemonController(buildResults)
 
+    const daemonController = new DaemonController(buildResults)
     await caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig)
 
-    await jobSummary.generateJobSummary(buildResults, cacheListener, summaryConfig)
+    const cachingReport = generateCachingReport(cacheListener)
+    await jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig)
 
     core.info('Completed post-action step')
 
