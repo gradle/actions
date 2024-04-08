@@ -70,7 +70,7 @@ runs:
         fi
     - name: Generate dependency graph
       if: ${{ inputs.dependency-graph == 'generate-and-submit' || inputs.dependency-graph == 'generate-and-upload' }}
-      uses: gradle/actions/setup-gradle@v3.2.0
+      uses: gradle/actions/setup-gradle@v3.2.1
       with:
         dependency-graph: ${{ inputs.dependency-graph }}
         dependency-graph-continue-on-failure: false
@@ -89,7 +89,7 @@ runs:
           ${{ inputs.additional-arguments }}
     - name: Download and submit dependency graph
       if: ${{ inputs.dependency-graph == 'download-and-submit' }}
-      uses: gradle/actions/setup-gradle@v3.2.0
+      uses: gradle/actions/setup-gradle@v3.2.1
       with:
         dependency-graph: download-and-submit
         dependency-graph-continue-on-failure: false
