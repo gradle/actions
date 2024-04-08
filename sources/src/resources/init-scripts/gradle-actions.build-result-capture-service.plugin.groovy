@@ -45,8 +45,8 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
             buildScanFailed: false
         ]
 
-        def runnerTempDir = System.getenv("RUNNER_TEMP")
-        def githubActionStep = System.getenv("GITHUB_ACTION")
+        def runnerTempDir = System.getProperty("RUNNER_TEMP") ?: System.getenv("RUNNER_TEMP")
+        def githubActionStep = System.getProperty("GITHUB_ACTION") ?: System.getenv("GITHUB_ACTION")
         if (!runnerTempDir || !githubActionStep) {
             return
         }
