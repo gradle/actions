@@ -7,7 +7,7 @@ export function setup(): void {
     if (getBuildScanPublishEnabled() && verifyTermsOfUseAgreement()) {
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
         maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.17')
-        maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '1.13')
+        maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '2.0')
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', getBuildScanTermsOfUseUrl())
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', getBuildScanTermsOfUseAgree())
     }
