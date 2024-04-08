@@ -6,7 +6,7 @@ import * as caches from './caching/caches'
 import * as jobSummary from './job-summary'
 import * as buildScan from './build-scan'
 
-import {loadBuildResults} from './build-results'
+import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
 import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './input-params'
@@ -62,6 +62,8 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
 
     const cachingReport = generateCachingReport(cacheListener)
     await jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig)
+
+    markBuildResultsProcessed()
 
     core.info('Completed post-action step')
 

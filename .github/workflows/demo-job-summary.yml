@@ -16,6 +16,10 @@ jobs:
         npm install
         npm run build
       working-directory: sources
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
     - name: Setup Gradle
       uses: ./setup-gradle
     - name: Build kotlin-dsl project
