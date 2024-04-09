@@ -4,6 +4,7 @@ import {RequestError} from '@octokit/request-error'
 
 import {BuildResult} from './build-results'
 import {SummaryConfig, getGithubToken} from './input-params'
+import {Deprecation, getDeprecations} from './deprecation-collector'
 
 export async function generateJobSummary(
     buildResults: BuildResult[],
@@ -78,8 +79,30 @@ Note that this permission is never available for a workflow triggered from a rep
 }
 
 function renderSummaryTable(results: BuildResult[]): string {
+    return `${renderDeprecations()}\n${renderBuildResults(results)}`
+}
+
+function renderDeprecations(): string {
+    const deprecations = getDeprecations()
+    if (deprecations.length === 0) {
+        return ''
+    }
+    return `
+<h4>Deprecated usages of ${github.context.action}</h4>
+<ul>
+    ${deprecations.map(deprecation => `<li>${getDeprecationHtml(deprecation)}</li>`).join('')}
+</ul>
+
+<h4>Gradle Build Results</h4>`
+}
+
+function getDeprecationHtml(deprecation: Deprecation): string {
+    return `<a href="${deprecation.getDocumentationLink()}" target="_blank">${deprecation.message}</a>`
+}
+
+function renderBuildResults(results: BuildResult[]): string {
     if (results.length === 0) {
-        return 'No Gradle build results detected.'
+        return '<b>No Gradle build results detected.</b>'
     }
 
     return `

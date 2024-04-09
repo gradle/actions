@@ -12,6 +12,7 @@ import {
     DependencyGraphOption,
     GradleExecutionConfig
 } from '../input-params'
+import {saveDeprecationState} from '../deprecation-collector'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -49,6 +50,8 @@ export async function run(): Promise<void> {
         )
 
         await dependencyGraph.complete(config)
+
+        saveDeprecationState()
     } catch (error) {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {

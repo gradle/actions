@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as cache from '@actions/cache'
+import * as deprecator from './deprecation-collector'
 import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 
 import {parseArgsStringToArgv} from 'string-argv'
@@ -215,6 +216,11 @@ export class BuildScanConfig {
         if (newProp !== '') {
             return newProp
         }
+        const oldProp = core.getInput(oldPropName)
+        if (oldProp !== '') {
+            deprecator.recordDeprecation('The `build-scan-terms-of-service` input parameters have been renamed')
+            return oldProp
+        }
         return core.getInput(oldPropName)
     }
 }
@@ -236,6 +242,11 @@ export class GradleExecutionConfig {
 
     getArguments(): string[] {
         const input = core.getInput('arguments')
+        if (input.length !== 0) {
+            deprecator.recordDeprecation(
+                'Using the action to execute Gradle via the `arguments` parameter is deprecated'
+            )
+        }
         return parseArgsStringToArgv(input)
     }
 

@@ -4,6 +4,7 @@ import * as setupGradle from '../setup-gradle'
 import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
 import {BuildScanConfig, CacheConfig, DependencyGraphConfig, GradleExecutionConfig} from '../input-params'
+import {saveDeprecationState} from '../deprecation-collector'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -22,6 +23,8 @@ export async function run(): Promise<void> {
             config.getBuildRootDirectory(),
             config.getArguments()
         )
+
+        saveDeprecationState()
     } catch (error) {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {
