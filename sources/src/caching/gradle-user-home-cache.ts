@@ -8,7 +8,7 @@ import {generateCacheKey} from './cache-key'
 import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
 import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
-import {CacheConfig} from '../input-params'
+import {CacheConfig} from '../configuration'
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 

@@ -10,14 +10,18 @@ import {
     CacheConfig,
     DependencyGraphConfig,
     DependencyGraphOption,
-    GradleExecutionConfig
-} from '../input-params'
+    GradleExecutionConfig,
+    setActionId
+} from '../configuration'
+import {saveDeprecationState} from '../deprecation-collector'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
  */
 export async function run(): Promise<void> {
     try {
+        setActionId('gradle/actions/dependency-submission')
+
         // Configure Gradle environment (Gradle User Home)
         await setupGradle.setup(new CacheConfig(), new BuildScanConfig())
 
@@ -49,6 +53,8 @@ export async function run(): Promise<void> {
         )
 
         await dependencyGraph.complete(config)
+
+        saveDeprecationState()
     } catch (error) {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {

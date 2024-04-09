@@ -9,7 +9,7 @@ import {CacheEntryListener, CacheListener} from './cache-reporting'
 import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCache, tryDelete} from './cache-utils'
 
 import {BuildResult, loadBuildResults} from '../build-results'
-import {CacheConfig} from '../input-params'
+import {CacheConfig} from '../configuration'
 import {getCacheKeyBase} from './cache-key'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'

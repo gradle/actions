@@ -1,4 +1,4 @@
-import { DependencyGraphConfig } from "../../src/input-params" 
+import { DependencyGraphConfig } from "../../src/configuration" 
 
 describe('dependency-graph', () => {
     describe('constructs job correlator', () => {

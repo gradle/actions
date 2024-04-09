@@ -3,7 +3,7 @@ import {CacheListener} from './cache-reporting'
 import {GradleUserHomeCache} from './gradle-user-home-cache'
 import {CacheCleaner} from './cache-cleaner'
 import {DaemonController} from '../daemon-controller'
-import {CacheConfig} from '../input-params'
+import {CacheConfig} from '../configuration'
 
 const CACHE_RESTORED_VAR = 'GRADLE_BUILD_ACTION_CACHE_RESTORED'
 
