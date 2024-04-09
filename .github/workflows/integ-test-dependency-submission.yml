@@ -22,6 +22,7 @@ env:
 jobs:
   groovy-generate-and-upload:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -41,6 +42,7 @@ jobs:
   groovy-restore-cache:
     needs: [groovy-generate-and-upload]
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -59,6 +61,7 @@ jobs:
   groovy-download-and-submit:
     needs: [groovy-generate-and-upload]
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -75,6 +78,7 @@ jobs:
 
   kotlin-generate-and-submit:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -91,6 +95,7 @@ jobs:
 
   multiple-builds:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -135,6 +140,7 @@ jobs:
 
   multiple-builds-upload:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}

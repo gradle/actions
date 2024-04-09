@@ -19,6 +19,7 @@ env:
 jobs:
   full-build:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -40,6 +41,7 @@ jobs:
   assemble-build:
     needs: full-build
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -61,6 +63,7 @@ jobs:
   check-clean-cache:
     needs: assemble-build
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}

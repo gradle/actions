@@ -22,6 +22,7 @@ env:
 jobs:
   groovy-generate:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -55,6 +56,7 @@ jobs:
 
   kotlin-generate-and-submit:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -74,6 +76,7 @@ jobs:
 
   multiple-builds:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}

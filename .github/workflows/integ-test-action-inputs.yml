@@ -19,6 +19,7 @@ env:
 jobs:
   action-inputs:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}

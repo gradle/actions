@@ -19,6 +19,7 @@ env:
 jobs:
   seed-build:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -39,6 +40,7 @@ jobs:
   verify-build:
     needs: seed-build
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}

@@ -19,6 +19,7 @@ env:
 jobs:
   seed-build:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -48,6 +49,7 @@ jobs:
   verify-build:
     needs: seed-build
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -75,6 +77,7 @@ jobs:
   # Test that build scans are captured when caching is explicitly disabled
   cache-disabled:
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -128,6 +131,7 @@ jobs:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}-write-only-
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -150,6 +154,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}-write-only-
     needs: seed-build-write-only
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}

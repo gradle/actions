@@ -24,6 +24,7 @@ jobs:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -53,6 +54,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
     needs: seed-build-groovy
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -92,6 +94,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
     needs: seed-build-groovy
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -122,6 +125,7 @@ jobs:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -151,6 +155,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin-modified
     needs: seed-build-kotlin
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
@@ -181,6 +186,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin-modified
     needs: modify-build-kotlin
     strategy:
+      fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
     runs-on: ${{ matrix.os }}
