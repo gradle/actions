@@ -196,6 +196,11 @@ jobs:
     - run: gradle build --configuration-cache
 ```
 
+> [!IMPORTANT]
+> The configuration cache cannot be saved or restored in workflows triggered by a pull requests from a repsitory fork.
+> This is because [GitHub secrets are not passed to workflows triggered by PRs from forks](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#using-secrets-in-a-workflow).
+> This prevents a malicious PR from reading the configuration-cache data, which may encode secrets read by Gradle.
+
 ### Incompatibility with other caching mechanisms
 
 When using `setup-gradle` we recommend that you avoid using other mechanisms to save and restore the Gradle User Home. 
@@ -532,7 +537,7 @@ You enable GitHub Dependency Graph support by setting the `dependency-graph` act
 | `generate`            | Generate a dependency graph snapshot for each build invocation. |
 | `generate-and-submit` | Generate a dependency graph snapshot for each build invocation, and submit these via the Dependency Submission API on completion of the job. |
 | `generate-and-upload` | Generate a dependency graph snapshot for each build invocation, saving it as a workflow artifact. |
-| `download-and-submit` | Download any previously saved dependency graph snapshots, and submit them via the Dependency Submission API. This can be useful to submit [dependency graphs for pull requests submitted from repository forks](#dependency-graphs-for-pull-request-workflows). |
+| `download-and-submit` | Download any previously saved dependency graph snapshots, and submit them via the Dependency Submission API. This can be useful to submit [dependency graphs for pull requests submitted from repository forks](dependency-submission.md#usage-with-pull-requests-from-public-forked-repositories). |
 
 Example of a CI workflow that generates and submits a dependency graph:
 ```yaml
@@ -569,7 +574,7 @@ Depending on [repository settings](https://docs.github.com/en/actions/security-g
 > but not when a workflow is triggered by a PR from a repository fork.
 > This is because the `contents: write` permission is not available when executing a workflow 
 > for a PR submitted from a forked repository.
-> For a configuration that supports this setup, see [Dependency Graphs for pull request workflows](#dependency-graphs-for-pull-request-workflows).
+> For a configuration that supports this setup, see [Dependency Graphs for pull request workflows](dependency-submission.md#usage-with-pull-requests-from-public-forked-repositories).
 
 ### Making dependency graph failures cause Job failures
 
