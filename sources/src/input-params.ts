@@ -4,6 +4,7 @@ import * as cache from '@actions/cache'
 import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 
 import {parseArgsStringToArgv} from 'string-argv'
+import path from 'path'
 
 export class DependencyGraphConfig {
     getDependencyGraphOption(): DependencyGraphOption {
@@ -218,17 +219,33 @@ export class BuildScanConfig {
     }
 }
 
-export function getGradleVersion(): string {
-    return core.getInput('gradle-version')
-}
+export class GradleExecutionConfig {
+    getGradleVersion(): string {
+        return core.getInput('gradle-version')
+    }
 
-export function getBuildRootDirectory(): string {
-    return core.getInput('build-root-directory')
-}
+    getBuildRootDirectory(): string {
+        const baseDirectory = getWorkspaceDirectory()
+        const buildRootDirectoryInput = core.getInput('build-root-directory')
+        const resolvedBuildRootDirectory =
+            buildRootDirectoryInput === ''
+                ? path.resolve(baseDirectory)
+                : path.resolve(baseDirectory, buildRootDirectoryInput)
+        return resolvedBuildRootDirectory
+    }
 
-export function getArguments(): string[] {
-    const input = core.getInput('arguments')
-    return parseArgsStringToArgv(input)
+    getArguments(): string[] {
+        const input = core.getInput('arguments')
+        return parseArgsStringToArgv(input)
+    }
+
+    getDependencyResolutionTask(): string {
+        return core.getInput('dependency-resolution-task') || ':ForceDependencyResolutionPlugin_resolveAllDependencies'
+    }
+
+    getAdditionalArguments(): string {
+        return core.getInput('additional-arguments')
+    }
 }
 
 // Internal parameters

@@ -92728,13 +92728,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseNumericInput = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.getArguments = exports.getBuildRootDirectory = exports.getGradleVersion = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
+exports.parseNumericInput = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.GradleExecutionConfig = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const summary_1 = __nccwpck_require__(1327);
 const string_argv_1 = __nccwpck_require__(9663);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 class DependencyGraphConfig {
     getDependencyGraphOption() {
         const val = core.getInput('dependency-graph');
@@ -92907,19 +92911,30 @@ class BuildScanConfig {
     }
 }
 exports.BuildScanConfig = BuildScanConfig;
-function getGradleVersion() {
-    return core.getInput('gradle-version');
+class GradleExecutionConfig {
+    getGradleVersion() {
+        return core.getInput('gradle-version');
+    }
+    getBuildRootDirectory() {
+        const baseDirectory = getWorkspaceDirectory();
+        const buildRootDirectoryInput = core.getInput('build-root-directory');
+        const resolvedBuildRootDirectory = buildRootDirectoryInput === ''
+            ? path_1.default.resolve(baseDirectory)
+            : path_1.default.resolve(baseDirectory, buildRootDirectoryInput);
+        return resolvedBuildRootDirectory;
+    }
+    getArguments() {
+        const input = core.getInput('arguments');
+        return (0, string_argv_1.parseArgsStringToArgv)(input);
+    }
+    getDependencyResolutionTask() {
+        return core.getInput('dependency-resolution-task') || ':ForceDependencyResolutionPlugin_resolveAllDependencies';
+    }
+    getAdditionalArguments() {
+        return core.getInput('additional-arguments');
+    }
 }
-exports.getGradleVersion = getGradleVersion;
-function getBuildRootDirectory() {
-    return core.getInput('build-root-directory');
-}
-exports.getBuildRootDirectory = getBuildRootDirectory;
-function getArguments() {
-    const input = core.getInput('arguments');
-    return (0, string_argv_1.parseArgsStringToArgv)(input);
-}
-exports.getArguments = getArguments;
+exports.GradleExecutionConfig = GradleExecutionConfig;
 function getJobMatrix() {
     return core.getInput('workflow-job-context');
 }

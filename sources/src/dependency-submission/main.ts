@@ -5,7 +5,13 @@ import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
 
 import {parseArgsStringToArgv} from 'string-argv'
-import {BuildScanConfig, CacheConfig, DependencyGraphConfig, DependencyGraphOption} from '../input-params'
+import {
+    BuildScanConfig,
+    CacheConfig,
+    DependencyGraphConfig,
+    DependencyGraphOption,
+    GradleExecutionConfig
+} from '../input-params'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -25,16 +31,22 @@ export async function run(): Promise<void> {
         }
 
         // Only execute if arguments have been provided
-        const additionalArgs = core.getInput('additional-arguments')
+        const executionConfig = new GradleExecutionConfig()
+        const taskList = executionConfig.getDependencyResolutionTask()
+        const additionalArgs = executionConfig.getAdditionalArguments()
         const executionArgs = `
               -Dorg.gradle.configureondemand=false
               -Dorg.gradle.dependency.verification=off
               -Dorg.gradle.unsafe.isolated-projects=false
-              :ForceDependencyResolutionPlugin_resolveAllDependencies
+              ${taskList}
               ${additionalArgs}
         `
         const args: string[] = parseArgsStringToArgv(executionArgs)
-        await gradle.provisionAndMaybeExecute(args)
+        await gradle.provisionAndMaybeExecute(
+            executionConfig.getGradleVersion(),
+            executionConfig.getBuildRootDirectory(),
+            args
+        )
 
         await dependencyGraph.complete(config)
     } catch (error) {
