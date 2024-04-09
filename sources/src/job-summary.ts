@@ -3,7 +3,7 @@ import * as github from '@actions/github'
 import {RequestError} from '@octokit/request-error'
 
 import {BuildResult} from './build-results'
-import {SummaryConfig, getGithubToken} from './configuration'
+import {SummaryConfig, getActionId, getGithubToken} from './configuration'
 import {Deprecation, getDeprecations} from './deprecation-collector'
 
 export async function generateJobSummary(
@@ -88,7 +88,8 @@ function renderDeprecations(): string {
         return ''
     }
     return `
-<h4>Deprecated usages of ${github.context.action}</h4>
+<h4>Deprecation warnings</h4>
+This job uses deprecated functionality from the <code>${getActionId()}</code> action. Follow the links for upgrade details.
 <ul>
     ${deprecations.map(deprecation => `<li>${getDeprecationHtml(deprecation)}</li>`).join('')}
 </ul>

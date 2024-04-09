@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import * as github from '@actions/github'
+import {getActionId} from './configuration'
 
 const DEPRECATION_UPGRADE_PAGE = 'https://github.com/gradle/actions/blob/main/docs/deprecation-upgrade-guide.md'
 const recordedDeprecations: Deprecation[] = []
@@ -29,7 +29,7 @@ export function getDeprecations(): Deprecation[] {
 export function emitDeprecationWarnings(): void {
     if (recordedDeprecations.length > 0) {
         core.warning(
-            `This job uses deprecated functionality from the '${github.context.action}' action. Consult the Job Summary for more details.`
+            `This job uses deprecated functionality from the '${getActionId()}' action. Consult the Job Summary for more details.`
         )
         for (const deprecation of recordedDeprecations) {
             core.info(`DEPRECATION: ${deprecation.message}. See ${deprecation.getDocumentationLink()}`)

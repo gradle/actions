@@ -7,6 +7,8 @@ import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 import {parseArgsStringToArgv} from 'string-argv'
 import path from 'path'
 
+const ACTION_ID_VAR = 'GRADLE_ACTION_ID'
+
 export class DependencyGraphConfig {
     getDependencyGraphOption(): DependencyGraphOption {
         const val = core.getInput('dependency-graph')
@@ -270,6 +272,14 @@ export function getGithubToken(): string {
 
 export function getWorkspaceDirectory(): string {
     return process.env[`GITHUB_WORKSPACE`] || ''
+}
+
+export function getActionId(): string | undefined {
+    return process.env[ACTION_ID_VAR]
+}
+
+export function setActionId(id: string): void {
+    core.exportVariable(ACTION_ID_VAR, id)
 }
 
 export function parseNumericInput(paramName: string, paramValue: string, paramDefault: number): number {

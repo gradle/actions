@@ -8,6 +8,23 @@ prompting them to update their workflows.
 
 ## Deprecated in v3.x
 
+### The action `gradle/gradle-build-action` has been replaced by `gradle/actions/setup-gradle`
+
+The `gradle-build-action` action has evolved, so that the core functionality is now to configure the
+Gradle environment for GitHub Actions. For clarity and consistency with other action (eg `setup-java`, `setup-node`), the `gradle-build-action` has been replaced by the `setup-gradle` action.
+
+As of `v3.x`, the `setup-gradle` and `gradle-build-action` actions are functionally identical,
+and are released with the same versions.
+
+To convert your workflows, simply replace:
+```
+   uses: gradle/gradle-build-action@v3
+```
+with
+```
+    uses: gradle/actions/setup-gradle@v3
+```
+
 ### Using the action to execute Gradle via the `arguments` parameter is deprecated
 
 The core functionality of the `setup-gradle` (and `gradle-build-action`) actions is to configure your
@@ -32,6 +49,12 @@ steps:
    uses: gradle/actions/setup-gradle@v3
    with:
      arguments: 'test'
+
+ - name: Run build in a subdirectory
+   uses: gradle/actions/setup-gradle@v3
+   with:
+     build-root-directory: another-build
+     arguments: 'build'
 ```
 
 Then replace this with a single call to `setup-gradle` together with separate `run` steps to execute your build.
@@ -45,6 +68,10 @@ Then replace this with a single call to `setup-gradle` together with separate `r
 
 - name: Run the tests
   run: ./gradlew test
+
+- name: Run build in a subdirectory
+  working-directory: another-build
+  run: ./gradlew build
 ```
 
 Using the action in this way gives you more control over how Gradle is executed, while still giving you
@@ -52,24 +79,7 @@ all of the benefits of the `setup-gradle` action.
 
 The `arguments` parameter is scheduled to be removed in `setup-gradle@v4`.
 
-Note: if you are using the `gradle-build-action`, [see here](#the-gradle-build-action-has-been-replaced-by-the-setup-gradle-action) for more details on how to migrate.
-
-### The `gradle-build-action` has been replaced by the `setup-gradle` action
-
-The `gradle-build-action` action has evolved, so that the core functionality is now to configure the
-Gradle environment for GitHub Actions. For clarity and consistency with other action (eg `setup-java`, `setup-node`), the `gradle-build-action` has been replaced by the `setup-gradle` action.
-
-As of `v3.x`, the `setup-gradle` and `gradle-build-action` actions are functionally identical,
-and are released with the same versions.
-
-To convert your workflows, simply replace:
-```
-   uses: gradle/gradle-build-action@v3
-```
-with
-```
-    uses: gradle/actions/setup-gradle@v3
-```
+Note: if you are using the `gradle-build-action`, [see here](#the-action-gradlegradle-build-action-has-been-replaced-by-gradleactionssetup-gradle) for more details on how to migrate.
 
 ### The `build-scan-terms-of-service` input parameters have been renamed
 
