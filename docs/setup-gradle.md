@@ -168,6 +168,9 @@ cache-overwrite-existing: true
 
 ### Saving configuration-cache data
 
+> [!IMPORTANT]
+> The configuration cache cannot be saved or restored in workflows triggered by pull requests as [GitHub secrets are not passed to workflows triggered by pull requests](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#using-secrets-in-a-workflow). You should not attempt to work around this by hard-coding a fixed encryption key in your workflow file.
+
 When Gradle is executed with the [configuration-cache](https://docs.gradle.org/current/userguide/configuration_cache.html) enabled, the configuration-cache data is stored
 in the project directory, at `<project-dir>/.gradle/configuration-cache`. Due to the way the configuration-cache works, [this file may contain stored credentials and other
 secrets](https://docs.gradle.org/release-nightly/userguide/configuration_cache.html#config_cache:secrets), and this data needs to be encrypted to be safely stored in the GitHub Actions cache.
