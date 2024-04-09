@@ -1,4 +1,4 @@
-import * as inputParams from '../../src/input-params'
+import * as inputParams from '../../src/configuration'
 
 describe('input params', () => {
     describe('parses numeric input', () => {

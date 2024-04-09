@@ -11,7 +11,7 @@ import {
     DependencyGraphConfig,
     DependencyGraphOption,
     GradleExecutionConfig
-} from '../input-params'
+} from '../configuration'
 import {saveDeprecationState} from '../deprecation-collector'
 
 /**

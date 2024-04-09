@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as setupGradle from '../setup-gradle'
 import * as dependencyGraph from '../dependency-graph'
 
-import {CacheConfig, DependencyGraphConfig, SummaryConfig} from '../input-params'
+import {CacheConfig, DependencyGraphConfig, SummaryConfig} from '../configuration'
 import {PostActionJobFailure} from '../errors'
 import {emitDeprecationWarnings, restoreDeprecationState} from '../deprecation-collector'
 

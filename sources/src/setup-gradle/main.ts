@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import * as setupGradle from '../setup-gradle'
 import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
-import {BuildScanConfig, CacheConfig, DependencyGraphConfig, GradleExecutionConfig} from '../input-params'
+import {BuildScanConfig, CacheConfig, DependencyGraphConfig, GradleExecutionConfig} from '../configuration'
 import {saveDeprecationState} from '../deprecation-collector'
 
 /**

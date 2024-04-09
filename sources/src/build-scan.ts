@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {BuildScanConfig} from './input-params'
+import {BuildScanConfig} from './configuration'
 
 export function setup(config: BuildScanConfig): void {
     maybeExportVariable('DEVELOCITY_INJECTION_INIT_SCRIPT_NAME', 'gradle-actions.inject-develocity.init.gradle')

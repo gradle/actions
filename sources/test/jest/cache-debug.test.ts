@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import {GradleUserHomeCache} from "../../src/caching/gradle-user-home-cache"
-import {CacheConfig} from "../../src/input-params"
+import {CacheConfig} from "../../src/configuration"
 
 const testTmp = 'test/jest/tmp'
 fs.rmSync(testTmp, {recursive: true, force: true})

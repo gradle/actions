@@ -10,7 +10,7 @@ import * as path from 'path'
 import fs from 'fs'
 
 import {PostActionJobFailure} from './errors'
-import {DependencyGraphConfig, DependencyGraphOption, getGithubToken, getWorkspaceDirectory} from './input-params'
+import {DependencyGraphConfig, DependencyGraphOption, getGithubToken, getWorkspaceDirectory} from './configuration'
 
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 

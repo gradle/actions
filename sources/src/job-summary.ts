@@ -3,7 +3,7 @@ import * as github from '@actions/github'
 import {RequestError} from '@octokit/request-error'
 
 import {BuildResult} from './build-results'
-import {SummaryConfig, getGithubToken} from './input-params'
+import {SummaryConfig, getGithubToken} from './configuration'
 import {Deprecation, getDeprecations} from './deprecation-collector'
 
 export async function generateJobSummary(

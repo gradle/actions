@@ -1,6 +1,6 @@
 import * as github from '@actions/github'
 
-import {CacheConfig, getJobMatrix} from '../input-params'
+import {CacheConfig, getJobMatrix} from '../configuration'
 import {hashStrings} from './cache-utils'
 
 const CACHE_PROTOCOL_VERSION = 'v1'

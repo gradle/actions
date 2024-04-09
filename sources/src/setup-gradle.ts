@@ -9,7 +9,7 @@ import * as buildScan from './build-scan'
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
-import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './input-params'
+import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './configuration'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
