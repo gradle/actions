@@ -9,7 +9,9 @@ describe('predefined-toolchains', () => {
     describe('returns', () => {
         it('null if no JAVA_HOME_ envs are set', async () => {
             jest.resetModules()
-            process.env = { ...OLD_ENV }
+            process.env = {
+                "JAVA_HOME": "/jdks/foo_8"
+            }
 
             const predefinedToolchains = getPredefinedToolchains()
             expect(predefinedToolchains).toBe(null)
@@ -17,7 +19,7 @@ describe('predefined-toolchains', () => {
         it('valid toolchains.xml if JAVA_HOME_ envs are set', async () => {
             jest.resetModules()
             process.env = {
-                ...OLD_ENV,
+                "JAVA_HOME": "/jdks/foo_8",
                 "JAVA_HOME_8_X64": "/jdks/foo_8",
                 "JAVA_HOME_11_X64": "/jdks/foo_11",
                 "JAVA_HOME_21_ARM64": "/jdks/foo_21",
