@@ -6,9 +6,7 @@ removed in the next major release.
 Users will receive a deprecation warning when they rely on deprecated functionality, 
 prompting them to update their workflows.
 
-## Deprecated in v3.x
-
-### The action `gradle/gradle-build-action` has been replaced by `gradle/actions/setup-gradle`
+## The action `gradle/gradle-build-action` has been replaced by `gradle/actions/setup-gradle`
 
 The `gradle-build-action` action has evolved, so that the core functionality is now to configure the
 Gradle environment for GitHub Actions. For clarity and consistency with other action (eg `setup-java`, `setup-node`), the `gradle-build-action` has been replaced by the `setup-gradle` action.
@@ -25,7 +23,7 @@ with
     uses: gradle/actions/setup-gradle@v3
 ```
 
-### Using the action to execute Gradle via the `arguments` parameter is deprecated
+## Using the action to execute Gradle via the `arguments` parameter is deprecated
 
 The core functionality of the `setup-gradle` (and `gradle-build-action`) actions is to configure your
 Gradle environment for GitHub Actions. Once the action has run, any subsequent Gradle executions will
@@ -36,7 +34,7 @@ This input is deprecated, and will be removed in the `v4` major release of the a
 
 To convert your workflows, replace any steps using the `arguments` parameter with 2 steps: one to `setup-gradle` and another that runs your Gradle build.
 
-For example, if your workflow looks like this:
+For example, given a workflow like this:
 
 ```
 steps:
@@ -58,6 +56,9 @@ steps:
 ```
 
 Then replace this with a single call to `setup-gradle` together with separate `run` steps to execute your build.
+The exact syntax depends on whether or not your project is configured with the [Gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
+
+##### Project uses Gradle wrapper
 
 ```
 - name: Setup Gradle
@@ -74,6 +75,25 @@ Then replace this with a single call to `setup-gradle` together with separate `r
   run: ./gradlew build
 ```
 
+##### Project doesn't use Gradle wrapper
+
+```
+- name: Setup Gradle for a non-wrapper project
+  uses: gradle/actions/setup-gradle@v3
+  with:
+    gradle-version: 8.7
+
+- name: Assemble the project
+  run: gradle assemble
+
+- name: Run the tests
+  run: gradle test
+
+- name: Run build in a subdirectory
+  working-directory: another-build
+  run: gradle build
+```
+
 Using the action in this way gives you more control over how Gradle is executed, while still giving you
 all of the benefits of the `setup-gradle` action.
 
@@ -81,7 +101,7 @@ The `arguments` parameter is scheduled to be removed in `setup-gradle@v4`.
 
 Note: if you are using the `gradle-build-action`, [see here](#the-action-gradlegradle-build-action-has-been-replaced-by-gradleactionssetup-gradle) for more details on how to migrate.
 
-### The `build-scan-terms-of-service` input parameters have been renamed
+## The `build-scan-terms-of-service` input parameters have been renamed
 
 With recent releases of the `com.gradle.develocity` plugin, key input parameters have been renamed.
 - `build-scan-terms-of-service-url` is now `build-scan-terms-of-use-url`
