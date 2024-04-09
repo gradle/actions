@@ -91350,7 +91350,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCacheKeyBase = exports.generateCacheKey = exports.CacheKey = void 0;
 const github = __importStar(__nccwpck_require__(5438));
-const input_params_1 = __nccwpck_require__(3885);
+const configuration_1 = __nccwpck_require__(5778);
 const cache_utils_1 = __nccwpck_require__(1044);
 const CACHE_PROTOCOL_VERSION = 'v1';
 const CACHE_KEY_PREFIX_VAR = 'GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX';
@@ -91395,7 +91395,7 @@ function getCacheKeyJobInstance() {
         return override;
     }
     const workflowName = github.context.workflow;
-    const workflowJobContext = (0, input_params_1.getJobMatrix)();
+    const workflowJobContext = (0, configuration_1.getJobMatrix)();
     return (0, cache_utils_1.hashStrings)([workflowName, workflowJobContext]);
 }
 function getCacheKeyJobExecution() {
@@ -92531,176 +92531,7 @@ exports.GradleUserHomeCache = GradleUserHomeCache;
 
 /***/ }),
 
-/***/ 5146:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DaemonController = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const exec = __importStar(__nccwpck_require__(1514));
-const fs = __importStar(__nccwpck_require__(7147));
-const path = __importStar(__nccwpck_require__(1017));
-class DaemonController {
-    constructor(buildResults) {
-        const allHomes = buildResults.map(buildResult => buildResult.gradleHomeDir);
-        this.gradleHomes = Array.from(new Set(allHomes));
-    }
-    stopAllDaemons() {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.info('Stopping all Gradle daemons before saving Gradle User Home state');
-            const executions = [];
-            const args = ['--stop'];
-            for (const gradleHome of this.gradleHomes) {
-                const executable = path.resolve(gradleHome, 'bin', 'gradle');
-                if (!fs.existsSync(executable)) {
-                    core.warning(`Gradle executable not found at ${executable}. Could not stop Gradle daemons.`);
-                    continue;
-                }
-                core.info(`Stopping Gradle daemons for ${gradleHome}`);
-                executions.push(exec.exec(executable, args, {
-                    ignoreReturnCode: true
-                }));
-            }
-            yield Promise.all(executions);
-        });
-    }
-}
-exports.DaemonController = DaemonController;
-
-
-/***/ }),
-
-/***/ 8594:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const setupGradle = __importStar(__nccwpck_require__(8652));
-const input_params_1 = __nccwpck_require__(3885);
-const errors_1 = __nccwpck_require__(6976);
-process.on('uncaughtException', e => handleFailure(e));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            yield setupGradle.complete(new input_params_1.CacheConfig(), new input_params_1.SummaryConfig());
-        }
-        catch (error) {
-            if (error instanceof errors_1.PostActionJobFailure) {
-                core.setFailed(String(error));
-            }
-            else {
-                handleFailure(error);
-            }
-        }
-        process.exit();
-    });
-}
-exports.run = run;
-function handleFailure(error) {
-    core.warning(`Unhandled error in Gradle post-action - job will continue: ${error}`);
-    if (error instanceof Error && error.stack) {
-        core.info(error.stack);
-    }
-}
-run();
-
-
-/***/ }),
-
-/***/ 6976:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PostActionJobFailure = void 0;
-class PostActionJobFailure extends Error {
-    constructor(error) {
-        if (error instanceof Error) {
-            super(error.message);
-            this.name = error.name;
-            this.stack = error.stack;
-        }
-        else {
-            super(String(error));
-        }
-    }
-}
-exports.PostActionJobFailure = PostActionJobFailure;
-
-
-/***/ }),
-
-/***/ 3885:
+/***/ 5778:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -92732,13 +92563,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseNumericInput = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.GradleExecutionConfig = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
+exports.parseNumericInput = exports.setActionId = exports.getActionId = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.GradleExecutionConfig = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
+const deprecator = __importStar(__nccwpck_require__(2572));
 const summary_1 = __nccwpck_require__(1327);
 const string_argv_1 = __nccwpck_require__(9663);
 const path_1 = __importDefault(__nccwpck_require__(1017));
+const ACTION_ID_VAR = 'GRADLE_ACTION_ID';
 class DependencyGraphConfig {
     getDependencyGraphOption() {
         const val = core.getInput('dependency-graph');
@@ -92907,6 +92740,11 @@ class BuildScanConfig {
         if (newProp !== '') {
             return newProp;
         }
+        const oldProp = core.getInput(oldPropName);
+        if (oldProp !== '') {
+            deprecator.recordDeprecation('The `build-scan-terms-of-service` input parameters have been renamed');
+            return oldProp;
+        }
         return core.getInput(oldPropName);
     }
 }
@@ -92925,6 +92763,9 @@ class GradleExecutionConfig {
     }
     getArguments() {
         const input = core.getInput('arguments');
+        if (input.length !== 0) {
+            deprecator.recordDeprecation('Using the action to execute Gradle via the `arguments` parameter is deprecated');
+        }
         return (0, string_argv_1.parseArgsStringToArgv)(input);
     }
     getDependencyResolutionTask() {
@@ -92947,6 +92788,14 @@ function getWorkspaceDirectory() {
     return process.env[`GITHUB_WORKSPACE`] || '';
 }
 exports.getWorkspaceDirectory = getWorkspaceDirectory;
+function getActionId() {
+    return process.env[ACTION_ID_VAR];
+}
+exports.getActionId = getActionId;
+function setActionId(id) {
+    core.exportVariable(ACTION_ID_VAR, id);
+}
+exports.setActionId = setActionId;
 function parseNumericInput(paramName, paramValue, paramDefault) {
     if (paramValue.length === 0) {
         return paramDefault;
@@ -92970,6 +92819,259 @@ function getBooleanInput(paramName, paramDefault = false) {
     }
     throw TypeError(`The value '${paramValue} is not valid for '${paramName}. Valid values are: [true, false]`);
 }
+
+
+/***/ }),
+
+/***/ 5146:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DaemonController = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const exec = __importStar(__nccwpck_require__(1514));
+const fs = __importStar(__nccwpck_require__(7147));
+const path = __importStar(__nccwpck_require__(1017));
+class DaemonController {
+    constructor(buildResults) {
+        const allHomes = buildResults.map(buildResult => buildResult.gradleHomeDir);
+        this.gradleHomes = Array.from(new Set(allHomes));
+    }
+    stopAllDaemons() {
+        return __awaiter(this, void 0, void 0, function* () {
+            core.info('Stopping all Gradle daemons before saving Gradle User Home state');
+            const executions = [];
+            const args = ['--stop'];
+            for (const gradleHome of this.gradleHomes) {
+                const executable = path.resolve(gradleHome, 'bin', 'gradle');
+                if (!fs.existsSync(executable)) {
+                    core.warning(`Gradle executable not found at ${executable}. Could not stop Gradle daemons.`);
+                    continue;
+                }
+                core.info(`Stopping Gradle daemons for ${gradleHome}`);
+                executions.push(exec.exec(executable, args, {
+                    ignoreReturnCode: true
+                }));
+            }
+            yield Promise.all(executions);
+        });
+    }
+}
+exports.DaemonController = DaemonController;
+
+
+/***/ }),
+
+/***/ 8594:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const setupGradle = __importStar(__nccwpck_require__(8652));
+const configuration_1 = __nccwpck_require__(5778);
+const errors_1 = __nccwpck_require__(6976);
+process.on('uncaughtException', e => handleFailure(e));
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield setupGradle.complete(new configuration_1.CacheConfig(), new configuration_1.SummaryConfig());
+        }
+        catch (error) {
+            if (error instanceof errors_1.PostActionJobFailure) {
+                core.setFailed(String(error));
+            }
+            else {
+                handleFailure(error);
+            }
+        }
+        process.exit();
+    });
+}
+exports.run = run;
+function handleFailure(error) {
+    core.warning(`Unhandled error in Gradle post-action - job will continue: ${error}`);
+    if (error instanceof Error && error.stack) {
+        core.info(error.stack);
+    }
+}
+run();
+
+
+/***/ }),
+
+/***/ 2572:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getDeprecations = exports.recordDeprecation = exports.Deprecation = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const configuration_1 = __nccwpck_require__(5778);
+const DEPRECATION_UPGRADE_PAGE = 'https://github.com/gradle/actions/blob/main/docs/deprecation-upgrade-guide.md';
+const recordedDeprecations = [];
+class Deprecation {
+    constructor(message) {
+        this.message = message;
+    }
+    getDocumentationLink() {
+        const deprecationAnchor = this.message
+            .toLowerCase()
+            .replace(/[^\w\s-]|_/g, '')
+            .replace(/ /g, '-');
+        return `${DEPRECATION_UPGRADE_PAGE}#${deprecationAnchor}`;
+    }
+}
+exports.Deprecation = Deprecation;
+function recordDeprecation(message) {
+    if (!recordedDeprecations.some(deprecation => deprecation.message === message)) {
+        recordedDeprecations.push(new Deprecation(message));
+    }
+}
+exports.recordDeprecation = recordDeprecation;
+function getDeprecations() {
+    return recordedDeprecations;
+}
+exports.getDeprecations = getDeprecations;
+function emitDeprecationWarnings() {
+    if (recordedDeprecations.length > 0) {
+        core.warning(`This job uses deprecated functionality from the '${(0, configuration_1.getActionId)()}' action. Consult the Job Summary for more details.`);
+        for (const deprecation of recordedDeprecations) {
+            core.info(`DEPRECATION: ${deprecation.message}. See ${deprecation.getDocumentationLink()}`);
+        }
+    }
+}
+exports.emitDeprecationWarnings = emitDeprecationWarnings;
+function saveDeprecationState() {
+    core.saveState('deprecations', JSON.stringify(recordedDeprecations));
+}
+exports.saveDeprecationState = saveDeprecationState;
+function restoreDeprecationState() {
+    const stringRep = core.getState('deprecations');
+    if (stringRep === '') {
+        return;
+    }
+    JSON.parse(stringRep).forEach((obj) => {
+        recordedDeprecations.push(new Deprecation(obj.message));
+    });
+}
+exports.restoreDeprecationState = restoreDeprecationState;
+
+
+/***/ }),
+
+/***/ 6976:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PostActionJobFailure = void 0;
+class PostActionJobFailure extends Error {
+    constructor(error) {
+        if (error instanceof Error) {
+            super(error.message);
+            this.name = error.name;
+            this.stack = error.stack;
+        }
+        else {
+            super(String(error));
+        }
+    }
+}
+exports.PostActionJobFailure = PostActionJobFailure;
 
 
 /***/ }),
@@ -93016,7 +93118,8 @@ exports.generateJobSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
-const input_params_1 = __nccwpck_require__(3885);
+const configuration_1 = __nccwpck_require__(5778);
+const deprecation_collector_1 = __nccwpck_require__(2572);
 function generateJobSummary(buildResults, cachingReport, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const summaryTable = renderSummaryTable(buildResults);
@@ -93055,7 +93158,7 @@ function addPRComment(jobSummary) {
 </a>
 
 ${jobSummary}`;
-        const github_token = (0, input_params_1.getGithubToken)();
+        const github_token = (0, configuration_1.getGithubToken)();
         const octokit = github.getOctokit(github_token);
         try {
             yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, context.repo), { issue_number: pull_request_number, body: prComment }));
@@ -93081,8 +93184,28 @@ Note that this permission is never available for a workflow triggered from a rep
     return mainWarning;
 }
 function renderSummaryTable(results) {
+    return `${renderDeprecations()}\n${renderBuildResults(results)}`;
+}
+function renderDeprecations() {
+    const deprecations = (0, deprecation_collector_1.getDeprecations)();
+    if (deprecations.length === 0) {
+        return '';
+    }
+    return `
+<h4>Deprecation warnings</h4>
+This job uses deprecated functionality from the <code>${(0, configuration_1.getActionId)()}</code> action. Follow the links for upgrade details.
+<ul>
+    ${deprecations.map(deprecation => `<li>${getDeprecationHtml(deprecation)}</li>`).join('')}
+</ul>
+
+<h4>Gradle Build Results</h4>`;
+}
+function getDeprecationHtml(deprecation) {
+    return `<a href="${deprecation.getDocumentationLink()}" target="_blank">${deprecation.message}</a>`;
+}
+function renderBuildResults(results) {
     if (results.length === 0) {
-        return 'No Gradle build results detected.';
+        return '<b>No Gradle build results detected.</b>';
     }
     return `
 <table>
@@ -93184,7 +93307,7 @@ const buildScan = __importStar(__nccwpck_require__(5772));
 const build_results_1 = __nccwpck_require__(2107);
 const cache_reporting_1 = __nccwpck_require__(7391);
 const daemon_controller_1 = __nccwpck_require__(5146);
-const input_params_1 = __nccwpck_require__(3885);
+const configuration_1 = __nccwpck_require__(5778);
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED';
 const USER_HOME = 'USER_HOME';
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME';
@@ -93234,7 +93357,7 @@ function determineGradleUserHome() {
     return __awaiter(this, void 0, void 0, function* () {
         const customGradleUserHome = process.env['GRADLE_USER_HOME'];
         if (customGradleUserHome) {
-            const rootDir = (0, input_params_1.getWorkspaceDirectory)();
+            const rootDir = (0, configuration_1.getWorkspaceDirectory)();
             return path.resolve(rootDir, customGradleUserHome);
         }
         return path.resolve(yield determineUserHome(), '.gradle');
