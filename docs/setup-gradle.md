@@ -363,6 +363,17 @@ Gradle Home cache cleanup is considered experimental and is disabled by default.
 ```yaml
 gradle-home-cache-cleanup: true
 ```
+
+### Disable local build-cache when remote build-cache is available
+
+If you have a remote build-cache available for your build, then it is recommended to do the following:
+- Enable [remote build-cache push](https://docs.gradle.org/current/userguide/build_cache.html#sec:build_cache_configure_use_cases) for your GitHub Actions builds
+- Disable [local build-cache]() for your GitHub Actions build
+
+As well as reducing the content that needs to be saved to the GitHub Actions cache, 
+this setup will ensure that your CI builds populate the remote cache and keep the cache entries fresh by reading these entries.
+Local builds can then benefit from the remote cache.
+
 ## Debugging and Troubleshooting
 
 To debug a failed job, it can be useful to run with [debug logging enabled](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging).
