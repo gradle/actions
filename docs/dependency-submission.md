@@ -43,6 +43,21 @@ jobs:
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
 ```
+
+### Gradle execution
+
+To generate a dependency graph, the `dependency-submission` action must perform a Gradle execution that resolves
+the dependencies of the project. All dependencies that are resolved in this execution will be included in the 
+generated dependency graph.  By default action executes a built-in task that is designed to resolve all build dependencies
+(`:ForceDependencyResolutionPlugin_resolveAllDependencies`).
+
+The action looks for a Gradle project in the root of the workspace, and executes this project with
+the Gradle wrapper, if configured for the project. If the wrapper is not configured, whatever `gradle` available
+on the command-line will be used.
+
+The action provides the ability to override the Gradle version and task to execute, as well as provide 
+additional arguments that will be passed to Gradle on the command-line. See [Configuration Parameters](#configuration-parameters) below.
+
 ### Publishing a Develocity Build Scan® from your dependency submission workflow
 
 You can automatically publish a free Develocity Build Scan on every run of `gradle/actions/dependency-submission`. 
@@ -64,8 +79,6 @@ A Build Scan makes it easy to determine the source of any dependency vulnerabili
 
 In some cases, the default action configuration will not be sufficient, and additional action parameters will need to be specified.
 
-See the example below for a summary, and the [Action Metadata file](action.yml) for a more detailed description of each input parameter.
-
 ```yaml
     - name: Generate and save dependency graph
       uses: gradle/actions/dependency-submission@v3
@@ -76,12 +89,20 @@ See the example below for a summary, and the [Action Metadata file](action.yml) 
         # The gradle project is not in the root of the repository.
         build-root-directory: my-gradle-project
 
+        # Choose a task that will trigger dependency resolution
+        dependency-resolution-task: myDependencyResolutionTask
+
+        # Additional arguments that should be passed to execute Gradle
+        additonal-arguments: --no-configuration-cache
+
         # Enable configuration-cache reuse for this build.
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
         # Do not attempt to submit the dependency-graph. Save it as a workflow artifact.
         dependency-graph: generate-and-upload
 ```
+
+See the [Action Metadata file](../dependency-submission/action.yml) for a more detailed description of each input parameter.
 
 # Resolving a dependency vulnerability
 

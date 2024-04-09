@@ -2,6 +2,7 @@ name: Gradle Dependency Submission
 description: Generates a dependency graph for a Gradle project and submits it via the Dependency Submission API
 
 inputs:
+  # Gradle execution configuration
   gradle-version:
     description: |
       Gradle version to use. If specified, this Gradle version will be downloaded, added to the PATH and used for invoking Gradle.
@@ -10,6 +11,12 @@ inputs:
 
   build-root-directory:
     description: Path to the root directory of the build. Default is the root of the GitHub workspace.
+    required: false
+
+  dependency-resolution-task:
+    description: |
+      Task(s) that should be executed in order to resolve all project dependencies. 
+      By default, the built-in `:ForceDependencyResolutionPlugin_resolveAllDependencies` task is executed.
     required: false
 
   additional-arguments:

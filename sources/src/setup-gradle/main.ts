@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import * as setupGradle from '../setup-gradle'
 import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
-import {BuildScanConfig, CacheConfig, DependencyGraphConfig, getArguments} from '../input-params'
+import {BuildScanConfig, CacheConfig, DependencyGraphConfig, GradleExecutionConfig} from '../input-params'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -16,8 +16,12 @@ export async function run(): Promise<void> {
         // Configure the dependency graph submission
         await dependencyGraph.setup(new DependencyGraphConfig())
 
-        const args: string[] = getArguments()
-        await gradle.provisionAndMaybeExecute(args)
+        const config = new GradleExecutionConfig()
+        await gradle.provisionAndMaybeExecute(
+            config.getGradleVersion(),
+            config.getBuildRootDirectory(),
+            config.getArguments()
+        )
     } catch (error) {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {

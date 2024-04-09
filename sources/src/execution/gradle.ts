@@ -1,19 +1,20 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import * as path from 'path'
 
-import * as params from '../input-params'
 import * as provisioner from './provision'
 import * as gradlew from './gradlew'
-import {getWorkspaceDirectory} from '../input-params'
 
-export async function provisionAndMaybeExecute(args: string[]): Promise<void> {
+export async function provisionAndMaybeExecute(
+    gradleVersion: string,
+    buildRootDirectory: string,
+    args: string[]
+): Promise<void> {
     // Download and install Gradle if required
-    const executable = await provisioner.provisionGradle()
+    const executable = await provisioner.provisionGradle(gradleVersion)
 
     // Only execute if arguments have been provided
     if (args.length > 0) {
-        await executeGradleBuild(executable, buildRootDirectory(), args)
+        await executeGradleBuild(executable, buildRootDirectory, args)
     }
 }
 
@@ -29,14 +30,4 @@ async function executeGradleBuild(executable: string | undefined, root: string, 
     if (status !== 0) {
         core.setFailed(`Gradle build failed: see console output for details`)
     }
-}
-
-function buildRootDirectory(): string {
-    const baseDirectory = getWorkspaceDirectory()
-    const buildRootDirectoryInput = params.getBuildRootDirectory()
-    const resolvedBuildRootDirectory =
-        buildRootDirectoryInput === ''
-            ? path.resolve(baseDirectory)
-            : path.resolve(baseDirectory, buildRootDirectoryInput)
-    return resolvedBuildRootDirectory
 }

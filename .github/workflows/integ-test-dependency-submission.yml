@@ -112,7 +112,7 @@ jobs:
       uses: ./dependency-submission
       with:
         build-root-directory: .github/workflow-samples/groovy-dsl
-        additional-arguments: --no-build-cache
+        dependency-resolution-task: assemble
     - name: Check generated dependency graphs
       shell: bash
       run: |
