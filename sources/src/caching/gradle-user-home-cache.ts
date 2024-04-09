@@ -7,8 +7,9 @@ import fs from 'fs'
 import {generateCacheKey} from './cache-key'
 import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
-import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
 import {CacheConfig} from '../configuration'
+import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
+import {getPredefinedToolchains, readResourceFileAsString} from './gradle-user-home-utils'
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 
@@ -211,14 +212,16 @@ export class GradleUserHomeCache {
             'gradle-actions.inject-develocity.init.gradle'
         ]
         for (const initScriptFilename of initScriptFilenames) {
-            const initScriptContent = this.readResourceFileAsString('init-scripts', initScriptFilename)
+            const initScriptContent = readResourceFileAsString('init-scripts', initScriptFilename)
             const initScriptPath = path.resolve(initScriptsDir, initScriptFilename)
             fs.writeFileSync(initScriptPath, initScriptContent)
         }
     }
 
     private registerToolchains(): void {
-        const preInstalledToolchains = this.readResourceFileAsString('toolchains.xml')
+        const preInstalledToolchains: string | null = getPredefinedToolchains()
+        if (preInstalledToolchains == null) return
+
         const m2dir = path.resolve(this.userHome, '.m2')
         const toolchainXmlTarget = path.resolve(m2dir, 'toolchains.xml')
         if (!fs.existsSync(toolchainXmlTarget)) {
@@ -236,13 +239,6 @@ export class GradleUserHomeCache {
             fs.writeFileSync(toolchainXmlTarget, mergedContent)
             core.info(`Merged default JDK locations into ${toolchainXmlTarget}`)
         }
-    }
-
-    // TODO:DAZ Move this to a utility class
-    private readResourceFileAsString(...paths: string[]): string {
-        // Resolving relative to __dirname will allow node to find the resource at runtime
-        const absolutePath = path.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths)
-        return fs.readFileSync(absolutePath, 'utf8')
     }
 
     /**
