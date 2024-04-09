@@ -32,6 +32,7 @@ describe('predefined-toolchains', () => {
 <toolchains>
 <!-- JDK Toolchains installed by default on GitHub-hosted runners -->
   <toolchain>
+    <type>jdk</type>
     <provides>
       <version>8</version>
       <vendor>Eclipse Temurin</vendor>
@@ -41,6 +42,7 @@ describe('predefined-toolchains', () => {
     </configuration>
   </toolchain>
   <toolchain>
+    <type>jdk</type>
     <provides>
       <version>11</version>
       <vendor>Eclipse Temurin</vendor>
@@ -50,6 +52,7 @@ describe('predefined-toolchains', () => {
     </configuration>
   </toolchain>
   <toolchain>
+    <type>jdk</type>
     <provides>
       <version>21</version>
       <vendor>Eclipse Temurin</vendor>

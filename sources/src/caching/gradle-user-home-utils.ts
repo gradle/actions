@@ -30,6 +30,7 @@ export function getPredefinedToolchains(): string | null {
     for (const javaHomeEnv of javaHomeEnvs) {
         const version = javaHomeEnv.match(/JAVA_HOME_(\d+)_/)?.[1]!
         toolchainsXml += `  <toolchain>
+    <type>jdk</type>
     <provides>
       <version>${version}</version>
       <vendor>Eclipse Temurin</vendor>
