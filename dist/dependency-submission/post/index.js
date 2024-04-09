@@ -91105,21 +91105,42 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.loadBuildResults = void 0;
+exports.markBuildResultsProcessed = exports.loadBuildResults = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 function loadBuildResults() {
-    const buildResultsDir = path.resolve(process.env['RUNNER_TEMP'], '.build-results');
-    if (!fs.existsSync(buildResultsDir)) {
-        return [];
-    }
-    return fs.readdirSync(buildResultsDir).map(file => {
-        const filePath = path.join(buildResultsDir, file);
+    return getUnprocessedResults().map(filePath => {
         const content = fs.readFileSync(filePath, 'utf8');
         return JSON.parse(content);
     });
 }
 exports.loadBuildResults = loadBuildResults;
+function markBuildResultsProcessed() {
+    getUnprocessedResults().forEach(markProcessed);
+}
+exports.markBuildResultsProcessed = markBuildResultsProcessed;
+function getUnprocessedResults() {
+    const buildResultsDir = path.resolve(process.env['RUNNER_TEMP'], '.build-results');
+    if (!fs.existsSync(buildResultsDir)) {
+        return [];
+    }
+    return fs
+        .readdirSync(buildResultsDir)
+        .map(file => {
+        return path.resolve(buildResultsDir, file);
+    })
+        .filter(filePath => {
+        return path.extname(filePath) === '.json' && !isProcessed(filePath);
+    });
+}
+function isProcessed(resultFile) {
+    const markerFile = `${resultFile}.processed`;
+    return fs.existsSync(markerFile);
+}
+function markProcessed(resultFile) {
+    const markerFile = `${resultFile}.processed`;
+    fs.writeFileSync(markerFile, '');
+}
 
 
 /***/ }),
@@ -93188,6 +93209,7 @@ function complete(cacheConfig, summaryConfig) {
         yield caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig);
         const cachingReport = (0, cache_reporting_1.generateCachingReport)(cacheListener);
         yield jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig);
+        (0, build_results_1.markBuildResultsProcessed)();
         core.info('Completed post-action step');
         return true;
     });
