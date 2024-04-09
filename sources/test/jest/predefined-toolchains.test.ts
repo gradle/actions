@@ -38,7 +38,7 @@ describe('predefined-toolchains', () => {
       <vendor>Eclipse Temurin</vendor>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_8_X64</jdkHome>
+      <jdkHome>\${env.JAVA_HOME_8_X64}</jdkHome>
     </configuration>
   </toolchain>
   <toolchain>
@@ -48,7 +48,7 @@ describe('predefined-toolchains', () => {
       <vendor>Eclipse Temurin</vendor>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_11_X64</jdkHome>
+      <jdkHome>\${env.JAVA_HOME_11_X64}</jdkHome>
     </configuration>
   </toolchain>
   <toolchain>
@@ -58,7 +58,7 @@ describe('predefined-toolchains', () => {
       <vendor>Eclipse Temurin</vendor>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_21_ARM64</jdkHome>
+      <jdkHome>\${env.JAVA_HOME_21_ARM64}</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>

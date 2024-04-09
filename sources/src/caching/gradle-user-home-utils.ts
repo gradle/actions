@@ -36,7 +36,7 @@ export function getPredefinedToolchains(): string | null {
       <vendor>Eclipse Temurin</vendor>
     </provides>
     <configuration>
-      <jdkHome>\${env.${javaHomeEnv}</jdkHome>
+      <jdkHome>\${env.${javaHomeEnv}}</jdkHome>
     </configuration>
   </toolchain>\n`
     }
