@@ -32,6 +32,7 @@ export function getPredefinedToolchains(): string | null {
         toolchainsXml += `  <toolchain>
     <provides>
       <version>${version}</version>
+      <vendor>Eclipse Temurin</vendor>
     </provides>
     <configuration>
       <jdkHome>\${env.${javaHomeEnv}</jdkHome>
