@@ -1,0 +1,26 @@
+name: CI-check-no-dist-update
+
+# Will run on any change to 'dist/**' on a non-release branch
+on:
+  push:
+    branches-ignore:
+      - main
+      - release/*
+    paths:
+      - dist**
+  pull_request:
+    paths:
+      - dist/**
+
+permissions:
+  contents: read
+
+jobs:
+  fail-on-dist-update:
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: |
+        echo "The 'dist' directory is auotmatically updated by the release process."
+        echo "It should not be updated manually in a non-release branch or a pull request."
+        exit 1

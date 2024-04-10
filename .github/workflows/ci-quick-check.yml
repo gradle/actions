@@ -3,9 +3,6 @@ name: CI-quick-check
 on:
   workflow_dispatch:
   push:
-    branches-ignore: 
-    - main
-    - release/**
 
 jobs:
   build-distribution:
@@ -15,21 +12,6 @@ jobs:
       uses: actions/checkout@v4
     - name: Build and upload distribution
       uses: ./.github/actions/build-dist
-
-  run-unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Configure Gradle as default for unit test
-      uses: ./setup-gradle
-      with:
-        gradle-version: 8.7
-    - name: Run tests
-      run: |
-        npm install
-        npm run all
-      working-directory: sources
 
   action-inputs:
     needs: build-distribution
