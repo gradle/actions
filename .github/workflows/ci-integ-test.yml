@@ -48,6 +48,15 @@ jobs:
             echo "suite=skip" >> "$GITHUB_OUTPUT"
           fi
         fi
+  
+  logger:
+    needs: determine-suite
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+      echo "suite: ${{ needs.determine-suite.outputs.suite }}"
+      echo "runner-os: ${{ needs.determine-suite.outputs.runner-os }}"
+      echo "cache-key-prefix: ${{ needs.determine-suite.outputs.cache-key-prefix }}"
 
   build-distribution:
     needs: determine-suite
