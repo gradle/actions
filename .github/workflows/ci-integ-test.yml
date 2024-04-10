@@ -62,7 +62,19 @@ jobs:
             }
           }
 
+  logger:
+    runs-on: ubuntu-latest
+    needs: determine-suite
+    steps:
+    - name: Print suite
+      run: echo "Suite = ${{ needs.determine-suite.outputs.suite }}"
+    - name: Print runner-os
+      run: echo "Runner OS = ${{ needs.determine-suite.outputs.runner-os }}"
+    - name: Print cache-key-prefix
+      run: echo "Cache key prefix = ${{ needs.determine-suite.outputs.cache-key-prefix }}"
+
   build-distribution:
+    needs: determine-suite
     if: ${{ needs.determine-suite.outputs.suite != 'skip' }}
     runs-on: ubuntu-latest
     steps:
