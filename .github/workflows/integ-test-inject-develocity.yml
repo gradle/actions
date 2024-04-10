@@ -8,15 +8,11 @@ on:
       runner-os:
         type: string
         default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
-      download-dist:
-        type: boolean
-        default: false
     secrets:
       DEVELOCITY_ACCESS_KEY:
         required: true
 
 env:
-  DOWNLOAD_DIST: ${{ inputs.download-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: provision-gradle-versions-${{ inputs.cache-key-prefix }}
 
 jobs:
