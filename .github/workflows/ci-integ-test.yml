@@ -50,9 +50,9 @@ jobs:
         fi
     - name: Duplicate in script
       uses: actions/github-script@v7
+      env:
+        PR_FOUND: ${{ steps.PR.outputs.pr_found }}
       with:
-        env:
-          PR_FOUND: ${{ steps.PR.outputs.pr_found }}
         script: |
           // Always run quick suite if we are not in the core `gradle/actions` repository
           // This reduces the load for developers working on forks
