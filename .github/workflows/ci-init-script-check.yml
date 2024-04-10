@@ -2,6 +2,10 @@ name: CI-init-script-check
 
 on:
   push:
+    branches:
+    - 'main'
+    - 'release/**'
+  pull_request:
     paths:
       - '.github/workflows/ci-init-script-check.yml'
       - 'sources/src/resources/init-scripts/**'

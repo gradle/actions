@@ -2,6 +2,10 @@ name: CI-check-and-unit-test
 
 on:
   push:
+    branches:
+    - 'main'
+    - 'release/**'
+  pull_request:
 
 permissions:
   contents: read

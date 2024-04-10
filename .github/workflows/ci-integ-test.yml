@@ -2,7 +2,11 @@ name: CI-integ-test
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
+    branches:
+    - 'main'
+    - 'release/**'
 
 jobs:
   determine-suite:
@@ -11,9 +15,6 @@ jobs:
       runner-os: ${{ steps.determine-suite.outputs.suite == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
       cache-key-prefix: ${{ steps.determine-suite.outputs.suite == 'quick' && '0' || github.run_number }}
     steps:
-    - name: Get current PR details
-      uses: 8BitJonny/gh-get-current-pr@3.0.0
-      id: PR
     - name: Determine suite to run
       id: determine-suite
       run: |
@@ -32,14 +33,11 @@ jobs:
           exit 0
         fi
 
-        # Run full suite for PRs
-        if [ "${{ steps.PR.outputs.pr_found }}" == "false" ]; then
-          echo "PR not found: suite=quick"
-          echo "suite=quick" >> "$GITHUB_OUTPUT"
-        else
-          echo "PR found: suite=full"
-          echo "suite=full" >> "$GITHUB_OUTPUT"
-        fi
+        # TODO: Make it easy to experiment with no PR and quick suite
+
+        # Run full suite for everything else
+        echo "Everything else: suite=full"
+        echo "suite=full" >> "$GITHUB_OUTPUT"
 
   build-distribution:
     runs-on: ubuntu-latest
