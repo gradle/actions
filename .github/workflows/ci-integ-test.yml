@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       suite: ${{ steps.determine-suite.outputs.result }}
-      runner-os: ${{ steps.determine-suite.outputs.result == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      cache-key-prefix: ${{ steps.determine-suite.outputs.result == 'quick' && '0' || github.run_number }}
+      runner-os: ${{ steps.determine-suite.outputs.result === 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
+      cache-key-prefix: ${{ steps.determine-suite.outputs.result === 'quick' && '0' || github.run_number }}
     steps:
     - name: Testscript
       uses: actions/github-script@v7
