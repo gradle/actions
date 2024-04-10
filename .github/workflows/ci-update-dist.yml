@@ -1,0 +1,50 @@
+name: CI-update-dist
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - main
+      - release/**
+    paths-ignore:
+      - 'dist/**'
+
+permissions:
+  contents: write
+
+jobs:
+  update-dist:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+        cache-dependency-path: sources/package-lock.json
+
+    - name: Build distribution
+      run: |
+        npm clean-install
+        npm run check
+        npm run compile
+      working-directory: sources
+    
+    - name: Copy the generated sources/dist directory to the top-level dist
+      run: |
+        cp -r sources/dist .
+
+    # Commit and push changes; has no effect if the files did not change
+    # Important: The push event will not trigger any other workflows, see
+    # https://github.com/stefanzweifel/git-auto-commit-action?tab=readme-ov-file#commits-made-by-this-action-do-not-trigger-new-workflow-runs
+    - name: Commit & push changes
+      # Only run for the Gradle repository; otherwise when users create pull requests from their `main` branch
+      # it would erroneously update `dist` on their branch (and the pull request)
+      if: github.repository == 'gradle/actions'
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: 'Update dist directory'
+        file_pattern: dist
