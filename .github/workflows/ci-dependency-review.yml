@@ -1,9 +1,0 @@
-name: X-CI-dependency-review
-on:
-  push:
-
-jobs:
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "This is a placeholder workspace for UI cleanup"
