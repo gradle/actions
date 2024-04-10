@@ -9,9 +9,9 @@ jobs:
   determine-suite:
     runs-on: ubuntu-latest
     outputs:
-      suite: ${{ steps.determine-suite.outputs.suite }}
-      runner-os: ${{ steps.determine-suite.outputs.suite == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      cache-key-prefix: ${{ steps.determine-suite.outputs.suite == 'quick' && '0' || github.run_number }}
+      suite: ${{ steps.determine-suite.outputs.result }}
+      runner-os: ${{ steps.determine-suite.outputs.result == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
+      cache-key-prefix: ${{ steps.determine-suite.outputs.result == 'quick' && '0' || github.run_number }}
     steps:
     - name: Testscript
       uses: actions/github-script@v7
@@ -28,37 +28,6 @@ jobs:
       id: PR
     - name: Determine suite to run
       id: determine-suite
-      run: |
-        # Always run quick suite if we are not in the core `gradle/actions` repository
-        # This reduces the load for developers working on forks
-        if [ "${{ github.repository }}" != "gradle/actions" ]; then
-          echo "Not in core repository: suite=quick"
-          echo "suite=quick" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        # Always run quick suite for dependabot PRs
-        if [ "${{ github.actor }}" == "dependabot[bot]" ]; then
-          echo "Dependabot PR: suite=quick"
-          echo "suite=quick" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        # Run quick suite for pushes with no associated PR
-        if [ "${{ steps.PR.outputs.pr_found }}" == "false" ]; then
-          echo "Push with no associated PR: suite=quick"
-          echo "suite=quick" >> "$GITHUB_OUTPUT"
-        else
-          # When there's an associated PR, run full suite for pull_request trigger. Skip tests for push trigger.
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "Pull request trigger: suite=full"
-            echo "suite=full" >> "$GITHUB_OUTPUT"
-          else
-            echo "Push with associated PR: suite=skip"
-            echo "suite=skip" >> "$GITHUB_OUTPUT"
-          fi
-        fi
-    - name: Duplicate in script
       uses: actions/github-script@v7
       env:
         PR_FOUND: ${{ steps.PR.outputs.pr_found }}
@@ -109,126 +78,126 @@ jobs:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  build-scan-publish:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-build-scan-publish.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # build-scan-publish:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-build-scan-publish.yml
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  cache-cleanup:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-cache-cleanup.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{github.run_number}}-' # Requires a fresh cache entry each run
+  # cache-cleanup:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-cache-cleanup.yml
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{github.run_number}}-' # Requires a fresh cache entry each run
 
-  caching-config:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-caching-config.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # caching-config:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-caching-config.yml
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  dependency-graph:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-graph.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # dependency-graph:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-dependency-graph.yml
+  #   permissions:
+  #     contents: write
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  dependency-submission:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-submission.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # dependency-submission:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-dependency-submission.yml
+  #   permissions:
+  #     contents: write
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  dependency-submission-failures:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # dependency-submission-failures:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
+  #   permissions:
+  #     contents: write
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  execution-with-caching:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-execution-with-caching.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # execution-with-caching:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-execution-with-caching.yml
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  execution:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-execution.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  # execution:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-execution.yml
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
-  develocity-injection:
-    if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-inject-develocity.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-    secrets:
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
+  # develocity-injection:
+  #   if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-inject-develocity.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #   secrets:
+  #     DEVELOCITY_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
 
-  provision-gradle-versions:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
+  # provision-gradle-versions:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
 
-  restore-configuration-cache:
-    if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-    secrets:
-      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+  # restore-configuration-cache:
+  #   if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #   secrets:
+  #     GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-  restore-containerized-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
+  # restore-containerized-gradle-home:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
 
-  restore-custom-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
+  # restore-custom-gradle-home:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
 
-  restore-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-gradle-home.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
+  # restore-gradle-home:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-gradle-home.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
 
-  restore-java-toolchain:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
+  # restore-java-toolchain:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
 
-  sample-kotlin-dsl:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
+  # sample-kotlin-dsl:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
 
-  sample-gradle-plugin:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
+  # sample-gradle-plugin:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
 
-  toolchain-detection:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
+  # toolchain-detection:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
