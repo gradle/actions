@@ -37,6 +37,7 @@ jobs:
           // This reduces the load for developers working on forks
           console.log(context.repo)
           if ("${context.repo.owner}/${context.repo.repo}" != 'gradle/actions') {
+            console.log("repo = ${context.repo.owner}/${context.repo.repo}")
             console.log('Not in core repository: suite=quick')
             return 'quick'
           }
