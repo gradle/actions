@@ -1,11 +1,12 @@
-name: CI-quick-check
+name: CI-integ-test-full
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
-    branches-ignore: 
-    - main
-    - release/**
+    branches: 
+      - main
+      - release/**
 
 jobs:
   build-distribution:
@@ -16,42 +17,29 @@ jobs:
     - name: Build and upload distribution
       uses: ./.github/actions/build-dist
 
-  run-unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Configure Gradle as default for unit test
-      uses: ./setup-gradle
-      with:
-        gradle-version: 8.7
-    - name: Run tests
-      run: |
-        npm install
-        npm run all
-      working-directory: sources
-
   action-inputs:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-action-inputs.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
+
+  build-scan-publish:
+    needs: build-distribution
+    uses: ./.github/workflows/integ-test-build-scan-publish.yml
+    with:
+      cache-key-prefix: ${{github.run_number}}-
 
   cache-cleanup:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-cache-cleanup.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
-      cache-key-prefix: ${{github.run_number}}- # Requires a fresh cache entry each run
+      cache-key-prefix: ${{github.run_number}}-
 
   caching-config:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-caching-config.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   dependency-graph:
     needs: build-distribution
@@ -59,8 +47,7 @@ jobs:
     permissions:
       contents: write
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   dependency-submission:
     needs: build-distribution
@@ -68,38 +55,31 @@ jobs:
     permissions:
       contents: write
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   dependency-submission-failures:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
-    permissions:
-      contents: write
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   execution-with-caching:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-execution-with-caching.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   execution:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-execution.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   develocity-injection:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-inject-develocity.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
     secrets:
       DEVELOCITY_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
 
@@ -107,61 +87,54 @@ jobs:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   restore-configuration-cache:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
     secrets:
       GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-  restore-containerized-gradle-home:
-    needs: build-distribution
-    uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
-    with:
-      download-dist: true
 
   restore-custom-gradle-home:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
     with:
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
+
+  restore-containerized-gradle-home:
+    needs: build-distribution
+    uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
+    with:
+      cache-key-prefix: ${{github.run_number}}-
 
   restore-gradle-home:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-restore-gradle-home.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   restore-java-toolchain:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   sample-kotlin-dsl:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   sample-gradle-plugin:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-
 
   toolchain-detection:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
     with:
-      runner-os: '["ubuntu-latest"]'
-      download-dist: true
+      cache-key-prefix: ${{github.run_number}}-

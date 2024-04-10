@@ -8,15 +8,11 @@ on:
       runner-os:
         type: string
         default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
-      download-dist:
-        type: boolean
-        default: false
 
 permissions:
   contents: write
 
 env:
-  DOWNLOAD_DIST: ${{ inputs.download-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-graph-${{ inputs.cache-key-prefix }}
 
 jobs:
@@ -120,7 +116,11 @@ jobs:
         fi
         
   config-cache:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
