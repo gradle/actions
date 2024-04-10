@@ -1,11 +1,7 @@
-name: CI-quick-check
+name: X-CI-quick-check
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: 
-    - main
-    - release/**
 
 jobs:
   check-for-pr:
