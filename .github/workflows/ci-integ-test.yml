@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       suite: ${{ steps.determine-suite.outputs.result }}
-      runner-os: ${{ steps.determine-suite.outputs.result == "quick" && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      cache-key-prefix: ${{ steps.determine-suite.outputs.result == "quick" && '0' || github.run_number }}
+      runner-os: ${{ steps.determine-suite.outputs.result == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
+      cache-key-prefix: ${{ steps.determine-suite.outputs.result == 'quick' && '0' || github.run_number }}
     steps:
     - name: Get current PR details
       uses: 8BitJonny/gh-get-current-pr@3.0.0
@@ -29,27 +29,27 @@ jobs:
           if (`${context.repo.owner}/${context.repo.repo}` !== 'gradle/actions') {
             console.log(`repo = ${context.repo.owner}/${context.repo.repo}`)
             console.log('Not in core repository: suite=quick')
-            return 'quick'
+            return "quick"
           }
           
           // Always run quick suite for dependabot PRs
           if (github.actor === 'dependabot[bot]') {
             console.log('Dependabot PR: suite=quick')
-            return 'quick'
+            return "quick"
           }
 
           // Run quick suite for pushes with no associated PR
           if (process.env.PR_FOUND === 'false') {
             console.log('Push with no associated PR: suite=quick')
-            return 'quick'
+            return "quick"
           } else {
             // When there's an associated PR, run full suite for pull_request trigger. Skip tests for push trigger.
             if (github.context.eventName === 'pull_request') {
               console.log('Pull request trigger: suite=full')
-              return 'full'
+              return "full"
             } else {
               console.log('Push with associated PR: suite=skip')
-              return 'skip'
+              return "skip"
             }
           }
 
