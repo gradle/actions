@@ -92314,6 +92314,7 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 const cache_key_1 = __nccwpck_require__(100);
 const cache_utils_1 = __nccwpck_require__(1044);
 const gradle_home_extry_extractor_1 = __nccwpck_require__(862);
+const gradle_user_home_utils_1 = __nccwpck_require__(124);
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key';
 exports.META_FILE_DIR = '.setup-gradle';
 class GradleUserHomeCache {
@@ -92461,13 +92462,15 @@ class GradleUserHomeCache {
             'gradle-actions.inject-develocity.init.gradle'
         ];
         for (const initScriptFilename of initScriptFilenames) {
-            const initScriptContent = this.readResourceFileAsString('init-scripts', initScriptFilename);
+            const initScriptContent = (0, gradle_user_home_utils_1.readResourceFileAsString)('init-scripts', initScriptFilename);
             const initScriptPath = path_1.default.resolve(initScriptsDir, initScriptFilename);
             fs_1.default.writeFileSync(initScriptPath, initScriptContent);
         }
     }
     registerToolchains() {
-        const preInstalledToolchains = this.readResourceFileAsString('toolchains.xml');
+        const preInstalledToolchains = (0, gradle_user_home_utils_1.getPredefinedToolchains)();
+        if (preInstalledToolchains == null)
+            return;
         const m2dir = path_1.default.resolve(this.userHome, '.m2');
         const toolchainXmlTarget = path_1.default.resolve(m2dir, 'toolchains.xml');
         if (!fs_1.default.existsSync(toolchainXmlTarget)) {
@@ -92482,10 +92485,6 @@ class GradleUserHomeCache {
             fs_1.default.writeFileSync(toolchainXmlTarget, mergedContent);
             core.info(`Merged default JDK locations into ${toolchainXmlTarget}`);
         }
-    }
-    readResourceFileAsString(...paths) {
-        const absolutePath = path_1.default.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths);
-        return fs_1.default.readFileSync(absolutePath, 'utf8');
     }
     configureInfoLogLevel() {
         const infoProperties = `org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n`;
@@ -92527,6 +92526,58 @@ class GradleUserHomeCache {
     }
 }
 exports.GradleUserHomeCache = GradleUserHomeCache;
+
+
+/***/ }),
+
+/***/ 124:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPredefinedToolchains = exports.readResourceFileAsString = void 0;
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+function readResourceFileAsString(...paths) {
+    const absolutePath = path_1.default.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths);
+    return fs_1.default.readFileSync(absolutePath, 'utf8');
+}
+exports.readResourceFileAsString = readResourceFileAsString;
+function getPredefinedToolchains() {
+    var _a;
+    const javaHomeEnvs = [];
+    for (const javaHomeEnvsKey in process.env) {
+        if (javaHomeEnvsKey.startsWith('JAVA_HOME_')) {
+            javaHomeEnvs.push(javaHomeEnvsKey);
+        }
+    }
+    if (javaHomeEnvs.length === 0) {
+        return null;
+    }
+    let toolchainsXml = `<?xml version="1.0" encoding="UTF-8"?>
+<toolchains>
+<!-- JDK Toolchains installed by default on GitHub-hosted runners -->
+`;
+    for (const javaHomeEnv of javaHomeEnvs) {
+        const version = (_a = javaHomeEnv.match(/JAVA_HOME_(\d+)_/)) === null || _a === void 0 ? void 0 : _a[1];
+        toolchainsXml += `  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>${version}</version>
+    </provides>
+    <configuration>
+      <jdkHome>\${env.${javaHomeEnv}}</jdkHome>
+    </configuration>
+  </toolchain>\n`;
+    }
+    toolchainsXml += `</toolchains>\n`;
+    return toolchainsXml;
+}
+exports.getPredefinedToolchains = getPredefinedToolchains;
 
 
 /***/ }),
