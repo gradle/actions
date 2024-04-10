@@ -92480,8 +92480,7 @@ class GradleUserHomeCache {
         }
         else {
             const existingToolchainContent = fs_1.default.readFileSync(toolchainXmlTarget, 'utf8');
-            const appendedContent = preInstalledToolchains.split('<toolchains>').pop();
-            const mergedContent = existingToolchainContent.replace('</toolchains>', appendedContent);
+            const mergedContent = (0, gradle_user_home_utils_1.mergeToolchainContent)(existingToolchainContent, preInstalledToolchains);
             fs_1.default.writeFileSync(toolchainXmlTarget, mergedContent);
             core.info(`Merged default JDK locations into ${toolchainXmlTarget}`);
         }
@@ -92539,7 +92538,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPredefinedToolchains = exports.readResourceFileAsString = void 0;
+exports.mergeToolchainContent = exports.getPredefinedToolchains = exports.readResourceFileAsString = void 0;
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 function readResourceFileAsString(...paths) {
@@ -92578,6 +92577,11 @@ function getPredefinedToolchains() {
     return toolchainsXml;
 }
 exports.getPredefinedToolchains = getPredefinedToolchains;
+function mergeToolchainContent(existingToolchainContent, preInstalledToolchains) {
+    const appendedContent = preInstalledToolchains.split('<toolchains>').pop();
+    return existingToolchainContent.replace('</toolchains>', appendedContent);
+}
+exports.mergeToolchainContent = mergeToolchainContent;
 
 
 /***/ }),
