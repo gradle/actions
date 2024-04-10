@@ -194,4 +194,45 @@ jobs:
             echo "Expected no dependency graph files to be generated"
             ls -l dependency-graph-reports
             exit 1
-        fi        
+        fi
+
+  gradle-versions:
+    strategy:
+      fail-fast: false
+      matrix:
+        gradle: [8.0.2, 7.6.4, 7.1.1, 6.9.4, 6.0.1, 5.6.4, 5.2.1]
+        include:
+          - gradle: 5.6.4
+            build-root-suffix: -gradle-5
+          - gradle: 5.2.1
+            build-root-suffix: -gradle-5
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Generate and submit dependencies
+      uses: ./dependency-submission
+      with:
+        gradle-version: ${{ matrix.gradle }}
+        build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
+      env:
+        GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
+
+  after-setup-gradle:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Setup Gradle
+      uses: ./setup-gradle
+    - name: Generate and submit dependencies
+      id: dependency-submission
+      uses: ./dependency-submission
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
