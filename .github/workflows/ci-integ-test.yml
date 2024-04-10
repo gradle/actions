@@ -10,19 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       suite: ${{ steps.determine-suite.outputs.result }}
-      runner-os: ${{ steps.determine-suite.outputs.result === 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      cache-key-prefix: ${{ steps.determine-suite.outputs.result === 'quick' && '0' || github.run_number }}
+      runner-os: ${{ steps.determine-suite.outputs.result == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
+      cache-key-prefix: ${{ steps.determine-suite.outputs.result == 'quick' && '0' || github.run_number }}
     steps:
-    - name: Testscript
-      uses: actions/github-script@v7
-      env:
-        PR_FOUND: ${{ steps.PR.outputs.pr_found }}
-      with:
-        script: |
-          // Always run quick suite if we are not in the core `gradle/actions` repository
-          // This reduces the load for developers working on forks
-          console.log(context.repo)
-          console.log(process.env.GITHUB_REPOSITORY)
     - name: Get current PR details
       uses: 8BitJonny/gh-get-current-pr@3.0.0
       id: PR
