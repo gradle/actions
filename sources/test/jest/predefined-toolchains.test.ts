@@ -1,4 +1,4 @@
-import {getPredefinedToolchains} from "../../src/caching/gradle-user-home-utils";
+import {getPredefinedToolchains, mergeToolchainContent} from "../../src/caching/gradle-user-home-utils";
 
 describe('predefined-toolchains', () => {
     const OLD_ENV = process.env
@@ -61,5 +61,57 @@ describe('predefined-toolchains', () => {
 </toolchains>
 `)
         })
+    })
+
+    it("merges with existing toolchains", async () => {
+        jest.resetModules()
+        process.env = {
+            "JAVA_HOME_11_X64": "/jdks/foo_11",
+        }
+
+        // language=XML
+        const existingToolchains =
+            `<?xml version="1.0" encoding="UTF-8"?>
+<toolchains>
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>8</version>
+    </provides>
+    <configuration>
+      <jdkHome>\${env.JAVA_HOME_8_X64}</jdkHome>
+    </configuration>
+  </toolchain>
+</toolchains>
+`
+
+        const mergedContent = mergeToolchainContent(existingToolchains, getPredefinedToolchains()!)
+        expect(mergedContent).toBe(
+            // language=XML
+            `<?xml version="1.0" encoding="UTF-8"?>
+<toolchains>
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>8</version>
+    </provides>
+    <configuration>
+      <jdkHome>\${env.JAVA_HOME_8_X64}</jdkHome>
+    </configuration>
+  </toolchain>
+
+<!-- JDK Toolchains installed by default on GitHub-hosted runners -->
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>11</version>
+    </provides>
+    <configuration>
+      <jdkHome>\${env.JAVA_HOME_11_X64}</jdkHome>
+    </configuration>
+  </toolchain>
+</toolchains>
+
+`)
     })
 })
