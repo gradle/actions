@@ -4,13 +4,10 @@ name: CI-check-no-dist-update
 on:
   push:
     branches-ignore:
-      - main
-      - release/*
+      - 'main'
+      - 'release/**'
     paths:
-      - dist**
-  pull_request:
-    paths:
-      - dist/**
+      - 'dist/**'
 
 permissions:
   contents: read
