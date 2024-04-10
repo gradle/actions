@@ -7,6 +7,7 @@ on:
     branches:
     - 'main'
     - 'release/**'
+    - 'dev/**' # Allow running quick tests on dev branch for testing
 
 jobs:
   determine-suite:
@@ -33,7 +34,12 @@ jobs:
           exit 0
         fi
 
-        # TODO: Make it easy to experiment with no PR and quick suite
+        # Run quick suite for push trigger on 'dev' branches
+        if [[ "${{ github.ref_name }}" == "dev/"* ]]; then
+          echo "Push to dev branch: suite=quick"
+          echo "suite=quick" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
 
         # Run full suite for everything else
         echo "Everything else: suite=full"
