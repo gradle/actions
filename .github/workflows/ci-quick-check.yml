@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       runner-os: ${{ steps.PR.outputs.pr_found == 'true' && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest"]' }}
+      cache-key-prefix: ${{ steps.PR.outputs.pr_found == 'true' && github.run_number || '' }}
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
@@ -23,6 +24,7 @@ jobs:
     uses: ./.github/workflows/integ-test-action-inputs.yml
     with:
       runner-os: ${{ needs.build-distribution.outputs.runner-os }}
+      cache-key-prefix: ${{ needs.build-distribution.outputs.cache-key-prefix }}
 
   # cache-cleanup:
   #   needs: build-distribution
