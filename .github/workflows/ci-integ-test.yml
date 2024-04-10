@@ -75,6 +75,7 @@ jobs:
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
   dependency-graph:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-dependency-graph.yml
     permissions:
@@ -84,6 +85,7 @@ jobs:
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
   dependency-submission:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-dependency-submission.yml
     permissions:
@@ -93,6 +95,7 @@ jobs:
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
   dependency-submission-failures:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
     permissions:
@@ -116,7 +119,7 @@ jobs:
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
 
   develocity-injection:
-    if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-inject-develocity.yml
     with:
@@ -131,7 +134,7 @@ jobs:
       runner-os: '["ubuntu-latest"]'
 
   restore-configuration-cache:
-    if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
     with:
