@@ -7,9 +7,6 @@ on:
       - main
       - release/*
     paths:
-      - dist**
-  pull_request:
-    paths:
       - dist/**
 
 permissions:
