@@ -10,7 +10,7 @@ on:
         default: '["ubuntu-latest"]'
 
 env:
-  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-graph-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-submission-failures-${{ inputs.cache-key-prefix }}
 
 jobs:
   failing-build:
