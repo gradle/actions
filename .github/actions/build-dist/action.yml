@@ -16,6 +16,12 @@ runs:
         npm install
         npm run build
       working-directory: sources
+
+    - name: Copy the generated sources/dist directory to the top-level dist
+      shell: bash
+      run: |
+        cp -r sources/dist .
+
     - name: Upload distribution
       uses: actions/upload-artifact@v4
       with:
