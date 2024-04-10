@@ -2,7 +2,6 @@ name: Demo Job Summary, for Gradle builds
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   many-gradle-builds:
@@ -10,16 +9,9 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Build distribution
-      shell: bash
-      run: |
-        npm install
-        npm run build
-      working-directory: sources
-    - uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
     - name: Build kotlin-dsl project
@@ -51,16 +43,14 @@ jobs:
         dependency-graph: generate-and-upload
 
   successful-builds-with-no-summary:
+    needs: build-distribution
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Build distribution
-      shell: bash
-      run: |
-        npm install
-        npm run build
-      working-directory: sources
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -73,16 +63,14 @@ jobs:
       run: ./gradlew assemble check --no-scan
 
   pre-existing-gradle-home:
+    needs: build-distribution
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
-    - name: Build distribution
-      shell: bash
-      run: |
-        npm install
-        npm run build
-      working-directory: sources
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Pre-create Gradle User Home
       shell: bash
       run: |

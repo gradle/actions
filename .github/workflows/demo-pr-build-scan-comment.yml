@@ -7,11 +7,23 @@ permissions:
   pull-requests: write
 
 jobs:
-  successful-build-with-always-comment:
+  build-distribution:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout project sources
+    - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Build and upload distribution
+      uses: ./.github/actions/build-dist
+
+  successful-build-with-always-comment:
+    needs: build-distribution
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -22,10 +34,14 @@ jobs:
       run: ./gradlew build --scan
 
   successful-build-with-comment-on-failure:
+    needs: build-distribution
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout project sources
+    - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -36,10 +52,14 @@ jobs:
       run: ./gradlew build --scan
 
   failing-build-with-comment-on-failure:
+    needs: build-distribution
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout project sources
+    - name: Checkout sources
       uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
