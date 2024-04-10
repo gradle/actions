@@ -21,8 +21,8 @@ jobs:
         script: |
           // Always run quick suite if we are not in the core `gradle/actions` repository
           // This reduces the load for developers working on forks
-          console.log(github.context)
           console.log(context.repo)
+          console.log(process.env.GITHUB_REPOSITORY)
     - name: Get current PR details
       uses: 8BitJonny/gh-get-current-pr@3.0.0
       id: PR
@@ -67,7 +67,7 @@ jobs:
           // Always run quick suite if we are not in the core `gradle/actions` repository
           // This reduces the load for developers working on forks
           console.log(context.repo)
-          if (context.repo.repo !== 'gradle/actions') {
+          if ("${context.repo.owner}/${context.repo.repo}" !== 'gradle/actions') {
             console.log('Not in core repository: suite=quick')
             return 'quick'
           }
