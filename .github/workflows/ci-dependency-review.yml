@@ -1,4 +1,4 @@
-name: CI-dependency-review
+name: X-CI-dependency-review
 on:
   push:
 
