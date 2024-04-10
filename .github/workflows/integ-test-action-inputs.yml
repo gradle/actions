@@ -7,7 +7,7 @@ on:
         type: string
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        required: true
 
 env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: action-inputs-${{ inputs.cache-key-prefix }}
