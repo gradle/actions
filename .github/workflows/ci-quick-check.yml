@@ -37,6 +37,12 @@ jobs:
     with:
       runner-os: '["ubuntu-latest"]'
 
+  build-scan-publish:
+    needs: build-distribution
+    uses: ./.github/workflows/integ-test-build-scan-publish.yml
+    with:
+      runner-os: '["ubuntu-latest"]'
+
   cache-cleanup:
     needs: build-distribution
     uses: ./.github/workflows/integ-test-cache-cleanup.yml
