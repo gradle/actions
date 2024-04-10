@@ -93,6 +93,7 @@ jobs:
       runner-os: '["ubuntu-latest"]'
 
   develocity-injection:
+    if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
     needs: build-distribution
     uses: ./.github/workflows/integ-test-inject-develocity.yml
     with:
@@ -107,6 +108,7 @@ jobs:
       runner-os: '["ubuntu-latest"]'
 
   restore-configuration-cache:
+    if: ${{ vars.HAS_GRADLE_ACTIONS_SECRETS == 'true' }}
     needs: build-distribution
     uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
     with:
