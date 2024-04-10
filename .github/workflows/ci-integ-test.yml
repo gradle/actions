@@ -36,24 +36,24 @@ jobs:
           // Always run quick suite if we are not in the core `gradle/actions` repository
           // This reduces the load for developers working on forks
           console.log(context.repo)
-          if ("${context.repo.owner}/${context.repo.repo}" !== 'gradle/actions') {
+          if ("${context.repo.owner}/${context.repo.repo}" != 'gradle/actions') {
             console.log('Not in core repository: suite=quick')
             return 'quick'
           }
           
           // Always run quick suite for dependabot PRs
-          if (github.actor === 'dependabot[bot]') {
+          if (github.actor == 'dependabot[bot]') {
             console.log('Dependabot PR: suite=quick')
             return 'quick'
           }
 
           // Run quick suite for pushes with no associated PR
-          if (process.env.PR_FOUND === 'false') {
+          if (process.env.PR_FOUND == 'false') {
             console.log('Push with no associated PR: suite=quick')
             return 'quick'
           } else {
             // When there's an associated PR, run full suite for pull_request trigger. Skip tests for push trigger.
-            if (github.context.eventName === 'pull_request') {
+            if (github.context.eventName == 'pull_request') {
               console.log('Pull request trigger: suite=full')
               return 'full'
             } else {
