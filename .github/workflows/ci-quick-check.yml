@@ -8,7 +8,18 @@ on:
     - release/**
 
 jobs:
+  check-for-pr:
+    runs-on: ubuntu-latest
+    outputs:
+      is-pr-commit: ${{ steps.PR.outputs.pr_found }}
+    steps:
+    - name: Get current PR details
+      uses: 8BitJonny/gh-get-current-pr@3.0.0
+      id: PR
+
   build-distribution:
+    needs: check-for-pr
+    if: ${{ needs.check-for-pr.outputs.is-pr-commit == 'false' }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
