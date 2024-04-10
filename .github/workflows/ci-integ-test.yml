@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       suite: ${{ steps.determine-suite.outputs.result }}
+      is-quick: ${{ steps.determine-suite.outputs.result == 'quick' }}
       runner-os: ${{ steps.determine-suite.outputs.result == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
       cache-key-prefix: ${{ steps.determine-suite.outputs.result == 'quick' && '0' || github.run_number }}
     steps:
@@ -58,11 +59,11 @@ jobs:
     needs: determine-suite
     steps:
     - name: Print suite
-      run: echo "Suite = ${{ needs.determine-suite.outputs.suite }}"
-    - name: Print runner-os
-      run: echo "Runner OS = ${{ needs.determine-suite.outputs.runner-os }}"
-    - name: Print cache-key-prefix
-      run: echo "Cache key prefix = ${{ needs.determine-suite.outputs.cache-key-prefix }}"
+      run: |
+        echo "Suite = ${{ needs.determine-suite.outputs.suite }}"
+        echo "Quick = ${{ needs.determine-suite.outputs.is-quick }}"
+        echo "Runner OS = ${{ needs.determine-suite.outputs.runner-os }}"
+        echo "Cache key prefix = ${{ needs.determine-suite.outputs.cache-key-prefix }}"
 
   build-distribution:
     needs: determine-suite
