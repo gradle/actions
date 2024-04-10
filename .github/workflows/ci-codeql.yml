@@ -3,8 +3,6 @@ name: CI-codeql
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   schedule:
     - cron: '25 23 * * 2'
 

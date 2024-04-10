@@ -3,10 +3,7 @@ name: CI-check-no-dist-update
 # Prohibit any change to 'dist/**' on a non-release branch
 on:
   workflow_dispatch:
-  push:
-    branches-ignore:
-      - 'main'
-      - 'release/**'
+  pull_request:
     paths:
       - 'dist/**'
 
