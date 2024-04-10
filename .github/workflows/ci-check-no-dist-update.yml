@@ -35,6 +35,6 @@ jobs:
         done
 
     - run: |
-        echo "The 'dist' directory is auotmatically updated by the release process."
+        echo "The 'dist' directory is automatically updated by the release process."
         echo "It should not be updated manually in a non-release branch or a pull request."
         exit 1
