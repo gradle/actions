@@ -42,3 +42,8 @@ export function getPredefinedToolchains(): string | null {
     toolchainsXml += `</toolchains>\n`
     return toolchainsXml
 }
+
+export function mergeToolchainContent(existingToolchainContent: string, preInstalledToolchains: string): string {
+    const appendedContent = preInstalledToolchains.split('<toolchains>').pop()!
+    return existingToolchainContent.replace('</toolchains>', appendedContent)
+}

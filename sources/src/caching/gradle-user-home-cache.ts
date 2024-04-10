@@ -9,7 +9,7 @@ import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
 import {CacheConfig} from '../configuration'
 import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
-import {getPredefinedToolchains, readResourceFileAsString} from './gradle-user-home-utils'
+import {getPredefinedToolchains, mergeToolchainContent, readResourceFileAsString} from './gradle-user-home-utils'
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
 
@@ -233,8 +233,7 @@ export class GradleUserHomeCache {
         } else {
             // Merge into an existing toolchains.xml file
             const existingToolchainContent = fs.readFileSync(toolchainXmlTarget, 'utf8')
-            const appendedContent = preInstalledToolchains.split('<toolchains>').pop()!
-            const mergedContent = existingToolchainContent.replace('</toolchains>', appendedContent)
+            const mergedContent = mergeToolchainContent(existingToolchainContent, preInstalledToolchains)
 
             fs.writeFileSync(toolchainXmlTarget, mergedContent)
             core.info(`Merged default JDK locations into ${toolchainXmlTarget}`)
