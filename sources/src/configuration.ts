@@ -261,6 +261,10 @@ export class GradleExecutionConfig {
     }
 }
 
+export function doValidateWrappers(): boolean {
+    return getBooleanInput('validate-wrappers')
+}
+
 // Internal parameters
 export function getJobMatrix(): string {
     return core.getInput('workflow-job-context')

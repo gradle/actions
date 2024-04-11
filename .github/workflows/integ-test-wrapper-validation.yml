@@ -1,12 +1,40 @@
-name: Test sample Kotlin DSL project
+name: Test wrapper validation
 
 on:
   workflow_call:
+    inputs:
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
 
 jobs:
-  # Integration test for successful validation of wrappers
+  test-setup-gradle-validation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Run wrapper-validation-action
+      id: setup-gradle
+      uses: ./setup-gradle
+      with:
+        validate-wrappers: true
+      continue-on-error: true
+
+    - name: Check failure
+      run: |
+        if [ "${{ steps.setup-gradle.outcome}}" != "failure" ] ; then
+          echo "Expected validation to fail, but it didn't"
+          exit 1
+        fi
+
   test-validation-success:
-    name: 'Test: Validation success'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -33,9 +61,7 @@ jobs:
           exit 1
         fi
 
-  # Integration test for failing validation of wrappers
   test-validation-error:
-    name: 'Test: Validation error'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources

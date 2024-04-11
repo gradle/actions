@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 
-export class PostActionJobFailure extends Error {
+export class JobFailure extends Error {
     constructor(error: unknown) {
         if (error instanceof Error) {
             super(error.message)
@@ -21,6 +21,8 @@ export function handleMainActionError(error: unknown): void {
                 core.info(err.stack)
             }
         }
+    } else if (error instanceof JobFailure) {
+        core.setFailed(String(error)) // No stack trace for JobFailure: these are known errors
     } else {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {
@@ -30,7 +32,7 @@ export function handleMainActionError(error: unknown): void {
 }
 
 export function handlePostActionError(error: unknown): void {
-    if (error instanceof PostActionJobFailure) {
+    if (error instanceof JobFailure) {
         core.setFailed(String(error))
     } else {
         core.warning(`Unhandled error in Gradle post-action - job will continue: ${error}`)

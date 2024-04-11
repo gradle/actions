@@ -9,7 +9,7 @@ import type {PullRequestEvent} from '@octokit/webhooks-types'
 import * as path from 'path'
 import fs from 'fs'
 
-import {PostActionJobFailure} from './errors'
+import {JobFailure} from './errors'
 import {DependencyGraphConfig, DependencyGraphOption, getGithubToken, getWorkspaceDirectory} from './configuration'
 
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
@@ -208,7 +208,7 @@ function markProcessed(dependencyGraphFile: string): void {
 
 function warnOrFail(config: DependencyGraphConfig, option: String, error: unknown): void {
     if (!config.getDependencyGraphContinueOnFailure()) {
-        throw new PostActionJobFailure(error)
+        throw new JobFailure(error)
     }
 
     core.warning(`Failed to ${option} dependency graph. Will continue.\n${String(error)}`)
