@@ -12,6 +12,7 @@
     "compile-dependency-submission-post": "ncc build src/dependency-submission/post.ts --out dist/dependency-submission/post --source-map --no-source-map-register",
     "compile-setup-gradle-main": "ncc build src/setup-gradle/main.ts --out dist/setup-gradle/main --source-map --no-source-map-register",
     "compile-setup-gradle-post": "ncc build src/setup-gradle/post.ts --out dist/setup-gradle/post --source-map --no-source-map-register",
+    "compile-wrapper-validation-main": "ncc build src/wrapper-validation/main.ts --out dist/wrapper-validation/main --source-map --no-source-map-register",
     "compile": "npm-run-all --parallel compile-*",
     "check": "npm-run-all --parallel prettier-check lint",
     "format": "npm-run-all --parallel prettier-write lint",
@@ -42,8 +43,10 @@
     "@octokit/rest": "20.1.0",
     "@octokit/webhooks-types": "7.5.0",
     "semver": "7.6.0",
-    "string-argv": "0.3.2"
-  },
+    "string-argv": "0.3.2",
+    "typed-rest-client": "1.8.11",
+    "unhomoglyph": "1.0.6"
+},
   "devDependencies": {
     "@types/jest": "29.5.12",
     "@types/node": "20.12.4",
@@ -60,6 +63,7 @@
     "patch-package": "8.0.0",
     "prettier": "3.2.5",
     "ts-jest": "29.1.2",
-    "typescript": "5.4.3"
+    "typescript": "5.4.3",
+    "nock": "13.5.4"
   }
 }
