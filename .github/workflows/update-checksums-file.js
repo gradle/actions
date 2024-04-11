@@ -77,7 +77,9 @@ async function main() {
     __dirname,
     '..',
     '..',
+    'sources',
     'src',
+    'wrapper-validation',
     'wrapper-checksums.json'
   )
   console.info(`Writing checksums file to ${jsonPath}`)
