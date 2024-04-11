@@ -1,11 +1,11 @@
 name: 'Update Wrapper checksums file'
 
 on:
+  # Run weekly (at arbitrary time)
   schedule:
-    # Run weekly (at arbitrary time)
     - cron: '24 5 * * 6'
-  # Support running workflow manually
   workflow_dispatch:
+  push:
 
 jobs:
   update-checksums:
