@@ -503,6 +503,21 @@ located at `USER_HOME/.gradle/init.d/gradle-actions.build-result-capture.init.gr
 If you are adding any custom init scripts to the `USER_HOME/.gradle/init.d` directory, it may be necessary to ensure these files are applied before `gradle-actions.build-result-capture.init.gradle`.
 Since Gradle applies init scripts in alphabetical order, one way to ensure this is via file naming.
 
+## Gradle Wrapper validation
+
+Instead of using the [wrapper-validation action](./wrapper-validation.md) separately, you can enable 
+wrapper validation directly in your Setup Gradle step.
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        validate-wrappers: true
+```
+
+If you need more advanced configuration, then you're advised to continue using a separate workflow step
+with `gradle/actions/wrapper-validation`.
+
 ## Support for GitHub Enterprise Server (GHES)
 
 You can use the `setup-gradle` action on GitHub Enterprise Server, and benefit from the improved integration with Gradle. Depending on the version of GHES you are running, certain features may be limited:
