@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
   push:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update-checksums:
     name: Update checksums
