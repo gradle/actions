@@ -2,6 +2,7 @@ import * as path from 'path'
 import * as core from '@actions/core'
 
 import * as validate from './validate'
+import {handleMainActionError} from '../errors'
 
 export async function run(): Promise<void> {
     try {
@@ -22,16 +23,7 @@ export async function run(): Promise<void> {
             }
         }
     } catch (error) {
-        if (error instanceof AggregateError) {
-            core.setFailed(`Multiple errors returned`)
-            for (const err of error.errors) {
-                core.error(`Error ${error.errors.indexOf(err)}: ${err.message}`)
-            }
-        } else if (error instanceof Error) {
-            core.setFailed(error.message)
-        } else {
-            core.setFailed(`Unknown object was thrown: ${error}`)
-        }
+        handleMainActionError(error)
     }
 }
 

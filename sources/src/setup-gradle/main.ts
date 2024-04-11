@@ -1,5 +1,3 @@
-import * as core from '@actions/core'
-
 import * as setupGradle from '../setup-gradle'
 import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
@@ -12,6 +10,7 @@ import {
     setActionId
 } from '../configuration'
 import {recordDeprecation, saveDeprecationState} from '../deprecation-collector'
+import {handleMainActionError} from '../errors'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -41,10 +40,7 @@ export async function run(): Promise<void> {
 
         saveDeprecationState()
     } catch (error) {
-        core.setFailed(String(error))
-        if (error instanceof Error && error.stack) {
-            core.info(error.stack)
-        }
+        handleMainActionError(error)
     }
 
     // Explicit process.exit() to prevent waiting for hanging promises.
