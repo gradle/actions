@@ -44,7 +44,6 @@
     "@octokit/webhooks-types": "7.5.0",
     "semver": "7.6.0",
     "string-argv": "0.3.2",
-    
     "typed-rest-client": "1.8.11",
     "unhomoglyph": "1.0.6"
 },
@@ -65,8 +64,6 @@
     "prettier": "3.2.5",
     "ts-jest": "29.1.2",
     "typescript": "5.4.3",
-
-    "glob-parent": "6.0.2",
     "nock": "13.5.4"
   }
 }
