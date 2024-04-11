@@ -91225,22 +91225,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -91256,62 +91240,39 @@ class CacheCleaner {
         this.gradleUserHome = gradleUserHome;
         this.tmpDir = tmpDir;
     }
-    prepare() {
-        return __awaiter(this, void 0, void 0, function* () {
-            fs_1.default.rmSync(path_1.default.resolve(this.gradleUserHome, 'caches/journal-1'), { recursive: true, force: true });
-            fs_1.default.mkdirSync(path_1.default.resolve(this.gradleUserHome, 'caches/journal-1'), { recursive: true });
-            fs_1.default.writeFileSync(path_1.default.resolve(this.gradleUserHome, 'caches/journal-1/file-access.properties'), 'inceptionTimestamp=0');
-            yield this.ageAllFiles();
-            yield this.touchAllFiles('gc.properties');
+    async prepare() {
+        fs_1.default.rmSync(path_1.default.resolve(this.gradleUserHome, 'caches/journal-1'), { recursive: true, force: true });
+        fs_1.default.mkdirSync(path_1.default.resolve(this.gradleUserHome, 'caches/journal-1'), { recursive: true });
+        fs_1.default.writeFileSync(path_1.default.resolve(this.gradleUserHome, 'caches/journal-1/file-access.properties'), 'inceptionTimestamp=0');
+        await this.ageAllFiles();
+        await this.touchAllFiles('gc.properties');
+    }
+    async forceCleanup() {
+        await this.ageAllFiles('gc.properties');
+        const cleanupProjectDir = path_1.default.resolve(this.tmpDir, 'dummy-cleanup-project');
+        fs_1.default.mkdirSync(cleanupProjectDir, { recursive: true });
+        fs_1.default.writeFileSync(path_1.default.resolve(cleanupProjectDir, 'settings.gradle'), 'rootProject.name = "dummy-cleanup-project"');
+        fs_1.default.writeFileSync(path_1.default.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}');
+        const gradleCommand = `gradle -g ${this.gradleUserHome} --no-daemon --build-cache --no-scan --quiet -DGITHUB_DEPENDENCY_GRAPH_ENABLED=false noop`;
+        await exec.exec(gradleCommand, [], {
+            cwd: cleanupProjectDir
         });
     }
-    forceCleanup() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.ageAllFiles('gc.properties');
-            const cleanupProjectDir = path_1.default.resolve(this.tmpDir, 'dummy-cleanup-project');
-            fs_1.default.mkdirSync(cleanupProjectDir, { recursive: true });
-            fs_1.default.writeFileSync(path_1.default.resolve(cleanupProjectDir, 'settings.gradle'), 'rootProject.name = "dummy-cleanup-project"');
-            fs_1.default.writeFileSync(path_1.default.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}');
-            const gradleCommand = `gradle -g ${this.gradleUserHome} --no-daemon --build-cache --no-scan --quiet -DGITHUB_DEPENDENCY_GRAPH_ENABLED=false noop`;
-            yield exec.exec(gradleCommand, [], {
-                cwd: cleanupProjectDir
-            });
-        });
+    async ageAllFiles(fileName = '*') {
+        core.debug(`Aging all files in Gradle User Home with name ${fileName}`);
+        await this.setUtimes(`${this.gradleUserHome}/**/${fileName}`, new Date(0));
     }
-    ageAllFiles() {
-        return __awaiter(this, arguments, void 0, function* (fileName = '*') {
-            core.debug(`Aging all files in Gradle User Home with name ${fileName}`);
-            yield this.setUtimes(`${this.gradleUserHome}/**/${fileName}`, new Date(0));
-        });
+    async touchAllFiles(fileName = '*') {
+        core.debug(`Touching all files in Gradle User Home with name ${fileName}`);
+        await this.setUtimes(`${this.gradleUserHome}/**/${fileName}`, new Date());
     }
-    touchAllFiles() {
-        return __awaiter(this, arguments, void 0, function* (fileName = '*') {
-            core.debug(`Touching all files in Gradle User Home with name ${fileName}`);
-            yield this.setUtimes(`${this.gradleUserHome}/**/${fileName}`, new Date());
+    async setUtimes(pattern, timestamp) {
+        const globber = await glob.create(pattern, {
+            implicitDescendants: false
         });
-    }
-    setUtimes(pattern, timestamp) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a, e_1, _b, _c;
-            const globber = yield glob.create(pattern, {
-                implicitDescendants: false
-            });
-            try {
-                for (var _d = true, _e = __asyncValues(globber.globGenerator()), _f; _f = yield _e.next(), _a = _f.done, !_a; _d = true) {
-                    _c = _f.value;
-                    _d = false;
-                    const file = _c;
-                    fs_1.default.utimesSync(file, timestamp, timestamp);
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-        });
+        for await (const file of globber.globGenerator()) {
+            fs_1.default.utimesSync(file, timestamp, timestamp);
+        }
     }
 }
 exports.CacheCleaner = CacheCleaner;
@@ -91554,18 +91515,15 @@ function renderEntryTable(entries) {
 }
 function renderEntryDetails(listener) {
     return listener.cacheEntries
-        .map(entry => {
-        var _a, _b, _c;
-        return `Entry: ${entry.entryName}
-    Requested Key : ${(_a = entry.requestedKey) !== null && _a !== void 0 ? _a : ''}
-    Restored  Key : ${(_b = entry.restoredKey) !== null && _b !== void 0 ? _b : ''}
+        .map(entry => `Entry: ${entry.entryName}
+    Requested Key : ${entry.requestedKey ?? ''}
+    Restored  Key : ${entry.restoredKey ?? ''}
               Size: ${formatSize(entry.restoredSize)}
               ${getRestoredMessage(entry, listener.cacheWriteOnly)}
-    Saved     Key : ${(_c = entry.savedKey) !== null && _c !== void 0 ? _c : ''}
+    Saved     Key : ${entry.savedKey ?? ''}
               Size: ${formatSize(entry.savedSize)}
               ${getSavedMessage(entry, listener.cacheReadOnly)}
-`;
-    })
+`)
         .join('---\n');
 }
 function getRestoredMessage(entry, cacheWriteOnly) {
@@ -91608,7 +91566,7 @@ function getCount(cacheEntries, predicate) {
     return cacheEntries.filter(e => predicate(e)).length;
 }
 function getSize(cacheEntries, predicate) {
-    const bytes = cacheEntries.map(e => { var _a; return (_a = predicate(e)) !== null && _a !== void 0 ? _a : 0; }).reduce((p, v) => p + v, 0);
+    const bytes = cacheEntries.map(e => predicate(e) ?? 0).reduce((p, v) => p + v, 0);
     return Math.round(bytes / (1024 * 1024));
 }
 function formatSize(bytes) {
@@ -91649,15 +91607,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.tryDelete = exports.handleCacheFailure = exports.cacheDebug = exports.saveCache = exports.restoreCache = exports.hashStrings = exports.hashFileNames = exports.isCacheDebuggingEnabled = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -91687,43 +91636,39 @@ function hashStrings(values) {
     return hash.digest('hex');
 }
 exports.hashStrings = hashStrings;
-function restoreCache(cachePath, cacheKey, cacheRestoreKeys, listener) {
-    return __awaiter(this, void 0, void 0, function* () {
-        listener.markRequested(cacheKey, cacheRestoreKeys);
-        try {
-            const cacheRestoreOptions = process.env[SEGMENT_DOWNLOAD_TIMEOUT_VAR]
-                ? {}
-                : { segmentTimeoutInMs: SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT };
-            const restoredEntry = yield cache.restoreCache(cachePath, cacheKey, cacheRestoreKeys, cacheRestoreOptions);
-            if (restoredEntry !== undefined) {
-                listener.markRestored(restoredEntry.key, restoredEntry.size);
-            }
-            return restoredEntry;
+async function restoreCache(cachePath, cacheKey, cacheRestoreKeys, listener) {
+    listener.markRequested(cacheKey, cacheRestoreKeys);
+    try {
+        const cacheRestoreOptions = process.env[SEGMENT_DOWNLOAD_TIMEOUT_VAR]
+            ? {}
+            : { segmentTimeoutInMs: SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT };
+        const restoredEntry = await cache.restoreCache(cachePath, cacheKey, cacheRestoreKeys, cacheRestoreOptions);
+        if (restoredEntry !== undefined) {
+            listener.markRestored(restoredEntry.key, restoredEntry.size);
         }
-        catch (error) {
-            listener.markNotRestored(error.message);
-            handleCacheFailure(error, `Failed to restore ${cacheKey}`);
-            return undefined;
-        }
-    });
+        return restoredEntry;
+    }
+    catch (error) {
+        listener.markNotRestored(error.message);
+        handleCacheFailure(error, `Failed to restore ${cacheKey}`);
+        return undefined;
+    }
 }
 exports.restoreCache = restoreCache;
-function saveCache(cachePath, cacheKey, listener) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const savedEntry = yield cache.saveCache(cachePath, cacheKey);
-            listener.markSaved(savedEntry.key, savedEntry.size);
+async function saveCache(cachePath, cacheKey, listener) {
+    try {
+        const savedEntry = await cache.saveCache(cachePath, cacheKey);
+        listener.markSaved(savedEntry.key, savedEntry.size);
+    }
+    catch (error) {
+        if (error instanceof cache.ReserveCacheError) {
+            listener.markAlreadyExists(cacheKey);
         }
-        catch (error) {
-            if (error instanceof cache.ReserveCacheError) {
-                listener.markAlreadyExists(cacheKey);
-            }
-            else {
-                listener.markNotSaved(error.message);
-            }
-            handleCacheFailure(error, `Failed to save cache entry with path '${cachePath}' and key: ${cacheKey}`);
+        else {
+            listener.markNotSaved(error.message);
         }
-    });
+        handleCacheFailure(error, `Failed to save cache entry with path '${cachePath}' and key: ${cacheKey}`);
+    }
 }
 exports.saveCache = saveCache;
 function cacheDebug(message) {
@@ -91750,49 +91695,43 @@ function handleCacheFailure(error, message) {
     }
 }
 exports.handleCacheFailure = handleCacheFailure;
-function tryDelete(file) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const maxAttempts = 5;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            if (!fs.existsSync(file)) {
-                return;
+async function tryDelete(file) {
+    const maxAttempts = 5;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        if (!fs.existsSync(file)) {
+            return;
+        }
+        try {
+            const stat = fs.lstatSync(file);
+            if (stat.isDirectory()) {
+                fs.rmSync(file, { recursive: true });
             }
-            try {
-                const stat = fs.lstatSync(file);
-                if (stat.isDirectory()) {
-                    fs.rmSync(file, { recursive: true });
-                }
-                else {
-                    fs.unlinkSync(file);
-                }
-                return;
+            else {
+                fs.unlinkSync(file);
             }
-            catch (error) {
-                if (attempt === maxAttempts) {
-                    core.warning(`Failed to delete ${file}, which will impact caching. 
+            return;
+        }
+        catch (error) {
+            if (attempt === maxAttempts) {
+                core.warning(`Failed to delete ${file}, which will impact caching. 
 It is likely locked by another process. Output of 'jps -ml':
-${yield getJavaProcesses()}`);
-                    throw error;
-                }
-                else {
-                    cacheDebug(`Attempt to delete ${file} failed. Will try again.`);
-                    yield delay(1000);
-                }
+${await getJavaProcesses()}`);
+                throw error;
+            }
+            else {
+                cacheDebug(`Attempt to delete ${file} failed. Will try again.`);
+                await delay(1000);
             }
         }
-    });
+    }
 }
 exports.tryDelete = tryDelete;
-function delay(ms) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    });
+async function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
-function getJavaProcesses() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const jpsOutput = yield exec.getExecOutput('jps', ['-lm']);
-        return jpsOutput.stdout;
-    });
+async function getJavaProcesses() {
+    const jpsOutput = await exec.getExecOutput('jps', ['-lm']);
+    return jpsOutput.stdout;
 }
 
 
@@ -91826,92 +91765,79 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.save = exports.restore = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const gradle_user_home_cache_1 = __nccwpck_require__(7655);
 const cache_cleaner_1 = __nccwpck_require__(651);
 const CACHE_RESTORED_VAR = 'GRADLE_BUILD_ACTION_CACHE_RESTORED';
-function restore(userHome, gradleUserHome, cacheListener, cacheConfig) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (process.env[CACHE_RESTORED_VAR]) {
-            core.info('Cache only restored on first action step.');
-            return;
-        }
-        core.exportVariable(CACHE_RESTORED_VAR, true);
-        const gradleStateCache = new gradle_user_home_cache_1.GradleUserHomeCache(userHome, gradleUserHome, cacheConfig);
-        if (cacheConfig.isCacheDisabled()) {
-            core.info('Cache is disabled: will not restore state from previous builds.');
+async function restore(userHome, gradleUserHome, cacheListener, cacheConfig) {
+    if (process.env[CACHE_RESTORED_VAR]) {
+        core.info('Cache only restored on first action step.');
+        return;
+    }
+    core.exportVariable(CACHE_RESTORED_VAR, true);
+    const gradleStateCache = new gradle_user_home_cache_1.GradleUserHomeCache(userHome, gradleUserHome, cacheConfig);
+    if (cacheConfig.isCacheDisabled()) {
+        core.info('Cache is disabled: will not restore state from previous builds.');
+        gradleStateCache.init();
+        cacheListener.cacheDisabled = true;
+        return;
+    }
+    if (gradleStateCache.cacheOutputExists()) {
+        if (!cacheConfig.isCacheOverwriteExisting()) {
+            core.info('Gradle User Home already exists: will not restore from cache.');
             gradleStateCache.init();
             cacheListener.cacheDisabled = true;
+            cacheListener.cacheDisabledReason = 'disabled due to pre-existing Gradle User Home';
             return;
         }
-        if (gradleStateCache.cacheOutputExists()) {
-            if (!cacheConfig.isCacheOverwriteExisting()) {
-                core.info('Gradle User Home already exists: will not restore from cache.');
-                gradleStateCache.init();
-                cacheListener.cacheDisabled = true;
-                cacheListener.cacheDisabledReason = 'disabled due to pre-existing Gradle User Home';
-                return;
-            }
-            core.info('Gradle User Home already exists: will overwrite with cached contents.');
-        }
-        gradleStateCache.init();
-        core.saveState(CACHE_RESTORED_VAR, true);
-        if (cacheConfig.isCacheWriteOnly()) {
-            core.info('Cache is write-only: will not restore from cache.');
-            cacheListener.cacheWriteOnly = true;
-            return;
-        }
-        yield core.group('Restore Gradle state from cache', () => __awaiter(this, void 0, void 0, function* () {
-            yield gradleStateCache.restore(cacheListener);
-        }));
-        if (cacheConfig.isCacheCleanupEnabled()) {
-            core.info('Preparing cache for cleanup.');
-            const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
-            yield cacheCleaner.prepare();
-        }
+        core.info('Gradle User Home already exists: will overwrite with cached contents.');
+    }
+    gradleStateCache.init();
+    core.saveState(CACHE_RESTORED_VAR, true);
+    if (cacheConfig.isCacheWriteOnly()) {
+        core.info('Cache is write-only: will not restore from cache.');
+        cacheListener.cacheWriteOnly = true;
+        return;
+    }
+    await core.group('Restore Gradle state from cache', async () => {
+        await gradleStateCache.restore(cacheListener);
     });
+    if (cacheConfig.isCacheCleanupEnabled()) {
+        core.info('Preparing cache for cleanup.');
+        const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
+        await cacheCleaner.prepare();
+    }
 }
 exports.restore = restore;
-function save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (cacheConfig.isCacheDisabled()) {
-            core.info('Cache is disabled: will not save state for later builds.');
-            return;
+async function save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig) {
+    if (cacheConfig.isCacheDisabled()) {
+        core.info('Cache is disabled: will not save state for later builds.');
+        return;
+    }
+    if (!core.getState(CACHE_RESTORED_VAR)) {
+        core.info('Cache will not be saved: not restored in main action step.');
+        return;
+    }
+    if (cacheConfig.isCacheReadOnly()) {
+        core.info('Cache is read-only: will not save state for use in subsequent builds.');
+        cacheListener.cacheReadOnly = true;
+        return;
+    }
+    await daemonController.stopAllDaemons();
+    if (cacheConfig.isCacheCleanupEnabled()) {
+        core.info('Forcing cache cleanup.');
+        const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
+        try {
+            await cacheCleaner.forceCleanup();
         }
-        if (!core.getState(CACHE_RESTORED_VAR)) {
-            core.info('Cache will not be saved: not restored in main action step.');
-            return;
+        catch (e) {
+            core.warning(`Cache cleanup failed. Will continue. ${String(e)}`);
         }
-        if (cacheConfig.isCacheReadOnly()) {
-            core.info('Cache is read-only: will not save state for use in subsequent builds.');
-            cacheListener.cacheReadOnly = true;
-            return;
-        }
-        yield daemonController.stopAllDaemons();
-        if (cacheConfig.isCacheCleanupEnabled()) {
-            core.info('Forcing cache cleanup.');
-            const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
-            try {
-                yield cacheCleaner.forceCleanup();
-            }
-            catch (e) {
-                core.warning(`Cache cleanup failed. Will continue. ${String(e)}`);
-            }
-        }
-        yield core.group('Caching Gradle state', () => __awaiter(this, void 0, void 0, function* () {
-            return new gradle_user_home_cache_1.GradleUserHomeCache(userHome, gradleUserHome, cacheConfig).save(cacheListener);
-        }));
+    }
+    await core.group('Caching Gradle state', async () => {
+        return new gradle_user_home_cache_1.GradleUserHomeCache(userHome, gradleUserHome, cacheConfig).save(cacheListener);
     });
 }
 exports.save = save;
@@ -91946,15 +91872,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -92006,91 +91923,82 @@ class AbstractEntryExtractor {
         this.extractorName = extractorName;
         this.cacheConfig = cacheConfig;
     }
-    restore(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const previouslyExtractedCacheEntries = this.loadExtractedCacheEntries();
-            const processes = [];
-            for (const cacheEntry of previouslyExtractedCacheEntries) {
-                const artifactType = cacheEntry.artifactType;
-                const entryListener = listener.entry(cacheEntry.pattern);
-                const skipRestore = process.env[SKIP_RESTORE_VAR] || '';
-                if (skipRestore.includes(artifactType)) {
-                    core.info(`Not restoring extracted cache entry for ${artifactType}`);
-                    entryListener.markRequested('SKIP_RESTORE');
-                }
-                else {
-                    processes.push(this.awaitForDebugging(this.restoreExtractedCacheEntry(artifactType, cacheEntry.cacheKey, cacheEntry.pattern, entryListener)));
-                }
-            }
-            this.saveMetadataForCacheResults(yield Promise.all(processes));
-        });
-    }
-    restoreExtractedCacheEntry(artifactType, cacheKey, pattern, listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const restoredEntry = yield (0, cache_utils_1.restoreCache)([pattern], cacheKey, [], listener);
-            if (restoredEntry) {
-                core.info(`Restored ${artifactType} with key ${cacheKey} to ${pattern}`);
-                return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
+    async restore(listener) {
+        const previouslyExtractedCacheEntries = this.loadExtractedCacheEntries();
+        const processes = [];
+        for (const cacheEntry of previouslyExtractedCacheEntries) {
+            const artifactType = cacheEntry.artifactType;
+            const entryListener = listener.entry(cacheEntry.pattern);
+            const skipRestore = process.env[SKIP_RESTORE_VAR] || '';
+            if (skipRestore.includes(artifactType)) {
+                core.info(`Not restoring extracted cache entry for ${artifactType}`);
+                entryListener.markRequested('SKIP_RESTORE');
             }
             else {
-                core.info(`Did not restore ${artifactType} with key ${cacheKey} to ${pattern}`);
-                return new ExtractedCacheEntry(artifactType, pattern, undefined);
+                processes.push(this.awaitForDebugging(this.restoreExtractedCacheEntry(artifactType, cacheEntry.cacheKey, cacheEntry.pattern, entryListener)));
             }
-        });
+        }
+        this.saveMetadataForCacheResults(await Promise.all(processes));
     }
-    extract(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
-            (0, cache_utils_1.cacheDebug)(`Extracting cache entries for ${this.extractorName}: ${JSON.stringify(cacheEntryDefinitions, null, 2)}`);
-            const previouslyRestoredEntries = this.loadExtractedCacheEntries();
-            const cacheActions = [];
-            for (const cacheEntryDefinition of cacheEntryDefinitions) {
-                const artifactType = cacheEntryDefinition.artifactType;
-                const pattern = cacheEntryDefinition.pattern;
-                if (cacheEntryDefinition.notCacheableReason) {
-                    listener.entry(pattern).markNotSaved(cacheEntryDefinition.notCacheableReason);
-                    continue;
-                }
-                const globber = yield glob.create(pattern, {
-                    implicitDescendants: false
-                });
-                const matchingFiles = yield globber.glob();
-                if (matchingFiles.length === 0) {
-                    (0, cache_utils_1.cacheDebug)(`No files found to cache for ${artifactType}`);
-                    continue;
-                }
-                if (cacheEntryDefinition.bundle) {
-                    cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry(matchingFiles, artifactType, pattern, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(pattern))));
-                }
-                else {
-                    for (const cacheFile of matchingFiles) {
-                        cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry([cacheFile], artifactType, cacheFile, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(cacheFile))));
-                    }
-                }
-            }
-            this.saveMetadataForCacheResults(yield Promise.all(cacheActions));
-        });
-    }
-    saveExtractedCacheEntry(matchingFiles, artifactType, pattern, uniqueFileNames, previouslyRestoredEntries, entryListener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const cacheKey = uniqueFileNames
-                ? this.createCacheKeyFromFileNames(artifactType, matchingFiles)
-                : yield this.createCacheKeyFromFileContents(artifactType, pattern);
-            const previouslyRestoredKey = (_a = previouslyRestoredEntries.find(x => x.artifactType === artifactType && x.pattern === pattern)) === null || _a === void 0 ? void 0 : _a.cacheKey;
-            if (previouslyRestoredKey === cacheKey) {
-                (0, cache_utils_1.cacheDebug)(`No change to previously restored ${artifactType}. Not saving.`);
-                entryListener.markNotSaved('contents unchanged');
-            }
-            else {
-                core.info(`Caching ${artifactType} with path '${pattern}' and cache key: ${cacheKey}`);
-                yield (0, cache_utils_1.saveCache)([pattern], cacheKey, entryListener);
-            }
-            for (const file of matchingFiles) {
-                (0, cache_utils_1.tryDelete)(file);
-            }
+    async restoreExtractedCacheEntry(artifactType, cacheKey, pattern, listener) {
+        const restoredEntry = await (0, cache_utils_1.restoreCache)([pattern], cacheKey, [], listener);
+        if (restoredEntry) {
+            core.info(`Restored ${artifactType} with key ${cacheKey} to ${pattern}`);
             return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
-        });
+        }
+        else {
+            core.info(`Did not restore ${artifactType} with key ${cacheKey} to ${pattern}`);
+            return new ExtractedCacheEntry(artifactType, pattern, undefined);
+        }
+    }
+    async extract(listener) {
+        const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
+        (0, cache_utils_1.cacheDebug)(`Extracting cache entries for ${this.extractorName}: ${JSON.stringify(cacheEntryDefinitions, null, 2)}`);
+        const previouslyRestoredEntries = this.loadExtractedCacheEntries();
+        const cacheActions = [];
+        for (const cacheEntryDefinition of cacheEntryDefinitions) {
+            const artifactType = cacheEntryDefinition.artifactType;
+            const pattern = cacheEntryDefinition.pattern;
+            if (cacheEntryDefinition.notCacheableReason) {
+                listener.entry(pattern).markNotSaved(cacheEntryDefinition.notCacheableReason);
+                continue;
+            }
+            const globber = await glob.create(pattern, {
+                implicitDescendants: false
+            });
+            const matchingFiles = await globber.glob();
+            if (matchingFiles.length === 0) {
+                (0, cache_utils_1.cacheDebug)(`No files found to cache for ${artifactType}`);
+                continue;
+            }
+            if (cacheEntryDefinition.bundle) {
+                cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry(matchingFiles, artifactType, pattern, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(pattern))));
+            }
+            else {
+                for (const cacheFile of matchingFiles) {
+                    cacheActions.push(this.awaitForDebugging(this.saveExtractedCacheEntry([cacheFile], artifactType, cacheFile, cacheEntryDefinition.uniqueFileNames, previouslyRestoredEntries, listener.entry(cacheFile))));
+                }
+            }
+        }
+        this.saveMetadataForCacheResults(await Promise.all(cacheActions));
+    }
+    async saveExtractedCacheEntry(matchingFiles, artifactType, pattern, uniqueFileNames, previouslyRestoredEntries, entryListener) {
+        const cacheKey = uniqueFileNames
+            ? this.createCacheKeyFromFileNames(artifactType, matchingFiles)
+            : await this.createCacheKeyFromFileContents(artifactType, pattern);
+        const previouslyRestoredKey = previouslyRestoredEntries.find(x => x.artifactType === artifactType && x.pattern === pattern)?.cacheKey;
+        if (previouslyRestoredKey === cacheKey) {
+            (0, cache_utils_1.cacheDebug)(`No change to previously restored ${artifactType}. Not saving.`);
+            entryListener.markNotSaved('contents unchanged');
+        }
+        else {
+            core.info(`Caching ${artifactType} with path '${pattern}' and cache key: ${cacheKey}`);
+            await (0, cache_utils_1.saveCache)([pattern], cacheKey, entryListener);
+        }
+        for (const file of matchingFiles) {
+            (0, cache_utils_1.tryDelete)(file);
+        }
+        return new ExtractedCacheEntry(artifactType, pattern, cacheKey);
     }
     createCacheKeyFromFileNames(artifactType, files) {
         const relativeFiles = files.map(x => path_1.default.relative(this.gradleUserHome, x));
@@ -92098,20 +92006,16 @@ class AbstractEntryExtractor {
         (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from file names: ${relativeFiles}`);
         return `${(0, cache_key_1.getCacheKeyBase)(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`;
     }
-    createCacheKeyFromFileContents(artifactType, pattern) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const key = yield glob.hashFiles(pattern);
-            (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from files matching: ${pattern}`);
-            return `${(0, cache_key_1.getCacheKeyBase)(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`;
-        });
+    async createCacheKeyFromFileContents(artifactType, pattern) {
+        const key = await glob.hashFiles(pattern);
+        (0, cache_utils_1.cacheDebug)(`Generating cache key for ${artifactType} from files matching: ${pattern}`);
+        return `${(0, cache_key_1.getCacheKeyBase)(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`;
     }
-    awaitForDebugging(p) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if ((0, cache_utils_1.isCacheDebuggingEnabled)()) {
-                yield p;
-            }
-            return p;
-        });
+    async awaitForDebugging(p) {
+        if ((0, cache_utils_1.isCacheDebuggingEnabled)()) {
+            await p;
+        }
+        return p;
     }
     loadExtractedCacheEntries() {
         const cacheMetadataFile = this.getCacheMetadataFile();
@@ -92140,26 +92044,19 @@ class GradleHomeEntryExtractor extends AbstractEntryExtractor {
     constructor(gradleUserHome, cacheConfig) {
         super(gradleUserHome, 'gradle-home', cacheConfig);
     }
-    extract(listener) {
-        const _super = Object.create(null, {
-            extract: { get: () => super.extract }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.deleteWrapperZips();
-            return _super.extract.call(this, listener);
-        });
+    async extract(listener) {
+        await this.deleteWrapperZips();
+        return super.extract(listener);
     }
-    deleteWrapperZips() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const wrapperZips = path_1.default.resolve(this.gradleUserHome, 'wrapper/dists/*/*/*.zip');
-            const globber = yield glob.create(wrapperZips, {
-                implicitDescendants: false
-            });
-            for (const wrapperZip of yield globber.glob()) {
-                (0, cache_utils_1.cacheDebug)(`Deleting wrapper zip: ${wrapperZip}`);
-                yield (0, cache_utils_1.tryDelete)(wrapperZip);
-            }
+    async deleteWrapperZips() {
+        const wrapperZips = path_1.default.resolve(this.gradleUserHome, 'wrapper/dists/*/*/*.zip');
+        const globber = await glob.create(wrapperZips, {
+            implicitDescendants: false
         });
+        for (const wrapperZip of await globber.glob()) {
+            (0, cache_utils_1.cacheDebug)(`Deleting wrapper zip: ${wrapperZip}`);
+            await (0, cache_utils_1.tryDelete)(wrapperZip);
+        }
     }
     getExtractedCacheEntryDefinitions() {
         const entryDefinition = (artifactType, patterns, bundle) => {
@@ -92187,21 +92084,16 @@ class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
     constructor(gradleUserHome, cacheConfig) {
         super(gradleUserHome, 'configuration-cache', cacheConfig);
     }
-    restore(listener) {
-        const _super = Object.create(null, {
-            restore: { get: () => super.restore }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!listener.fullyRestored) {
-                this.markNotRestored(listener, 'Gradle User Home was not fully restored');
-                return;
-            }
-            if (!this.cacheConfig.getCacheEncryptionKey()) {
-                this.markNotRestored(listener, 'Encryption Key was not provided');
-                return;
-            }
-            return yield _super.restore.call(this, listener);
-        });
+    async restore(listener) {
+        if (!listener.fullyRestored) {
+            this.markNotRestored(listener, 'Gradle User Home was not fully restored');
+            return;
+        }
+        if (!this.cacheConfig.getCacheEncryptionKey()) {
+            this.markNotRestored(listener, 'Encryption Key was not provided');
+            return;
+        }
+        return await super.restore(listener);
     }
     markNotRestored(listener, reason) {
         const cacheEntries = this.loadExtractedCacheEntries();
@@ -92213,23 +92105,18 @@ class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
             this.saveMetadataForCacheResults([]);
         }
     }
-    extract(listener) {
-        const _super = Object.create(null, {
-            extract: { get: () => super.extract }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.cacheConfig.getCacheEncryptionKey()) {
-                const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
-                if (cacheEntryDefinitions.length > 0) {
-                    core.info('Not saving configuration-cache state, as no encryption key was provided');
-                    for (const cacheEntry of cacheEntryDefinitions) {
-                        listener.entry(cacheEntry.pattern).markNotSaved('No encryption key provided');
-                    }
+    async extract(listener) {
+        if (!this.cacheConfig.getCacheEncryptionKey()) {
+            const cacheEntryDefinitions = this.getExtractedCacheEntryDefinitions();
+            if (cacheEntryDefinitions.length > 0) {
+                core.info('Not saving configuration-cache state, as no encryption key was provided');
+                for (const cacheEntry of cacheEntryDefinitions) {
+                    listener.entry(cacheEntry.pattern).markNotSaved('No encryption key provided');
                 }
-                return;
             }
-            yield _super.extract.call(this, listener);
-        });
+            return;
+        }
+        await super.extract(listener);
     }
     getExtractedCacheEntryDefinitions() {
         const groupedResults = this.getConfigCacheDirectoriesWithAssociatedBuildResults();
@@ -92292,15 +92179,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -92340,93 +92218,83 @@ class GradleUserHomeCache {
         }
         return false;
     }
-    restore(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const entryListener = listener.entry(this.cacheDescription);
-            const cacheKey = (0, cache_key_1.generateCacheKey)(this.cacheName, this.cacheConfig);
-            (0, cache_utils_1.cacheDebug)(`Requesting ${this.cacheDescription} with
+    async restore(listener) {
+        const entryListener = listener.entry(this.cacheDescription);
+        const cacheKey = (0, cache_key_1.generateCacheKey)(this.cacheName, this.cacheConfig);
+        (0, cache_utils_1.cacheDebug)(`Requesting ${this.cacheDescription} with
     key:${cacheKey.key}
     restoreKeys:[${cacheKey.restoreKeys}]`);
-            const cacheResult = yield (0, cache_utils_1.restoreCache)(this.getCachePath(), cacheKey.key, cacheKey.restoreKeys, entryListener);
-            if (!cacheResult) {
-                core.info(`${this.cacheDescription} cache not found. Will initialize empty.`);
-                return;
-            }
-            core.saveState(RESTORED_CACHE_KEY_KEY, cacheResult.key);
-            core.info(`Restored ${this.cacheDescription} from cache key: ${cacheResult.key}`);
-            try {
-                yield this.afterRestore(listener);
-            }
-            catch (error) {
-                core.warning(`Restore ${this.cacheDescription} failed in 'afterRestore': ${error}`);
-            }
-        });
-    }
-    afterRestore(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.debugReportGradleUserHomeSize('as restored from cache');
-            yield new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
-            yield new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
-            yield this.debugReportGradleUserHomeSize('after restoring common artifacts');
-        });
-    }
-    save(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const cacheKey = (0, cache_key_1.generateCacheKey)(this.cacheName, this.cacheConfig).key;
-            const restoredCacheKey = core.getState(RESTORED_CACHE_KEY_KEY);
-            const gradleHomeEntryListener = listener.entry(this.cacheDescription);
-            if (restoredCacheKey && cacheKey === restoredCacheKey) {
-                core.info(`Cache hit occurred on the cache key ${cacheKey}, not saving cache.`);
-                for (const entryListener of listener.cacheEntries) {
-                    if (entryListener === gradleHomeEntryListener) {
-                        entryListener.markNotSaved('cache key not changed');
-                    }
-                    else {
-                        entryListener.markNotSaved(`referencing '${this.cacheDescription}' cache entry not saved`);
-                    }
-                }
-                return;
-            }
-            try {
-                yield this.beforeSave(listener);
-            }
-            catch (error) {
-                core.warning(`Save ${this.cacheDescription} failed in 'beforeSave': ${error}`);
-                return;
-            }
-            core.info(`Caching ${this.cacheDescription} with cache key: ${cacheKey}`);
-            const cachePath = this.getCachePath();
-            yield (0, cache_utils_1.saveCache)(cachePath, cacheKey, gradleHomeEntryListener);
+        const cacheResult = await (0, cache_utils_1.restoreCache)(this.getCachePath(), cacheKey.key, cacheKey.restoreKeys, entryListener);
+        if (!cacheResult) {
+            core.info(`${this.cacheDescription} cache not found. Will initialize empty.`);
             return;
-        });
+        }
+        core.saveState(RESTORED_CACHE_KEY_KEY, cacheResult.key);
+        core.info(`Restored ${this.cacheDescription} from cache key: ${cacheResult.key}`);
+        try {
+            await this.afterRestore(listener);
+        }
+        catch (error) {
+            core.warning(`Restore ${this.cacheDescription} failed in 'afterRestore': ${error}`);
+        }
     }
-    beforeSave(listener) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.debugReportGradleUserHomeSize('before saving common artifacts');
-            yield this.deleteExcludedPaths();
-            yield Promise.all([
-                new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener),
-                new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
-            ]);
-            yield this.debugReportGradleUserHomeSize("after extracting common artifacts (only 'caches' and 'notifications' will be stored)");
-        });
+    async afterRestore(listener) {
+        await this.debugReportGradleUserHomeSize('as restored from cache');
+        await new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
+        await new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
+        await this.debugReportGradleUserHomeSize('after restoring common artifacts');
     }
-    deleteExcludedPaths() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const rawPaths = this.cacheConfig.getCacheExcludes();
-            rawPaths.push('caches/*/cc-keystore');
-            const resolvedPaths = rawPaths.map(x => path_1.default.resolve(this.gradleUserHome, x));
-            for (const p of resolvedPaths) {
-                (0, cache_utils_1.cacheDebug)(`Removing excluded path: ${p}`);
-                const globber = yield glob.create(p, {
-                    implicitDescendants: false
-                });
-                for (const toDelete of yield globber.glob()) {
-                    (0, cache_utils_1.cacheDebug)(`Removing excluded file: ${toDelete}`);
-                    yield (0, cache_utils_1.tryDelete)(toDelete);
+    async save(listener) {
+        const cacheKey = (0, cache_key_1.generateCacheKey)(this.cacheName, this.cacheConfig).key;
+        const restoredCacheKey = core.getState(RESTORED_CACHE_KEY_KEY);
+        const gradleHomeEntryListener = listener.entry(this.cacheDescription);
+        if (restoredCacheKey && cacheKey === restoredCacheKey) {
+            core.info(`Cache hit occurred on the cache key ${cacheKey}, not saving cache.`);
+            for (const entryListener of listener.cacheEntries) {
+                if (entryListener === gradleHomeEntryListener) {
+                    entryListener.markNotSaved('cache key not changed');
+                }
+                else {
+                    entryListener.markNotSaved(`referencing '${this.cacheDescription}' cache entry not saved`);
                 }
             }
-        });
+            return;
+        }
+        try {
+            await this.beforeSave(listener);
+        }
+        catch (error) {
+            core.warning(`Save ${this.cacheDescription} failed in 'beforeSave': ${error}`);
+            return;
+        }
+        core.info(`Caching ${this.cacheDescription} with cache key: ${cacheKey}`);
+        const cachePath = this.getCachePath();
+        await (0, cache_utils_1.saveCache)(cachePath, cacheKey, gradleHomeEntryListener);
+        return;
+    }
+    async beforeSave(listener) {
+        await this.debugReportGradleUserHomeSize('before saving common artifacts');
+        await this.deleteExcludedPaths();
+        await Promise.all([
+            new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener),
+            new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
+        ]);
+        await this.debugReportGradleUserHomeSize("after extracting common artifacts (only 'caches' and 'notifications' will be stored)");
+    }
+    async deleteExcludedPaths() {
+        const rawPaths = this.cacheConfig.getCacheExcludes();
+        rawPaths.push('caches/*/cc-keystore');
+        const resolvedPaths = rawPaths.map(x => path_1.default.resolve(this.gradleUserHome, x));
+        for (const p of resolvedPaths) {
+            (0, cache_utils_1.cacheDebug)(`Removing excluded path: ${p}`);
+            const globber = await glob.create(p, {
+                implicitDescendants: false
+            });
+            for (const toDelete of await globber.glob()) {
+                (0, cache_utils_1.cacheDebug)(`Removing excluded file: ${toDelete}`);
+                await (0, cache_utils_1.tryDelete)(toDelete);
+            }
+        }
     }
     getCachePath() {
         const rawPaths = this.cacheConfig.getCacheIncludes();
@@ -92498,30 +92366,28 @@ class GradleUserHomeCache {
             fs_1.default.writeFileSync(propertiesFile, infoProperties);
         }
     }
-    debugReportGradleUserHomeSize(label) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!(0, cache_utils_1.isCacheDebuggingEnabled)() && !core.isDebug()) {
-                return;
-            }
-            if (!fs_1.default.existsSync(this.gradleUserHome)) {
-                return;
-            }
-            const result = yield exec.getExecOutput('du', ['-h', '-c', '-t', '5M'], {
-                cwd: this.gradleUserHome,
-                silent: true,
-                ignoreReturnCode: true
-            });
-            core.info(`Gradle User Home (directories >5M): ${label}`);
-            core.info(result.stdout
-                .trimEnd()
-                .replace(/\t/g, '    ')
-                .split('\n')
-                .map(it => {
-                return `  ${it}`;
-            })
-                .join('\n'));
-            core.info('-----------------------');
+    async debugReportGradleUserHomeSize(label) {
+        if (!(0, cache_utils_1.isCacheDebuggingEnabled)() && !core.isDebug()) {
+            return;
+        }
+        if (!fs_1.default.existsSync(this.gradleUserHome)) {
+            return;
+        }
+        const result = await exec.getExecOutput('du', ['-h', '-c', '-t', '5M'], {
+            cwd: this.gradleUserHome,
+            silent: true,
+            ignoreReturnCode: true
         });
+        core.info(`Gradle User Home (directories >5M): ${label}`);
+        core.info(result.stdout
+            .trimEnd()
+            .replace(/\t/g, '    ')
+            .split('\n')
+            .map(it => {
+            return `  ${it}`;
+        })
+            .join('\n'));
+        core.info('-----------------------');
     }
 }
 exports.GradleUserHomeCache = GradleUserHomeCache;
@@ -92547,7 +92413,6 @@ function readResourceFileAsString(...paths) {
 }
 exports.readResourceFileAsString = readResourceFileAsString;
 function getPredefinedToolchains() {
-    var _a;
     const javaHomeEnvs = [];
     for (const javaHomeEnvsKey in process.env) {
         if (javaHomeEnvsKey.startsWith('JAVA_HOME_')) {
@@ -92562,7 +92427,7 @@ function getPredefinedToolchains() {
 <!-- JDK Toolchains installed by default on GitHub-hosted runners -->
 `;
     for (const javaHomeEnv of javaHomeEnvs) {
-        const version = (_a = javaHomeEnv.match(/JAVA_HOME_(\d+)_/)) === null || _a === void 0 ? void 0 : _a[1];
+        const version = javaHomeEnv.match(/JAVA_HOME_(\d+)_/)?.[1];
         toolchainsXml += `  <toolchain>
     <type>jdk</type>
     <provides>
@@ -92906,15 +92771,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DaemonController = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -92926,24 +92782,22 @@ class DaemonController {
         const allHomes = buildResults.map(buildResult => buildResult.gradleHomeDir);
         this.gradleHomes = Array.from(new Set(allHomes));
     }
-    stopAllDaemons() {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.info('Stopping all Gradle daemons before saving Gradle User Home state');
-            const executions = [];
-            const args = ['--stop'];
-            for (const gradleHome of this.gradleHomes) {
-                const executable = path.resolve(gradleHome, 'bin', 'gradle');
-                if (!fs.existsSync(executable)) {
-                    core.warning(`Gradle executable not found at ${executable}. Could not stop Gradle daemons.`);
-                    continue;
-                }
-                core.info(`Stopping Gradle daemons for ${gradleHome}`);
-                executions.push(exec.exec(executable, args, {
-                    ignoreReturnCode: true
-                }));
+    async stopAllDaemons() {
+        core.info('Stopping all Gradle daemons before saving Gradle User Home state');
+        const executions = [];
+        const args = ['--stop'];
+        for (const gradleHome of this.gradleHomes) {
+            const executable = path.resolve(gradleHome, 'bin', 'gradle');
+            if (!fs.existsSync(executable)) {
+                core.warning(`Gradle executable not found at ${executable}. Could not stop Gradle daemons.`);
+                continue;
             }
-            yield Promise.all(executions);
-        });
+            core.info(`Stopping Gradle daemons for ${gradleHome}`);
+            executions.push(exec.exec(executable, args, {
+                ignoreReturnCode: true
+            }));
+        }
+        await Promise.all(executions);
     }
 }
 exports.DaemonController = DaemonController;
@@ -92979,15 +92833,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -92995,21 +92840,19 @@ const setupGradle = __importStar(__nccwpck_require__(8652));
 const configuration_1 = __nccwpck_require__(5778);
 const errors_1 = __nccwpck_require__(6976);
 process.on('uncaughtException', e => handleFailure(e));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            yield setupGradle.complete(new configuration_1.CacheConfig(), new configuration_1.SummaryConfig());
+async function run() {
+    try {
+        await setupGradle.complete(new configuration_1.CacheConfig(), new configuration_1.SummaryConfig());
+    }
+    catch (error) {
+        if (error instanceof errors_1.PostActionJobFailure) {
+            core.setFailed(String(error));
         }
-        catch (error) {
-            if (error instanceof errors_1.PostActionJobFailure) {
-                core.setFailed(String(error));
-            }
-            else {
-                handleFailure(error);
-            }
+        else {
+            handleFailure(error);
         }
-        process.exit();
-    });
+    }
+    process.exit();
 }
 exports.run = run;
 function handleFailure(error) {
@@ -93159,15 +93002,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateJobSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -93175,58 +93009,58 @@ const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
 const configuration_1 = __nccwpck_require__(5778);
 const deprecation_collector_1 = __nccwpck_require__(2572);
-function generateJobSummary(buildResults, cachingReport, config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const summaryTable = renderSummaryTable(buildResults);
-        const hasFailure = buildResults.some(result => result.buildFailed);
-        if (config.shouldGenerateJobSummary(hasFailure)) {
-            core.info('Generating Job Summary');
-            core.summary.addRaw(summaryTable);
-            core.summary.addRaw(cachingReport);
-            yield core.summary.write();
-        }
-        else {
-            core.info('============================');
-            core.info(summaryTable);
-            core.info('============================');
-            core.info(cachingReport);
-            core.info('============================');
-        }
-        if (config.shouldAddPRComment(hasFailure)) {
-            yield addPRComment(summaryTable);
-        }
-    });
+async function generateJobSummary(buildResults, cachingReport, config) {
+    const summaryTable = renderSummaryTable(buildResults);
+    const hasFailure = buildResults.some(result => result.buildFailed);
+    if (config.shouldGenerateJobSummary(hasFailure)) {
+        core.info('Generating Job Summary');
+        core.summary.addRaw(summaryTable);
+        core.summary.addRaw(cachingReport);
+        await core.summary.write();
+    }
+    else {
+        core.info('============================');
+        core.info(summaryTable);
+        core.info('============================');
+        core.info(cachingReport);
+        core.info('============================');
+    }
+    if (config.shouldAddPRComment(hasFailure)) {
+        await addPRComment(summaryTable);
+    }
 }
 exports.generateJobSummary = generateJobSummary;
-function addPRComment(jobSummary) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const context = github.context;
-        if (context.payload.pull_request == null) {
-            core.info('No pull_request trigger: not adding PR comment');
-            return;
-        }
-        const pull_request_number = context.payload.pull_request.number;
-        core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`);
-        const prComment = `<h3>Job Summary for Gradle</h3>
+async function addPRComment(jobSummary) {
+    const context = github.context;
+    if (context.payload.pull_request == null) {
+        core.info('No pull_request trigger: not adding PR comment');
+        return;
+    }
+    const pull_request_number = context.payload.pull_request.number;
+    core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`);
+    const prComment = `<h3>Job Summary for Gradle</h3>
 <a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
 </a>
 
 ${jobSummary}`;
-        const github_token = (0, configuration_1.getGithubToken)();
-        const octokit = github.getOctokit(github_token);
-        try {
-            yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, context.repo), { issue_number: pull_request_number, body: prComment }));
+    const github_token = (0, configuration_1.getGithubToken)();
+    const octokit = github.getOctokit(github_token);
+    try {
+        await octokit.rest.issues.createComment({
+            ...context.repo,
+            issue_number: pull_request_number,
+            body: prComment
+        });
+    }
+    catch (error) {
+        if (error instanceof request_error_1.RequestError) {
+            core.warning(buildWarningMessage(error));
         }
-        catch (error) {
-            if (error instanceof request_error_1.RequestError) {
-                core.warning(buildWarningMessage(error));
-            }
-            else {
-                throw error;
-            }
+        else {
+            throw error;
         }
-    });
+    }
 }
 function buildWarningMessage(error) {
     const mainWarning = `Failed to generate PR comment.\n${String(error)}`;
@@ -93341,15 +93175,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.complete = exports.setup = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -93367,70 +93192,62 @@ const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED';
 const USER_HOME = 'USER_HOME';
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME';
 const CACHE_LISTENER = 'CACHE_LISTENER';
-function setup(cacheConfig, buildScanConfig) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const userHome = yield determineUserHome();
-        const gradleUserHome = yield determineGradleUserHome();
-        if (process.env[GRADLE_SETUP_VAR]) {
-            core.info('Gradle setup only performed on first gradle/actions step in workflow.');
-            return false;
-        }
-        core.exportVariable(GRADLE_SETUP_VAR, true);
-        core.saveState(GRADLE_SETUP_VAR, true);
-        core.saveState(USER_HOME, userHome);
-        core.saveState(GRADLE_USER_HOME, gradleUserHome);
-        const cacheListener = new cache_reporting_1.CacheListener();
-        yield caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig);
-        core.saveState(CACHE_LISTENER, cacheListener.stringify());
-        buildScan.setup(buildScanConfig);
-        return true;
-    });
+async function setup(cacheConfig, buildScanConfig) {
+    const userHome = await determineUserHome();
+    const gradleUserHome = await determineGradleUserHome();
+    if (process.env[GRADLE_SETUP_VAR]) {
+        core.info('Gradle setup only performed on first gradle/actions step in workflow.');
+        return false;
+    }
+    core.exportVariable(GRADLE_SETUP_VAR, true);
+    core.saveState(GRADLE_SETUP_VAR, true);
+    core.saveState(USER_HOME, userHome);
+    core.saveState(GRADLE_USER_HOME, gradleUserHome);
+    const cacheListener = new cache_reporting_1.CacheListener();
+    await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig);
+    core.saveState(CACHE_LISTENER, cacheListener.stringify());
+    buildScan.setup(buildScanConfig);
+    return true;
 }
 exports.setup = setup;
-function complete(cacheConfig, summaryConfig) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!core.getState(GRADLE_SETUP_VAR)) {
-            core.info('Gradle setup post-action only performed for first gradle/actions step in workflow.');
-            return false;
-        }
-        core.info('In post-action step');
-        const buildResults = (0, build_results_1.loadBuildResults)();
-        const userHome = core.getState(USER_HOME);
-        const gradleUserHome = core.getState(GRADLE_USER_HOME);
-        const cacheListener = cache_reporting_1.CacheListener.rehydrate(core.getState(CACHE_LISTENER));
-        const daemonController = new daemon_controller_1.DaemonController(buildResults);
-        yield caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig);
-        const cachingReport = (0, cache_reporting_1.generateCachingReport)(cacheListener);
-        yield jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig);
-        (0, build_results_1.markBuildResultsProcessed)();
-        core.info('Completed post-action step');
-        return true;
-    });
+async function complete(cacheConfig, summaryConfig) {
+    if (!core.getState(GRADLE_SETUP_VAR)) {
+        core.info('Gradle setup post-action only performed for first gradle/actions step in workflow.');
+        return false;
+    }
+    core.info('In post-action step');
+    const buildResults = (0, build_results_1.loadBuildResults)();
+    const userHome = core.getState(USER_HOME);
+    const gradleUserHome = core.getState(GRADLE_USER_HOME);
+    const cacheListener = cache_reporting_1.CacheListener.rehydrate(core.getState(CACHE_LISTENER));
+    const daemonController = new daemon_controller_1.DaemonController(buildResults);
+    await caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig);
+    const cachingReport = (0, cache_reporting_1.generateCachingReport)(cacheListener);
+    await jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig);
+    (0, build_results_1.markBuildResultsProcessed)();
+    core.info('Completed post-action step');
+    return true;
 }
 exports.complete = complete;
-function determineGradleUserHome() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const customGradleUserHome = process.env['GRADLE_USER_HOME'];
-        if (customGradleUserHome) {
-            const rootDir = (0, configuration_1.getWorkspaceDirectory)();
-            return path.resolve(rootDir, customGradleUserHome);
-        }
-        return path.resolve(yield determineUserHome(), '.gradle');
-    });
+async function determineGradleUserHome() {
+    const customGradleUserHome = process.env['GRADLE_USER_HOME'];
+    if (customGradleUserHome) {
+        const rootDir = (0, configuration_1.getWorkspaceDirectory)();
+        return path.resolve(rootDir, customGradleUserHome);
+    }
+    return path.resolve(await determineUserHome(), '.gradle');
 }
-function determineUserHome() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const output = yield exec.getExecOutput('java', ['-XshowSettings:properties', '-version'], { silent: true });
-        const regex = /user\.home = (\S*)/i;
-        const found = output.stderr.match(regex);
-        if (found == null || found.length <= 1) {
-            core.info('Could not determine user.home from java -version output. Using os.homedir().');
-            return os.homedir();
-        }
-        const userHome = found[1];
-        core.debug(`Determined user.home from java -version output: '${userHome}'`);
-        return userHome;
-    });
+async function determineUserHome() {
+    const output = await exec.getExecOutput('java', ['-XshowSettings:properties', '-version'], { silent: true });
+    const regex = /user\.home = (\S*)/i;
+    const found = output.stderr.match(regex);
+    if (found == null || found.length <= 1) {
+        core.info('Could not determine user.home from java -version output. Using os.homedir().');
+        return os.homedir();
+    }
+    const userHome = found[1];
+    core.debug(`Determined user.home from java -version output: '${userHome}'`);
+    return userHome;
 }
 
 
