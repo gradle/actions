@@ -10,6 +10,8 @@ import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
 import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './configuration'
+import {findInvalidWrapperJars} from './wrapper-validation/validate'
+import {JobFailure} from './errors'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
@@ -95,4 +97,17 @@ async function determineUserHome(): Promise<string> {
     const userHome = found[1]
     core.debug(`Determined user.home from java -version output: '${userHome}'`)
     return userHome
+}
+
+export async function checkNoInvalidWrapperJars(rootDir = getWorkspaceDirectory()): Promise<void> {
+    const allowedChecksums = process.env['ALLOWED_GRADLE_WRAPPER_CHECKSUMS']?.split(',') || []
+    const result = await findInvalidWrapperJars(rootDir, 1, false, allowedChecksums)
+    if (result.isValid()) {
+        core.info(result.toDisplayString())
+    } else {
+        core.info(result.toDisplayString())
+        throw new JobFailure(
+            `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`
+        )
+    }
 }

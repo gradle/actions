@@ -100,6 +100,14 @@ inputs:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
     required: false
 
+  # Wrapper validation configuration
+  validate-wrappers:
+    description: |
+      When 'true', the action will perform the 'wrapper-validation' action automatically.
+      If the wrapper checksums are not valid, the action will fail.
+    required: false
+    default: false
+
   # DEPRECATED ACTION INPUTS
   build-scan-terms-of-service-url:
     description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.

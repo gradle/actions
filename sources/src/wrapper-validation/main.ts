@@ -2,6 +2,7 @@ import * as path from 'path'
 import * as core from '@actions/core'
 
 import * as validate from './validate'
+import {handleMainActionError} from '../errors'
 
 export async function run(): Promise<void> {
     try {
@@ -15,23 +16,14 @@ export async function run(): Promise<void> {
             core.info(result.toDisplayString())
         } else {
             core.setFailed(
-                `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/wrapper-validation-action#reporting-failures\n${result.toDisplayString()}`
+                `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`
             )
             if (result.invalid.length > 0) {
                 core.setOutput('failed-wrapper', `${result.invalid.map(w => w.path).join('|')}`)
             }
         }
     } catch (error) {
-        if (error instanceof AggregateError) {
-            core.setFailed(`Multiple errors returned`)
-            for (const err of error.errors) {
-                core.error(`Error ${error.errors.indexOf(err)}: ${err.message}`)
-            }
-        } else if (error instanceof Error) {
-            core.setFailed(error.message)
-        } else {
-            core.setFailed(`Unknown object was thrown: ${error}`)
-        }
+        handleMainActionError(error)
     }
 }
 

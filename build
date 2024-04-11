@@ -3,8 +3,21 @@
 cd sources
 npm install
 
-if [ "$1" == "all" ]; then
-    npm run all
-else
-    npm run build
-fi
+case "$1" in
+    all)
+        nprm run all
+        ;;
+    act)
+        # Build and copy outputs to the dist directory
+        npm run build
+        cd ..
+        cp -r sources/dist .
+        # Run act
+        $@
+        # Revert the changes to the dist directory
+        git co -- dist
+        ;;
+    *)
+        npm run build
+        ;;
+esac
