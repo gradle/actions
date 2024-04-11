@@ -179,3 +179,7 @@ jobs:
     uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
     with:
       runner-os: '["ubuntu-latest"]'
+
+  wrapper-validation:
+    needs: [determine-suite, build-distribution]
+    uses: ./.github/workflows/integ-test-wrapper-validation.yml

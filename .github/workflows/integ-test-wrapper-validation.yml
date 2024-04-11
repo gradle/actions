@@ -1,0 +1,68 @@
+name: Test sample Kotlin DSL project
+
+on:
+  workflow_call:
+
+jobs:
+  # Integration test for successful validation of wrappers
+  test-validation-success:
+    name: 'Test: Validation success'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Run wrapper-validation-action
+      id: action-test
+      uses: ./wrapper-validation
+      with:
+        # to allow the invalid wrapper jar present in test data
+        allow-checksums: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+    - name: Check outcome
+      env:
+        # Evaluate workflow expressions here as env variable values instead of inside shell script
+        # below to not accidentally inject code into shell script or break its syntax
+        FAILED_WRAPPERS: ${{ steps.action-test.outputs.failed-wrapper }}
+        FAILED_WRAPPERS_MATCHES: ${{ steps.action-test.outputs.failed-wrapper == '' }}
+      run: |
+        if [ "$FAILED_WRAPPERS_MATCHES" != "true" ] ; then
+          echo "'outputs.failed-wrapper' has unexpected content: $FAILED_WRAPPERS"
+          exit 1
+        fi
+
+  # Integration test for failing validation of wrappers
+  test-validation-error:
+    name: 'Test: Validation error'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Run wrapper-validation-action
+      id: action-test
+      uses: ./wrapper-validation
+      # Expected to fail; validated below
+      continue-on-error: true
+
+    - name: Check outcome
+      env:
+        # Evaluate workflow expressions here as env variable values instead of inside shell script
+        # below to not accidentally inject code into shell script or break its syntax
+        VALIDATION_FAILED: ${{ steps.action-test.outcome == 'failure' }}
+        FAILED_WRAPPERS: ${{ steps.action-test.outputs.failed-wrapper }}
+        FAILED_WRAPPERS_MATCHES: ${{ steps.action-test.outputs.failed-wrapper == 'sources/test/jest/wrapper-validation/data/invalid/gradle-wrapper.jar|sources/test/jest/wrapper-validation/data/invalid/gradlе-wrapper.jar' }}
+      run: |
+        if [ "$VALIDATION_FAILED" != "true" ] ; then
+          echo "Expected validation to fail, but it didn't"
+          exit 1
+        fi
+
+        if [ "$FAILED_WRAPPERS_MATCHES" != "true" ] ; then
+          echo "'outputs.failed-wrapper' has unexpected content: $FAILED_WRAPPERS"
+          exit 1
+        fi
