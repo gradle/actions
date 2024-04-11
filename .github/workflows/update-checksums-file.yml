@@ -30,11 +30,9 @@ jobs:
       - name: Install dependencies
         run: |
           npm install typed-rest-client@1.8.11 --no-save
-        working-directory: sources
 
       - name: Update checksums file
-        run: node ../.github/workflows/update-checksums-file.js
-        working-directory: sources
+        run: node ./.github/workflows/update-checksums-file.js
 
       # If there are no changes, this action will not create a pull request
       - name: Create or update pull request
