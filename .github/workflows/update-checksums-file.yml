@@ -1,0 +1,55 @@
+name: 'Update Wrapper checksums file'
+
+on:
+  # Run weekly (at arbitrary time)
+  schedule:
+    - cron: '24 5 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-checksums:
+    name: Update checksums
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: sources/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm install typed-rest-client@1.8.11 --no-save
+        working-directory: sources
+
+      - name: Update checksums file
+        run: node ../.github/workflows/update-checksums-file.js
+        working-directory: sources
+
+      # If there are no changes, this action will not create a pull request
+      - name: Create or update pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: bot/wrapper-checksums-update
+          commit-message: Update known wrapper checksums
+          title: Update known wrapper checksums
+          # Note: Unfortunately this action cannot trigger the regular workflows for the PR automatically, see
+          # https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+          # Therefore suggest below to close and then reopen the PR
+          body: |
+            Automatically generated pull request to update the known wrapper checksums.
+
+            In case of conflicts, manually run the workflow from the [Actions tab](https://github.com/gradle/wrapper-validation-action/actions/workflows/update-checksums-file.yml), the changes will then be force-pushed onto this pull request branch.
+            Do not manually update the pull request branch; those changes might get overwritten.
+
+            > [!IMPORTANT]  
+            > GitHub workflows have not been executed for this pull request yet. Before merging, close and then directly reopen this pull request to trigger the workflows.
