@@ -7,7 +7,7 @@ on:
         type: string
 
 env:
-  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-custom-gradle-home-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-containerized-gradle-home-${{ inputs.cache-key-prefix }}
 
 jobs:
   seed-build:

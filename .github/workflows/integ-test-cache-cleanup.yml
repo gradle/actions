@@ -10,7 +10,7 @@ on:
         default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
 
 env:
-  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: integ-test-cache-cleanup-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: cache-cleanup-${{ inputs.cache-key-prefix }}
 
 jobs:
   full-build:
