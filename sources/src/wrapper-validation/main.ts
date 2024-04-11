@@ -16,7 +16,7 @@ export async function run(): Promise<void> {
             core.info(result.toDisplayString())
         } else {
             core.setFailed(
-                `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/wrapper-validation-action#reporting-failures\n${result.toDisplayString()}`
+                `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`
             )
             if (result.invalid.length > 0) {
                 core.setOutput('failed-wrapper', `${result.invalid.map(w => w.path).join('|')}`)
