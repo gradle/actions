@@ -95324,8 +95324,10 @@ class GradleHomeEntryExtractor extends AbstractEntryExtractor {
             entryDefinition('wrapper-zips', ['wrapper/dists/*/*/'], false),
             entryDefinition('java-toolchains', ['jdks/*/'], false),
             entryDefinition('dependencies', ['caches/modules-*/files-*/*/*/*/*'], true),
-            entryDefinition('instrumented-jars', ['caches/jars-*/*'], true),
-            entryDefinition('kotlin-dsl', ['caches/*/kotlin-dsl/*/*'], true)
+            entryDefinition('instrumented-jars', ['caches/jars-*/*/'], true),
+            entryDefinition('kotlin-dsl', ['caches/*/kotlin-dsl/accessors/*/', 'caches/*/kotlin-dsl/scripts/*/'], true),
+            entryDefinition('groovy-dsl', ['caches/*/groovy-dsl/*/'], true),
+            entryDefinition('transforms', ['caches/transforms-4/*/', 'caches/*/transforms/*/'], true)
         ];
     }
 }
