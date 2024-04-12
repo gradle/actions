@@ -9,6 +9,10 @@ on:
     - 'release/**'
     - 'dev/**' # Allow running tests on dev branches without a PR
 
+concurrency:
+  group: integ-tests-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   determine-suite:
     runs-on: ubuntu-latest
