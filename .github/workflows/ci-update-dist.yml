@@ -6,6 +6,8 @@ on:
     branches: 
     - 'main'
     - 'release/**'
+    paths_ignore:
+    - 'dist/**'
 
 permissions:
   contents: write
@@ -16,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -44,5 +48,5 @@ jobs:
       if: github.repository == 'gradle/actions'
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: 'Update dist directory'
+        commit_message: '[bot] Update dist directory'
         file_pattern: dist

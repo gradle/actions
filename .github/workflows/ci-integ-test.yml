@@ -31,8 +31,8 @@ jobs:
           exit 0
         fi
 
-        # Run full suite for push trigger on 'main' and 'release/*' branches
-        if [[ "${{ github.ref_name }}" == "main" || "${{ github.ref_name }}" == "release/"* ]]; then
+        # Run full suite for push trigger with "[bot] Update dist directory" commit message
+        if [ "${{ github.event.head_commit.message }}" == "[bot] Update dist directory" ]; then
           echo "Push to main branch: suite=full"
           echo "suite=full" >> "$GITHUB_OUTPUT"
           exit 0
