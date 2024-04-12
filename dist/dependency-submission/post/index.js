@@ -96167,9 +96167,9 @@ function getDeprecations() {
     return recordedDeprecations;
 }
 exports.getDeprecations = getDeprecations;
-function emitDeprecationWarnings() {
+function emitDeprecationWarnings(hasJobSummary = true) {
     if (recordedDeprecations.length > 0) {
-        core.warning(`This job uses deprecated functionality from the '${(0, configuration_1.getActionId)()}' action. Consult the Job Summary for more details.`);
+        core.warning(`This job uses deprecated functionality from the '${(0, configuration_1.getActionId)()}' action. Consult the ${hasJobSummary ? 'Job Summary' : 'logs'} for more details.`);
         for (const deprecation of recordedDeprecations) {
             core.info(`DEPRECATION: ${deprecation.message}. See ${deprecation.getDocumentationLink()}`);
         }
