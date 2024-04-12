@@ -38,6 +38,8 @@ jobs:
         dependency-graph: generate-and-upload
         build-root-directory: .github/workflow-samples/groovy-dsl
         cache-read-only: false
+      env: 
+        GRADLE_BUILD_ACTION_CACHE_KEY_JOB: groovy-dependency-submission
 
   groovy-restore-cache:
     needs: [groovy-generate-and-upload]
@@ -57,6 +59,8 @@ jobs:
       with:
         build-root-directory: .github/workflow-samples/groovy-dsl
         additional-arguments: --offline
+      env: 
+        GRADLE_BUILD_ACTION_CACHE_KEY_JOB: groovy-dependency-submission
 
   groovy-download-and-submit:
     needs: [groovy-generate-and-upload]
