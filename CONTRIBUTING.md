@@ -1,3 +1,11 @@
+## Building
+
+The `build` script in the project root provides a convenient way to perform many local build tasks:
+1. `./build` will lint and compile typescript sources
+2. `./build all` will lint and compile typescript and run unit tests
+3. `./build init-scripts` will run the init-script integration tests
+4. `./build act <act-commands>` will run `act` after building local changes (see below)
+
 ## How to merge a Dependabot PR
 
 The "distribution" for a GitHub Action is checked into the repository itself. 
@@ -22,10 +30,10 @@ test local changes without pushing to a branch.
 This feature is most useful to run a single `integ-test-*` workflow. Avoid running `ci-quick-test` or other aggregating workflows unless you want to use your local machine as a heater!
 
 Example running a single workflow:
-`act -W .github/workflows/integ-test-caching-config.yml`
+`./build act -W .github/workflows/integ-test-caching-config.yml`
 
 Example running a single job:
-`act -W .github/workflows/integ-test-caching-config.yml -j cache-disabled-pre-existing-gradle-home`
+`./build act -W .github/workflows/integ-test-caching-config.yml -j cache-disabled-pre-existing-gradle-home`
 
 Known issues:
 - `integ-test-cache-cleanup.yml` fails because `gradle` is not installed on the runner. Should be fixed by #33.
