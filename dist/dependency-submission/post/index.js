@@ -96369,7 +96369,7 @@ function buildWarningMessage(error) {
         return `${mainWarning}
 Please ensure that the 'pull-requests: write' permission is available for the workflow job.
 Note that this permission is never available for a workflow triggered from a repository fork.
-`;
+        `;
     }
     return mainWarning;
 }
