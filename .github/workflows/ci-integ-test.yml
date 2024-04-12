@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       runner-os: ${{ steps.determine-suite.outputs.suite == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      cache-key-prefix: '0' # ${{ steps.determine-suite.outputs.suite == 'quick' && '0' || github.run_number }}
+      cache-key-prefix: ${{ steps.determine-suite.outputs.suite == 'quick' && '0' || github.run_number }}
     steps:
     - name: Determine suite to run
       id: determine-suite
@@ -33,7 +33,7 @@ jobs:
 
         # Run full suite for push trigger with "[bot] Update dist directory" commit message
         if [ "${{ github.event.head_commit.message }}" == "[bot] Update dist directory" ]; then
-          echo "Push to main branch: suite=full"
+          echo "Bot commit to main branch: suite=full"
           echo "suite=full" >> "$GITHUB_OUTPUT"
           exit 0
         fi
