@@ -6,6 +6,12 @@ on:
       runner-os:
         type: string
         default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      skip-dist:
+        type: boolean
+        default: false
+
+env:
+  SKIP_DIST: ${{ inputs.skip-dist }}
 
 jobs:
   test-setup-gradle-validation:

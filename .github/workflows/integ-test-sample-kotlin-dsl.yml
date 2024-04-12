@@ -8,8 +8,12 @@ on:
       runner-os:
         type: string
         default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      skip-dist:
+        type: boolean
+        default: false
 
 env:
+  SKIP_DIST: ${{ inputs.skip-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: sample-kotlin-dsl-${{ inputs.cache-key-prefix }}
 
 jobs:

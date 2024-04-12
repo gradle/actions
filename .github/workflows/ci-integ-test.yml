@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       runner-os: ${{ steps.determine-suite.outputs.suite == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      cache-key-prefix: ${{ steps.determine-suite.outputs.suite == 'quick' && '0' || github.run_number }}
+      cache-key-prefix: '0' # TODO DAZ Try this again ${{ steps.determine-suite.outputs.suite == 'quick' && '0' || github.run_number }}
+      suite: ${{ steps.determine-suite.outputs.suite }}
     steps:
     - name: Determine suite to run
       id: determine-suite
@@ -43,11 +44,13 @@ jobs:
         echo "suite=quick" >> "$GITHUB_OUTPUT"
 
   build-distribution:
+    needs: [determine-suite]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Build and upload distribution
+      if: ${{ needs.determine-suite.outputs.suite != 'full' }}
       uses: ./.github/actions/build-dist
 
   action-inputs:
@@ -56,6 +59,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   build-scan-publish:
     needs: [determine-suite, build-distribution]
@@ -63,6 +67,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   cache-cleanup:
     needs: [determine-suite, build-distribution]
@@ -70,6 +75,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{github.run_number}}-' # Requires a fresh cache entry each run
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   caching-config:
     needs: [determine-suite, build-distribution]
@@ -77,6 +83,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   dependency-graph:
     if: ${{ ! github.event.pull_request.head.repo.fork }}
@@ -87,6 +94,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   dependency-submission:
     if: ${{ ! github.event.pull_request.head.repo.fork }}
@@ -97,6 +105,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   dependency-submission-failures:
     if: ${{ ! github.event.pull_request.head.repo.fork }}
@@ -107,6 +116,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   execution-with-caching:
     needs: [determine-suite, build-distribution]
@@ -114,6 +124,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   execution:
     needs: [determine-suite, build-distribution]
@@ -121,6 +132,7 @@ jobs:
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   develocity-injection:
     if: ${{ ! github.event.pull_request.head.repo.fork }}
@@ -128,6 +140,8 @@ jobs:
     uses: ./.github/workflows/integ-test-inject-develocity.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
     secrets:
       DEVELOCITY_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
 
@@ -136,6 +150,8 @@ jobs:
     uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   restore-configuration-cache:
     if: ${{ ! github.event.pull_request.head.repo.fork }}
@@ -143,49 +159,68 @@ jobs:
     uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
     secrets:
       GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
   restore-containerized-gradle-home:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
+    with:
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   restore-custom-gradle-home:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
+    with:
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   restore-gradle-home:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-restore-gradle-home.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   restore-java-toolchain:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   sample-kotlin-dsl:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   sample-gradle-plugin:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   toolchain-detection:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   wrapper-validation:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-wrapper-validation.yml
     with:
       runner-os: '["ubuntu-latest"]'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
