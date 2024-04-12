@@ -23,6 +23,26 @@ with
     uses: gradle/actions/setup-gradle@v3
 ```
 
+## The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`
+
+To facilitate ongoing development, the `wrapper-validation-action` action implementation has been merged into 
+the https://github.com/gradle/actions repository, and the `gradle/wrapper-validation-action` has been replaced by the `gradle/actions/wrapper-validation` action.
+
+As of `v3.x`, the `gradle/wrapper-validation-action` and `gradle/actions/wrappper-validation` actions are 
+functionally identical, and are released with the same versions.
+
+In a future major version (likely `v4.x`) we will stop releasing new versions of `gradle/wrapper-validation-action`:
+development and releases will continue in the `gradle/actions/wrapper-validation` action.
+
+To convert your workflows, simply replace:
+```
+   uses: gradle/wrapper-validation-action@v3
+```
+with
+```
+    uses: gradle/actions/wrapper-validation@v3
+```
+
 ## Using the action to execute Gradle via the `arguments` parameter is deprecated
 
 The core functionality of the `setup-gradle` (and `gradle-build-action`) actions is to configure your
