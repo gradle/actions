@@ -26,10 +26,10 @@ export function getDeprecations(): Deprecation[] {
     return recordedDeprecations
 }
 
-export function emitDeprecationWarnings(): void {
+export function emitDeprecationWarnings(hasJobSummary = true): void {
     if (recordedDeprecations.length > 0) {
         core.warning(
-            `This job uses deprecated functionality from the '${getActionId()}' action. Consult the Job Summary for more details.`
+            `This job uses deprecated functionality from the '${getActionId()}' action. Consult the ${hasJobSummary ? 'Job Summary' : 'logs'} for more details.`
         )
         for (const deprecation of recordedDeprecations) {
             core.info(`DEPRECATION: ${deprecation.message}. See ${deprecation.getDocumentationLink()}`)

@@ -2,10 +2,20 @@ import * as path from 'path'
 import * as core from '@actions/core'
 
 import * as validate from './validate'
+import {getActionId, setActionId} from '../configuration'
+import {recordDeprecation, emitDeprecationWarnings} from '../deprecation-collector'
 import {handleMainActionError} from '../errors'
 
 export async function run(): Promise<void> {
     try {
+        if (getActionId() === 'gradle/wrapper-validation-action') {
+            recordDeprecation(
+                'The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`'
+            )
+        } else {
+            setActionId('gradle/actions/wrapper-validation')
+        }
+
         const result = await validate.findInvalidWrapperJars(
             path.resolve('.'),
             +core.getInput('min-wrapper-count'),
@@ -22,6 +32,8 @@ export async function run(): Promise<void> {
                 core.setOutput('failed-wrapper', `${result.invalid.map(w => w.path).join('|')}`)
             }
         }
+
+        emitDeprecationWarnings(false)
     } catch (error) {
         handleMainActionError(error)
     }
