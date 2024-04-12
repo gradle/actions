@@ -5,7 +5,7 @@ on:
     branches:
     - 'main'
     - 'release/**'
-    paths_ignore:
+    paths-ignore:
     - 'dist/**'
   pull_request:
 

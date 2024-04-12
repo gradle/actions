@@ -4,7 +4,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-distribution:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Build and upload distribution
+      uses: ./.github/actions/build-dist
+
   many-gradle-builds:
+    needs: build-distribution
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
