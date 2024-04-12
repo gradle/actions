@@ -8,7 +8,7 @@ It is possible to directly invoke Gradle in your workflow, and the `actions/setu
 
 However, the `setup-gradle` action offers a several advantages over this approach:
 
-- Easily [configure your workflow to use a specific version of Gradle](#choose-a-specific-gradle-version) using the `gradle-version` parameter. Gradle distributions are automatically downloaded and cached. 
+- Easily [configure your workflow to use a specific version of Gradle](#build-with-a-specific-gradle-version) using the `gradle-version` parameter. Gradle distributions are automatically downloaded and cached. 
 - More sophisticated and more efficient caching of Gradle User Home between invocations, compared to `setup-java` and most custom configurations using `actions/cache`. [More details below](#caching-build-state-between-jobs).
 - Detailed reporting of cache usage and cache configuration options allow you to [optimize the use of the GitHub actions cache](#optimizing-cache-effectiveness).
 - [Generate and Submit a GitHub Dependency Graph](#github-dependency-graph-support) for your project, enabling Dependabot security alerts.
