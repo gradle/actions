@@ -48,7 +48,7 @@ jobs:
           body: |
             Automatically generated pull request to update the known wrapper checksums.
 
-            In case of conflicts, manually run the workflow from the [Actions tab](https://github.com/gradle/wrapper-validation-action/actions/workflows/update-checksums-file.yml), the changes will then be force-pushed onto this pull request branch.
+            In case of conflicts, manually run the workflow from the [Actions tab](https://github.com/gradle/actions/actions/workflows/update-checksums-file.yml), the changes will then be force-pushed onto this pull request branch.
             Do not manually update the pull request branch; those changes might get overwritten.
 
             > [!IMPORTANT]  
