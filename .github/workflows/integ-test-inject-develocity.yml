@@ -33,7 +33,7 @@ jobs:
       matrix:
         gradle: [current, 7.6.2, 6.9.4, 5.6.4]
         os: ${{fromJSON(inputs.runner-os)}}
-        plugin-version: [3.16.2, 3.17]
+        plugin-version: [3.16.2, 3.17.2]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources
