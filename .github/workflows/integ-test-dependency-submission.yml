@@ -1,4 +1,4 @@
-name: Test dependency graph
+name: Test dependency submission
 
 on:
   workflow_call:
@@ -245,3 +245,79 @@ jobs:
       uses: ./dependency-submission
       with:
         build-root-directory: .github/workflow-samples/groovy-dsl
+
+  custom-report-dir-submit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Generate dependency graph
+      id: dependency-graph
+      uses: ./dependency-submission
+      with:
+        dependency-graph: generate-and-submit
+        build-root-directory: .github/workflow-samples/groovy-dsl
+      env: 
+        DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
+    - name: Check generated dependency graphs
+      shell: bash
+      run: |
+        echo "report file: ${{ steps.dependency-graph.outputs.dependency-graph-file }}"
+        
+        if [ ! -e "${{ steps.dependency-graph.outputs.dependency-graph-file }}" ]; then
+            echo "Did not find dependency graph file"
+            exit 1
+        fi
+
+        if [ -z "$(ls -A "${{ github.workspace }}/custom/report-dir")" ]; then
+          echo "No dependency graph files found in custom directory"
+          exit 1
+        fi
+
+  custom-report-dir-upload:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Generate and upload dependency graph
+      id: dependency-graph
+      uses: ./dependency-submission
+      with:
+        dependency-graph: generate-and-upload
+        build-root-directory: .github/workflow-samples/groovy-dsl
+      env: 
+        DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
+
+  custom-report-dir-download-and-submit:
+    needs: custom-report-dir-upload
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Download and submit dependency graph
+      uses: ./dependency-submission
+      with:
+        dependency-graph: download-and-submit
+        build-root-directory: .github/workflow-samples/groovy-dsl
+      env: 
+        DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
+    - name: Check downloaded dependency graph
+      shell: bash
+      run: |
+        if [ -z "$(ls -A "${{ github.workspace }}/custom/report-dir")" ]; then
+          echo "No dependency graph files found in custom directory"
+          exit 1
+        fi
