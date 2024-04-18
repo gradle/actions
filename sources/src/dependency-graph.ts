@@ -191,6 +191,7 @@ async function findDependencyGraphFiles(): Promise<string[]> {
     const allFiles = await globber.glob()
     const unprocessedFiles = allFiles.filter(file => !isProcessed(file))
     unprocessedFiles.forEach(markProcessed)
+    core.info(`Found dependency graph files: ${unprocessedFiles.join(', ')}`)
     return unprocessedFiles
 }
 
