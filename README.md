@@ -15,7 +15,8 @@ The recommended way to execute any Gradle build is with the help of the [Gradle 
 ```yaml
 name: Build
 
-on: [ push ]
+on:
+  push:
 
 jobs:
   build:
@@ -48,7 +49,9 @@ Simply add this as a new workflow file to your repository (eg `.github/workflows
 ```yaml
 name: Dependency Submission
 
-on: [ push ]
+on:
+  push:
+    branches: [ 'main' ]
 
 permissions:
   contents: write
@@ -80,7 +83,10 @@ The action should be run in the root of the repository, as it will recursively s
 
 ```yaml
 name: "Validate Gradle Wrapper"
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
 
 jobs:
   validation:

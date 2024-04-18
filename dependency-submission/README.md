@@ -10,7 +10,9 @@ Simply add this as a new workflow file to your repository (eg `.github/workflows
 ```yaml
 name: Dependency Submission
 
-on: [ push ]
+on:
+  push:
+    branches: ['main']
 
 permissions:
   contents: write

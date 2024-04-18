@@ -11,7 +11,8 @@ The recommended way to execute any Gradle build is with the help of the [Gradle 
 ```yaml
 name: Build
 
-on: [ push ]
+on:
+  push:
 
 jobs:
   build:

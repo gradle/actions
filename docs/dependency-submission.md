@@ -25,7 +25,9 @@ Simply add this as a new workflow file to your repository (eg `.github/workflows
 ```yaml
 name: Dependency Submission
 
-on: [ push ]
+on:
+  push:
+    branches: [ 'main' ]
 
 permissions:
   contents: write
@@ -103,6 +105,11 @@ In some cases, the default action configuration will not be sufficient, and addi
 ```
 
 See the [Action Metadata file](../dependency-submission/action.yml) for a more detailed description of each input parameter.
+
+The `GitHub Dependency Graph Gradle Plugin` can be further 
+[configured via a number of environment variables](https://github.com/gradle/github-dependency-graph-gradle-plugin?#required-environment-variables). 
+These will be automatically set by the `dependency-submission` action, but you may override these values 
+by setting them explicitly in your workflow file.
 
 # Resolving a dependency vulnerability
 
@@ -292,7 +299,8 @@ Example of a pull request workflow that executes a build for a pull request and 
 ```yaml
 name: Dependency review for pull requests
 
-on: [ pull_request ]
+on:
+  pull_request:
 
 permissions:
   contents: write
@@ -327,7 +335,8 @@ Because of this restriction, we require 2 separate workflows in order to generat
 ```yaml
 name: Generate and save dependency graph
 
-on: [ pull_request ]
+on:
+  pull_request:
 
 permissions:
   contents: read # 'write' permission is not available
@@ -381,7 +390,8 @@ Here's an example of a separate "Dependency Review" workflow that will wait for 
 ```yaml
 name: dependency-review
 
-on: [ pull_request ]
+on:
+  pull_request:
 
 permissions:
   contents: read
