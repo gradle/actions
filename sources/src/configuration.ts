@@ -45,6 +45,10 @@ export class DependencyGraphConfig {
         return DependencyGraphConfig.constructJobCorrelator(github.context.workflow, github.context.job, getJobMatrix())
     }
 
+    getReportDirectory(): string {
+        return path.resolve(getWorkspaceDirectory(), 'dependency-graph-reports')
+    }
+
     static constructJobCorrelator(workflow: string, jobId: string, matrixJson: string): string {
         const matrixString = this.describeMatrix(matrixJson)
         const label = matrixString ? `${workflow}-${jobId}-${matrixString}` : `${workflow}-${jobId}`
