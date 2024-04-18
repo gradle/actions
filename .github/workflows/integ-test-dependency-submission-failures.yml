@@ -1,4 +1,4 @@
-name: Test dependency graph
+name: Test dependency submission failures
 
 on:
   workflow_call:
