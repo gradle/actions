@@ -8,7 +8,10 @@ The action should be run in the root of the repository, as it will recursively s
 
 ```yaml
 name: "Validate Gradle Wrapper"
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
 
 jobs:
   validation:

@@ -56,7 +56,10 @@ Here's a sample complete workflow you can add to your repositories:
 **`.github/workflows/gradle-wrapper-validation.yml`**
 ```yaml
 name: "Validate Gradle Wrapper"
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
 
 jobs:
   validation:
