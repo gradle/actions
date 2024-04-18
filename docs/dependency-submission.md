@@ -106,6 +106,11 @@ In some cases, the default action configuration will not be sufficient, and addi
 
 See the [Action Metadata file](../dependency-submission/action.yml) for a more detailed description of each input parameter.
 
+The `GitHub Dependency Graph Gradle Plugin` can be further 
+[configured via a number of environment variables](https://github.com/gradle/github-dependency-graph-gradle-plugin?#required-environment-variables). 
+These will be automatically set by the `dependency-submission` action, but you may override these values 
+by setting them explicitly in your workflow file.
+
 # Resolving a dependency vulnerability
 
 ## Finding the source of a dependency vulnerability
