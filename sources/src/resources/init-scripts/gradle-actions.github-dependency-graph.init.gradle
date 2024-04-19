@@ -12,7 +12,7 @@ if (gradleVersion < GradleVersion.version("5.2") ||
   if (getVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE') != "true") {
     throw new GradleException("Dependency Graph is not supported for ${gradleVersion}. No dependency snapshot will be generated.")
   }
-  logger.warning("::warning::Dependency Graph is not supported for ${gradleVersion}. No dependency snapshot will be generated.")
+  logger.warn("::warning::Dependency Graph is not supported for ${gradleVersion}. No dependency snapshot will be generated.")
   return
 }
 
@@ -23,7 +23,7 @@ if (isTopLevelBuild) {
   def reportFile = getUniqueReportFile(getVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR'))
 
   if (reportFile == null) {
-    logger.warning("::warning::No dependency snapshot generated for step. Could not determine unique job correlator - specify GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR var for this step.")
+    logger.warn("::warning::No dependency snapshot generated for step. Could not determine unique job correlator - specify GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR var for this step.")
     return
   }
 
