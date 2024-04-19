@@ -96253,6 +96253,9 @@ function handleMainActionError(error) {
     }
     else if (error instanceof JobFailure) {
         core.setFailed(String(error));
+        if (error.stack) {
+            core.info(error.stack);
+        }
     }
     else {
         core.setFailed(String(error));
@@ -96265,6 +96268,9 @@ exports.handleMainActionError = handleMainActionError;
 function handlePostActionError(error) {
     if (error instanceof JobFailure) {
         core.setFailed(String(error));
+        if (error.stack) {
+            core.info(error.stack);
+        }
     }
     else {
         core.warning(`Unhandled error in Gradle post-action - job will continue: ${error}`);
