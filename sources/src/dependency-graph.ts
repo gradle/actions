@@ -124,17 +124,16 @@ async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<v
             await submitDependencyGraphFile(dependencyGraphFile)
         } catch (error) {
             if (error instanceof RequestError) {
-                throw new Error(translateErrorMessage(dependencyGraphFile, error))
-            } else {
-                throw error
+                error.message = translateErrorMessage(dependencyGraphFile, error)
             }
+            throw error
         }
     }
 }
 
 function translateErrorMessage(jsonFile: string, error: RequestError): string {
     const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
-    const mainWarning = `Dependency submission failed for ${relativeJsonFile}.\n${String(error)}`
+    const mainWarning = `Dependency submission failed for ${relativeJsonFile}.\n${error.message}`
     if (error.message === 'Resource not accessible by integration') {
         return `${mainWarning}
 Please ensure that the 'contents: write' permission is available for the workflow job.
