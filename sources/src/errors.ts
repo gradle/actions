@@ -22,7 +22,10 @@ export function handleMainActionError(error: unknown): void {
             }
         }
     } else if (error instanceof JobFailure) {
-        core.setFailed(String(error)) // No stack trace for JobFailure: these are known errors
+        core.setFailed(String(error))
+        if (error.stack) {
+            core.info(error.stack)
+        }
     } else {
         core.setFailed(String(error))
         if (error instanceof Error && error.stack) {
@@ -34,6 +37,9 @@ export function handleMainActionError(error: unknown): void {
 export function handlePostActionError(error: unknown): void {
     if (error instanceof JobFailure) {
         core.setFailed(String(error))
+        if (error.stack) {
+            core.info(error.stack)
+        }
     } else {
         core.warning(`Unhandled error in Gradle post-action - job will continue: ${error}`)
         if (error instanceof Error && error.stack) {
