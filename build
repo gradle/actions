@@ -5,7 +5,7 @@ cd sources
 case "$1" in
     all)
         npm clean-install
-        nprm run all
+        npm run all
         ;;
     act)
         # Build and copy outputs to the dist directory
