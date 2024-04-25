@@ -22,6 +22,7 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     }
     // Download and submit early, for compatability with dependency review.
     if (option === DependencyGraphOption.DownloadAndSubmit) {
+        maybeExportVariable('DEPENDENCY_GRAPH_REPORT_DIR', config.getReportDirectory())
         await downloadAndSubmitDependencyGraphs(config)
         return
     }
