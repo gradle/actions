@@ -76,12 +76,17 @@ jobs:
         gradle: [7.3, 6.9, 5.6.4, 4.10.3, 3.5.1]
         os: ${{fromJSON(inputs.runner-os)}}
         include:
+          - java-version: 11
           - gradle: 5.6.4
             build-root-suffix: -gradle-5
           - gradle: 4.10.3
             build-root-suffix: -gradle-4
           - gradle: 3.5.1
             build-root-suffix: -gradle-4
+            java-version: 8
+        exclude:
+          - os: macos-latest # Java 8 is not supported on macos-latest, so we cannot test Gradle 3.5.1
+            gradle: 3.5.1
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources
@@ -93,7 +98,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: temurin
-        java-version: 11
+        java-version: ${{ matrix.java-version }}
     - name: Setup Gradle
       id: setup-gradle
       uses: ./setup-gradle
