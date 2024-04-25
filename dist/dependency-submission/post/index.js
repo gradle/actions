@@ -96313,7 +96313,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateJobSummary = void 0;
+exports.renderSummaryTable = exports.generateJobSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
@@ -96385,6 +96385,7 @@ Note that this permission is never available for a workflow triggered from a rep
 function renderSummaryTable(results) {
     return `${renderDeprecations()}\n${renderBuildResults(results)}`;
 }
+exports.renderSummaryTable = renderSummaryTable;
 function renderDeprecations() {
     const deprecations = (0, deprecation_collector_1.getDeprecations)();
     if (deprecations.length === 0) {
@@ -96413,7 +96414,7 @@ function renderBuildResults(results) {
         <th>Requested Tasks</th>
         <th>Gradle Version</th>
         <th>Build Outcome</th>
-        <th>Build Scan®</th>
+        <th>Build&nbsp;Scan®</th>
     </tr>${results.map(result => renderBuildResultRow(result)).join('')}
 </table>
     `;
@@ -96433,16 +96434,35 @@ function renderOutcome(result) {
 }
 function renderBuildScan(result) {
     if (result.buildScanFailed) {
-        return renderBuildScanBadge('PUBLISH_FAILED', 'orange', 'https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting');
+        return renderBuildScanBadge({
+            text: 'Publish failed',
+            alt: 'Build Scan publish failed',
+            color: 'orange',
+            logo: false,
+            targetUrl: 'https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting'
+        });
     }
     if (result.buildScanUri) {
-        return renderBuildScanBadge('PUBLISHED', '06A0CE', result.buildScanUri);
+        return renderBuildScanBadge({
+            text: 'Build Scan®',
+            alt: 'Build Scan published',
+            color: '06A0CE',
+            logo: true,
+            targetUrl: result.buildScanUri
+        });
     }
-    return renderBuildScanBadge('NOT_PUBLISHED', 'lightgrey', 'https://scans.gradle.com');
+    return renderBuildScanBadge({
+        text: 'Not published',
+        alt: 'Build Scan not published',
+        color: 'lightgrey',
+        logo: false,
+        targetUrl: 'https://scans.gradle.com'
+    });
 }
-function renderBuildScanBadge(outcomeText, outcomeColor, targetUrl) {
-    const badgeUrl = `https://img.shields.io/badge/Build%20Scan%C2%AE-${outcomeText}-${outcomeColor}?logo=Gradle`;
-    const badgeHtml = `<img src="${badgeUrl}" alt="Build Scan ${outcomeText}" />`;
+function renderBuildScanBadge({ text, alt, color, logo, targetUrl }) {
+    const encodedText = encodeURIComponent(text);
+    const badgeUrl = `https://img.shields.io/badge/${encodedText}-${color}${logo ? '?logo=Gradle' : ''}`;
+    const badgeHtml = `<img src="${badgeUrl}" alt="${alt}" />`;
     return `<a href="${targetUrl}" rel="nofollow" target="_blank">${badgeHtml}</a>`;
 }
 function truncateString(str, maxLength) {
