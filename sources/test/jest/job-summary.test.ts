@@ -47,14 +47,14 @@ describe('renderSummaryTable', () => {
                         <th>Requested Tasks</th>
                         <th>Gradle Version</th>
                         <th>Build Outcome</th>
-                        <th>Build Scan®</th>
+                        <th>Build&nbsp;Scan®</th>
                     </tr>
                     <tr>
                         <td>root</td>
                         <td>help</td>
                         <td align='center'>8.0</td>
                         <td align='center'>:white_check_mark:</td>
-                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-PUBLISHED-06A0CE?logo=Gradle" alt="Build Scan PUBLISHED" /></a></td>
+                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
             `);
@@ -68,14 +68,14 @@ describe('renderSummaryTable', () => {
                         <th>Requested Tasks</th>
                         <th>Gradle Version</th>
                         <th>Build Outcome</th>
-                        <th>Build Scan®</th>
+                        <th>Build&nbsp;Scan®</th>
                     </tr>
                     <tr>
                         <td>root</td>
                         <td>help</td>
                         <td align='center'>8.0</td>
                         <td align='center'>:x:</td>
-                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-PUBLISHED-06A0CE?logo=Gradle" alt="Build Scan PUBLISHED" /></a></td>
+                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
             `);
@@ -90,14 +90,14 @@ describe('renderSummaryTable', () => {
                             <th>Requested Tasks</th>
                             <th>Gradle Version</th>
                             <th>Build Outcome</th>
-                            <th>Build Scan®</th>
+                            <th>Build&nbsp;Scan®</th>
                         </tr>
                         <tr>
                             <td>root</td>
                             <td>help</td>
                             <td align='center'>8.0</td>
                             <td align='center'>:white_check_mark:</td>
-                            <td><a href="https://scans.gradle.com" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-NOT_PUBLISHED-lightgrey?logo=Gradle" alt="Build Scan NOT_PUBLISHED" /></a></td>
+                            <td><a href="https://scans.gradle.com" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Not%20published-lightgrey" alt="Build Scan not published" /></a></td>
                         </tr>
                     </table>
                 `);
@@ -111,14 +111,14 @@ describe('renderSummaryTable', () => {
                             <th>Requested Tasks</th>
                             <th>Gradle Version</th>
                             <th>Build Outcome</th>
-                            <th>Build Scan®</th>
+                            <th>Build&nbsp;Scan®</th>
                         </tr>
                         <tr>
                             <td>root</td>
                             <td>help</td>
                             <td align='center'>8.0</td>
                             <td align='center'>:white_check_mark:</td>
-                            <td><a href="https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-PUBLISH_FAILED-orange?logo=Gradle" alt="Build Scan PUBLISH_FAILED" /></a></td>
+                            <td><a href="https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Publish%20failed-orange" alt="Build Scan publish failed" /></a></td>
                         </tr>
                     </table>
                 `);
@@ -133,21 +133,21 @@ describe('renderSummaryTable', () => {
                         <th>Requested Tasks</th>
                         <th>Gradle Version</th>
                         <th>Build Outcome</th>
-                        <th>Build Scan®</th>
+                        <th>Build&nbsp;Scan®</th>
                     </tr>
                     <tr>
                         <td>root</td>
                         <td>help</td>
                         <td align='center'>8.0</td>
                         <td align='center'>:white_check_mark:</td>
-                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-PUBLISHED-06A0CE?logo=Gradle" alt="Build Scan PUBLISHED" /></a></td>
+                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                     <tr>
                         <td>root</td>
                         <td>help</td>
                         <td align='center'>8.0</td>
                         <td align='center'>:x:</td>
-                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-PUBLISHED-06A0CE?logo=Gradle" alt="Build Scan PUBLISHED" /></a></td>
+                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
             `);
@@ -161,14 +161,14 @@ describe('renderSummaryTable', () => {
                         <th>Requested Tasks</th>
                         <th>Gradle Version</th>
                         <th>Build Outcome</th>
-                        <th>Build Scan®</th>
+                        <th>Build&nbsp;Scan®</th>
                     </tr>
                     <tr>
                         <td>root</td>
                         <td><div title='check publishMyLongNamePluginPublicationToMavenCentral publishMyLongNamePluginPublicationToPluginPortal'>check publishMyLongNamePluginPublicationToMavenCentral publ…</div></td>
                         <td align='center'>8.0</td>
                         <td align='center'>:white_check_mark:</td>
-                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-PUBLISHED-06A0CE?logo=Gradle" alt="Build Scan PUBLISHED" /></a></td>
+                        <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
             `);

@@ -113,7 +113,7 @@ function renderBuildResults(results: BuildResult[]): string {
         <th>Requested Tasks</th>
         <th>Gradle Version</th>
         <th>Build Outcome</th>
-        <th>Build Scan®</th>
+        <th>Build&nbsp;Scan®</th>
     </tr>${results.map(result => renderBuildResultRow(result)).join('')}
 </table>
     `
@@ -134,23 +134,46 @@ function renderOutcome(result: BuildResult): string {
     return result.buildFailed ? ':x:' : ':white_check_mark:'
 }
 
-function renderBuildScan(result: BuildResult): string {
-    if (result.buildScanFailed) {
-        return renderBuildScanBadge(
-            'PUBLISH_FAILED',
-            'orange',
-            'https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting'
-        )
-    }
-    if (result.buildScanUri) {
-        return renderBuildScanBadge('PUBLISHED', '06A0CE', result.buildScanUri)
-    }
-    return renderBuildScanBadge('NOT_PUBLISHED', 'lightgrey', 'https://scans.gradle.com')
+interface BadgeSpec {
+    text: string
+    alt: string
+    color: string
+    logo: boolean
+    targetUrl: string
 }
 
-function renderBuildScanBadge(outcomeText: string, outcomeColor: string, targetUrl: string): string {
-    const badgeUrl = `https://img.shields.io/badge/Build%20Scan%C2%AE-${outcomeText}-${outcomeColor}?logo=Gradle`
-    const badgeHtml = `<img src="${badgeUrl}" alt="Build Scan ${outcomeText}" />`
+function renderBuildScan(result: BuildResult): string {
+    if (result.buildScanFailed) {
+        return renderBuildScanBadge({
+            text: 'Publish failed',
+            alt: 'Build Scan publish failed',
+            color: 'orange',
+            logo: false,
+            targetUrl: 'https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting'
+        })
+    }
+    if (result.buildScanUri) {
+        return renderBuildScanBadge({
+            text: 'Build Scan®',
+            alt: 'Build Scan published',
+            color: '06A0CE',
+            logo: true,
+            targetUrl: result.buildScanUri
+        })
+    }
+    return renderBuildScanBadge({
+        text: 'Not published',
+        alt: 'Build Scan not published',
+        color: 'lightgrey',
+        logo: false,
+        targetUrl: 'https://scans.gradle.com'
+    })
+}
+
+function renderBuildScanBadge({text, alt, color, logo, targetUrl}: BadgeSpec): string {
+    const encodedText = encodeURIComponent(text)
+    const badgeUrl = `https://img.shields.io/badge/${encodedText}-${color}${logo ? '?logo=Gradle' : ''}`
+    const badgeHtml = `<img src="${badgeUrl}" alt="${alt}" />`
     return `<a href="${targetUrl}" rel="nofollow" target="_blank">${badgeHtml}</a>`
 }
 
