@@ -78,7 +78,7 @@ Note that this permission is never available for a workflow triggered from a rep
     return mainWarning
 }
 
-function renderSummaryTable(results: BuildResult[]): string {
+export function renderSummaryTable(results: BuildResult[]): string {
     return `${renderDeprecations()}\n${renderBuildResults(results)}`
 }
 
