@@ -18,6 +18,7 @@ permissions:
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-submission-${{ inputs.cache-key-prefix }}
+  GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
 jobs:
   groovy-generate-and-upload:
@@ -223,8 +224,6 @@ jobs:
       with:
         gradle-version: ${{ matrix.gradle }}
         build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
-      env:
-        GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
   after-setup-gradle:
     strategy:
