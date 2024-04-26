@@ -41,7 +41,7 @@ export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScan
 
     core.saveState(CACHE_LISTENER, cacheListener.stringify())
 
-    buildScan.setup(buildScanConfig)
+    await buildScan.setup(buildScanConfig)
 
     return true
 }
