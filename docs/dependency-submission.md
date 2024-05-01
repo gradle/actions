@@ -95,7 +95,7 @@ In some cases, the default action configuration will not be sufficient, and addi
         dependency-resolution-task: myDependencyResolutionTask
 
         # Additional arguments that should be passed to execute Gradle
-        additonal-arguments: --no-configuration-cache
+        additional-arguments: --no-configuration-cache
 
         # Enable configuration-cache reuse for this build.
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
