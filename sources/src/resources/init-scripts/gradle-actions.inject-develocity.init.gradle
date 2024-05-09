@@ -1,3 +1,8 @@
+/*
+ * Initscript for injection of Develocity into Gradle builds.
+ * Version: v0.0.8
+ */
+
 import org.gradle.util.GradleVersion
 
 // note that there is no mechanism to share code between the initscript{} block and the main script, so some logic is duplicated
@@ -154,12 +159,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     logger.lifecycle("Applying $pluginClass via init script")
                     applyPluginExternally(pluginManager, pluginClass)
                     def rootExtension = dvOrGe(
-                            { develocity },
-                            { buildScan }
+                        { develocity },
+                        { buildScan }
                     )
                     def buildScanExtension = dvOrGe(
-                            { rootExtension.buildScan },
-                            { rootExtension }
+                        { rootExtension.buildScan },
+                        { rootExtension }
                     )
                     if (develocityUrl) {
                         logger.lifecycle("Connection to Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
