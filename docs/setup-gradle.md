@@ -198,7 +198,7 @@ jobs:
 ```
 
 > [!IMPORTANT]
-> The configuration cache cannot be saved or restored in workflows triggered by a pull requests from a repsitory fork.
+> The configuration cache cannot be saved or restored in workflows triggered by a pull requests from a repository fork.
 > This is because [GitHub secrets are not passed to workflows triggered by PRs from forks](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#using-secrets-in-a-workflow).
 > This prevents a malicious PR from reading the configuration-cache data, which may encode secrets read by Gradle.
 
