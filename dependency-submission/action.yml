@@ -15,13 +15,13 @@ inputs:
 
   dependency-resolution-task:
     description: |
-      Task(s) that should be executed in order to resolve all project dependencies. 
+      Task(s) that should be executed in order to resolve all project dependencies.
       By default, the built-in `:ForceDependencyResolutionPlugin_resolveAllDependencies` task is executed.
     required: false
 
   additional-arguments:
     description: |
-      Additional arguments to pass to Gradle when generating the dependency graph. 
+      Additional arguments to pass to Gradle when generating the dependency graph.
       For example, `--no-configuration-cache --stacktrace`.
     required: false
 
@@ -40,7 +40,7 @@ inputs:
 
   cache-write-only:
     description: |
-      When 'true', entries will not be restored from the cache but will be saved at the end of the Job. 
+      When 'true', entries will not be restored from the cache but will be saved at the end of the Job.
       Setting this to 'true' implies cache-read-only will be 'false'.
     required: false
     default: false
@@ -52,7 +52,7 @@ inputs:
 
   cache-encryption-key:
     description: |
-      A base64 encoded AES key used to encrypt the configuration-cache data. The key is exported as 'GRADLE_ENCRYPTION_KEY' for later steps. 
+      A base64 encoded AES key used to encrypt the configuration-cache data. The key is exported as 'GRADLE_ENCRYPTION_KEY' for later steps.
       A suitable key can be generated with `openssl rand -base64 16`.
       Configuration-cache data will not be saved/restored without an encryption key being provided.
     required: false
@@ -92,7 +92,7 @@ inputs:
         'generate-and-submit' (default): Generates a dependency graph for the project and submits it in the same Job.
         'generate-and-upload': Generates a dependency graph for the project and saves it as a workflow artifact.
         'download-and-submit': Retrieves a previously saved dependency-graph and submits it to the repository.
- 
+
       The `generate-and-upload` and `download-and-submit` options are designed to be used in an untrusted workflow scenario,
       where the workflow generating the dependency-graph cannot (or should not) be given the `contents: write` permissions
       required to submit via the Dependency Submission API.
@@ -120,9 +120,17 @@ inputs:
   build-scan-terms-of-use-url:
     description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service' or 'https://gradle.com/help/legal-terms-of-use'.
     required: false
-  
+
   build-scan-terms-of-use-agree:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
+    required: false
+
+  develocity-access-key:
+    description: Develocity access key. Should be set to a secret containing the Develocity Access key.
+    required: false
+
+  develocity-token-expiry:
+    description: The Develocity short-lived access tokens expiry in hours. Default is 2 hours.
     required: false
 
   # DEPRECATED ACTION INPUTS
@@ -150,7 +158,7 @@ inputs:
     description: When 'true', the action will not attempt to restore the Gradle User Home entries from other Jobs.
     required: false
     default: false
-    
+
   # INTERNAL ACTION INPUTS
   # These inputs should not be configured directly, and are only used to pass environmental information to the action
   workflow-job-context:
