@@ -1,3 +1,8 @@
+/*
+ * Initscript for injection of Develocity into Gradle builds.
+ * Version: v0.4.0
+ */
+
 import org.gradle.util.GradleVersion
 
 // note that there is no mechanism to share code between the initscript{} block and the main script, so some logic is duplicated
@@ -9,8 +14,9 @@ initscript {
         return
     }
 
+    def ENV_VAR_PREFIX = ''
     def getInputParam = { String name ->
-        def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
+        def envVarName = ENV_VAR_PREFIX + name.toUpperCase().replace('.', '_').replace('-', '_')
         return System.getProperty(name) ?: System.getenv(envVarName)
     }
 
@@ -93,8 +99,9 @@ if (!isTopLevelBuild) {
     return
 }
 
+def ENV_VAR_PREFIX = ''
 def getInputParam = { String name ->
-    def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
+    def envVarName = ENV_VAR_PREFIX + name.toUpperCase().replace('.', '_').replace('-', '_')
     return System.getProperty(name) ?: System.getenv(envVarName)
 }
 
@@ -139,7 +146,7 @@ if (ccudPluginVersion && isNotAtLeast(ccudPluginVersion, '1.7')) {
     return
 }
 
-// register buildScanPublished listener and optionally apply the Develocity plugin
+// Conditionally apply and configure the Develocity plugin
 if (GradleVersion.current() < GradleVersion.version('6.0')) {
     rootProject {
         buildscript.configurations.getByName("classpath").incoming.afterResolve { ResolvableDependencies incoming ->
@@ -154,12 +161,12 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     logger.lifecycle("Applying $pluginClass via init script")
                     applyPluginExternally(pluginManager, pluginClass)
                     def rootExtension = dvOrGe(
-                            { develocity },
-                            { buildScan }
+                        { develocity },
+                        { buildScan }
                     )
                     def buildScanExtension = dvOrGe(
-                            { rootExtension.buildScan },
-                            { rootExtension }
+                        { rootExtension.buildScan },
+                        { rootExtension }
                     )
                     if (develocityUrl) {
                         logger.lifecycle("Connection to Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer, captureFileFingerprints: $develocityCaptureFileFingerprints")
