@@ -26,14 +26,19 @@ jobs:
       DEVELOCITY_URL: https://ge.solutions-team.gradle.com
       DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }} # required to test against GE plugin 3.16.2
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+      ${{matrix.accessKeyEnv}}: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
     strategy:
       fail-fast: false
       matrix:
         gradle: [current, 7.6.2, 6.9.4, 5.6.4]
         os: ${{fromJSON(inputs.runner-os)}}
         plugin-version: [3.16.2, 3.17.3]
+        include:
+        - plugin-version: 3.16.2
+          accessKeyEnv: GRADLE_ENTERPRISE_ACCESS_KEY
+        - plugin-version: 3.17.3
+          accessKeyEnv: DEVELOCITY_ACCESS_KEY
+
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources
@@ -63,20 +68,20 @@ jobs:
         script: |
           core.setFailed('No Build Scan detected')
     - name: Check short lived token
+      if: ${{ matrix.plugin-version == '3.17.3' }}
       run: "[ ${#DEVELOCITY_ACCESS_KEY} -gt 500 ] || (echo 'DEVELOCITY_ACCESS_KEY does not look like a short lived token'; exit 1)"
 
-  inject-develocity-short-lived-token-with-input:
+  inject-develocity-with-access-key:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
-      DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
+      DEVELOCITY_PLUGIN_VERSION: 3.17.3
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
     strategy:
       fail-fast: false
       matrix:
         gradle: [current, 7.6.2, 6.9.4, 5.6.4]
         os: ${{fromJSON(inputs.runner-os)}}
-        plugin-version: [3.16.2, 3.17]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout sources
@@ -113,17 +118,11 @@ jobs:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: 'https://localhost:3333/'
-      DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
+      DEVELOCITY_PLUGIN_VERSION: 3.17.3
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
       # Access key also set as an env var, we want to check it does not leak
       DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-    strategy:
-      fail-fast: false
-      matrix:
-        gradle: [current, 7.6.2, 6.9.4, 5.6.4]
-        os: ${{fromJSON(inputs.runner-os)}}
-        plugin-version: [3.16.2, 3.17]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -140,7 +139,6 @@ jobs:
         uses: ./setup-gradle
         with:
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
-          gradle-version: ${{ matrix.gradle }}
           develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
       - name: Run Gradle build
         id: gradle
