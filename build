@@ -16,11 +16,17 @@ case "$1" in
         # Run act
         $@
         # Revert the changes to the dist directory
-        git co -- dist
+        git checkout -- dist
         ;;
     init-scripts)
         cd test/init-scripts
         ./gradlew check
+        ;;
+    dist)
+        npm install
+        npm run build
+        cd ..
+        cp -r sources/dist .
         ;;
     *)
         npm install

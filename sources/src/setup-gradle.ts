@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as os from 'os'
 import * as caches from './caching/caches'
 import * as jobSummary from './job-summary'
-import * as buildScan from './build-scan'
+import * as buildScan from './develocity/build-scan'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
@@ -41,7 +41,7 @@ export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScan
 
     core.saveState(CACHE_LISTENER, cacheListener.stringify())
 
-    buildScan.setup(buildScanConfig)
+    await buildScan.setup(buildScanConfig)
 
     return true
 }

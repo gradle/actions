@@ -4,22 +4,22 @@ This GitHub Action can be used to configure Gradle for optimal execution on any 
 
 ## Why use the `setup-gradle` action?
 
-It is possible to directly invoke Gradle in your workflow, and the `actions/setup-java@v4` action provides a simple way to cache Gradle dependencies. 
+It is possible to directly invoke Gradle in your workflow, and the `actions/setup-java@v4` action provides a simple way to cache Gradle dependencies.
 
 However, the `setup-gradle` action offers a several advantages over this approach:
 
-- Easily [configure your workflow to use a specific version of Gradle](#build-with-a-specific-gradle-version) using the `gradle-version` parameter. Gradle distributions are automatically downloaded and cached. 
+- Easily [configure your workflow to use a specific version of Gradle](#build-with-a-specific-gradle-version) using the `gradle-version` parameter. Gradle distributions are automatically downloaded and cached.
 - More sophisticated and more efficient caching of Gradle User Home between invocations, compared to `setup-java` and most custom configurations using `actions/cache`. [More details below](#caching-build-state-between-jobs).
 - Detailed reporting of cache usage and cache configuration options allow you to [optimize the use of the GitHub actions cache](#optimizing-cache-effectiveness).
 - [Generate and Submit a GitHub Dependency Graph](#github-dependency-graph-support) for your project, enabling Dependabot security alerts.
 - [Automatic capture of Build Scan® links](#build-reporting) from the build, making them easier to locate in workflow runs.
 
-The `setup-gradle` action is designed to provide these benefits with minimal configuration. 
+The `setup-gradle` action is designed to provide these benefits with minimal configuration.
 These features work both when Gradle is executed via `setup-gradle` and for any Gradle execution in subsequent steps.
 
 ## General usage
 
-The `setup-gradle` action works by configuring environment variables and by adding a set of Gradle init-scripts to the Gradle User Home. These will apply to all Gradle executions on the runner, no matter how Gradle is invoked. 
+The `setup-gradle` action works by configuring environment variables and by adding a set of Gradle init-scripts to the Gradle User Home. These will apply to all Gradle executions on the runner, no matter how Gradle is invoked.
 This means that if you have an existing workflow that executes Gradle with a `run` step, you can add an initial "Setup Gradle" Step to benefit from caching, build-scan capture, and other features of this action.
 
 The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), and the following examples assume that the Gradle Wrapper has been configured for the project. See [this example](#build-with-a-specific-gradle-version) if your project doesn't use the Gradle Wrapper.
@@ -46,7 +46,7 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    
+
     - name: Execute Gradle build
       run: ./gradlew build
 ```
@@ -126,7 +126,7 @@ cache-disabled: true
 ### Using the cache read-only
 
 By default, The `setup-gradle` action will only write to the cache from Jobs on the default (`main`/`master`) branch.
-Jobs on other branches will read entries from the cache but will not write updated entries. 
+Jobs on other branches will read entries from the cache but will not write updated entries.
 See [Optimizing cache effectiveness](#select-which-branches-should-write-to-the-cache) for a more detailed explanation.
 
 In some circumstances, it makes sense to change this default and configure a workflow Job to read existing cache entries but not to write changes back.
@@ -158,7 +158,7 @@ cache-write-only: true
 When the action detects that the Gradle User Home caches directory already exists (`~/.gradle/caches`), then by default it will not overwrite the existing content of this directory.
 This can occur when a prior action initializes this directory, or when using a self-hosted runner that retains this directory between uses.
 
-In this case, the Job Summary will display a message like: 
+In this case, the Job Summary will display a message like:
 > Caching for Gradle actions was disabled due to pre-existing Gradle User Home
 
 If you want to override the default and have the caches of the `setup-gradle` action overwrite existing content in the Gradle User Home, you can set the `cache-overwrite-existing` parameter to `true`:
@@ -204,7 +204,7 @@ jobs:
 
 ### Incompatibility with other caching mechanisms
 
-When using `setup-gradle` we recommend that you avoid using other mechanisms to save and restore the Gradle User Home. 
+When using `setup-gradle` we recommend that you avoid using other mechanisms to save and restore the Gradle User Home.
 
 Specifically:
 - Avoid using `actions/cache` configured to cache the Gradle User Home, [as described in this example](https://github.com/actions/cache/blob/main/examples.md#java---gradle).
@@ -256,7 +256,7 @@ The Gradle User Home cache key is composed of:
 
 Specifically, the cache key is: `${cache-protocol}-gradle|${runner-os}|${job-id}[${hash-of-job-matrix-and-workflow-name}]-${git-sha}`
 
-As such, the cache key is likely to change on each subsequent run of GitHub actions. 
+As such, the cache key is likely to change on each subsequent run of GitHub actions.
 This allows the most recent state to always be available in the GitHub actions cache.
 
 ### Finding a matching cache entry
@@ -271,7 +271,7 @@ Due to branch scoping of cache entries, the above match will be first performed 
 
 After the Job is complete, the current Gradle User Home state will be collected and written as a new cache entry with the complete cache key. Old entries will be expunged from the GitHub Actions cache on a least recently used basis.
 
-Note that while effective, this mechanism is not inherently efficient. It requires the entire Gradle User Home directory to be stored separately for each branch, for every OS+Job+Matrix combination. In addition, it writes a new cache entry on every GitHub Actions run. 
+Note that while effective, this mechanism is not inherently efficient. It requires the entire Gradle User Home directory to be stored separately for each branch, for every OS+Job+Matrix combination. In addition, it writes a new cache entry on every GitHub Actions run.
 
 This inefficiency is effectively mitigated by [Deduplication of Gradle User Home cache entries](#deduplication-of-gradle-user-home-cache-entries) and can be further optimized for a workflow using the techniques described in [Optimizing cache effectiveness](#optimizing-cache-effectiveness).
 
@@ -289,7 +289,7 @@ For example, this means that all jobs executing a particular version of the Grad
 
 ### Stopping the Gradle daemon
 
-By default, the action will stop all running Gradle daemons in the post-action step, before saving the Gradle User Home state. 
+By default, the action will stop all running Gradle daemons in the post-action step, before saving the Gradle User Home state.
 This allows for any Gradle User Home cleanup to occur, and avoid file-locking issues on Windows.
 
 If caching is disabled or the cache is in read-only mode, the daemon will not be stopped and will continue running after the job is completed.
@@ -316,23 +316,23 @@ Some techniques can be used to avoid/mitigate this issue:
 
 ### Select which branches should write to the cache
 
-GitHub cache entries are not shared between builds on different branches. 
+GitHub cache entries are not shared between builds on different branches.
 Workflow runs can restore caches created in either the current branch or the default branch (usually main).
 This means that each branch will have its own Gradle User Home cache scope, and will not benefit from cache entries written for other (non-default) branches.
 
-By default, The `setup-gradle` action will only _write_ to the cache for builds run on the default (`master`/`main`) branch. 
-Jobs running on other branches will only read from the cache. In most cases, this is the desired behavior. 
-This is because Jobs running on other branches will benefit from the cached Gradle User Home from `main`, 
+By default, The `setup-gradle` action will only _write_ to the cache for builds run on the default (`master`/`main`) branch.
+Jobs running on other branches will only read from the cache. In most cases, this is the desired behavior.
+This is because Jobs running on other branches will benefit from the cached Gradle User Home from `main`,
 without writing private cache entries which could lead to evicting these shared entries.
 
-If you have other long-lived development branches that would benefit from writing to the cache, 
-you can configure this by disabling the `cache-read-only` action parameter for these branches. 
+If you have other long-lived development branches that would benefit from writing to the cache,
+you can configure this by disabling the `cache-read-only` action parameter for these branches.
 See [Using the cache read-only](#using-the-cache-read-only) for more details.
 
 Note there are some cases where writing cache entries is typically unhelpful (these are disabled by default):
 - For `pull_request` triggered runs, the cache scope is limited to the merge ref (`refs/pull/.../merge`) and can only be restored by re-runs of the same pull request.
 - For `merge_group` triggered runs, the cache scope is limited to a temporary branch with a special prefix created to validate pull request changes, and won't be available on subsequent Merge Queue executions.
-  
+
 ### Exclude content from Gradle User Home cache
 
 As well as any wrapper distributions, the action will attempt to save and restore the `caches` and `notifications` directories from Gradle User Home.
@@ -353,7 +353,7 @@ gradle-home-cache-excludes: |
     caches/keyrings
 ```
 
-You can specify any number of fixed paths or patterns to include or exclude. 
+You can specify any number of fixed paths or patterns to include or exclude.
 File pattern support is documented at https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#patterns-to-match-file-paths.
 
 ### Remove unused files from Gradle User Home before saving to the cache
@@ -362,7 +362,7 @@ The Gradle User Home directory tends to grow over time. When you switch to a new
 the old files are not automatically and immediately removed. While this can make sense in a local environment, in a GitHub Actions environment
 it can lead to ever-larger Gradle User Home cache entries being saved and restored.
 
-To avoid this situation, The `setup-gradle` action supports the `gradle-home-cache-cleanup` parameter. 
+To avoid this situation, The `setup-gradle` action supports the `gradle-home-cache-cleanup` parameter.
 When enabled, this feature will attempt to delete any files in the Gradle User Home that were not used by Gradle during the GitHub Actions Workflow, before saving the Gradle User Home to the GitHub Actions cache.
 
 Gradle Home cache cleanup is considered experimental and is disabled by default.  You can enable this feature for the action as follows:
@@ -376,7 +376,7 @@ If you have a remote build-cache available for your build, then it is recommende
 - Enable [remote build-cache push](https://docs.gradle.org/current/userguide/build_cache.html#sec:build_cache_configure_use_cases) for your GitHub Actions builds
 - Disable [local build-cache]() for your GitHub Actions build
 
-As well as reducing the content that needs to be saved to the GitHub Actions cache, 
+As well as reducing the content that needs to be saved to the GitHub Actions cache,
 this setup will ensure that your CI builds populate the remote cache and keep the cache entries fresh by reading these entries.
 Local builds can then benefit from the remote cache.
 
@@ -389,8 +389,8 @@ You can enable debug logging either by:
 
 ### Increased logging from Gradle builds
 
-When debug logging is enabled, this action will cause all builds to run with the `--info` and `--stacktrace` options. 
-This is done by inserting the relevant [Gradle properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) 
+When debug logging is enabled, this action will cause all builds to run with the `--info` and `--stacktrace` options.
+This is done by inserting the relevant [Gradle properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)
 at the top of the `${GRADLE_USER_HOME}/gradle.properties` file.
 
 If the additional Gradle logging produced is problematic, you may opt out of this behavior by setting these properties manually in your project `gradle.properties` file:
@@ -403,7 +403,7 @@ org.gradle.logging.stacktrace=internal
 
 ### Cache debugging and analysis
 
-A report of all cache entries restored and saved is printed to the Job Summary when saving the cache entries. 
+A report of all cache entries restored and saved is printed to the Job Summary when saving the cache entries.
 This report can provide valuable insight into how much cache space is being used.
 
 When debug logging is enabled, more detailed logging of cache operations is included in the GitHub actions log.
@@ -461,18 +461,18 @@ Note that to add a Pull Request comment, the workflow must be configured with th
 As well as reporting all [Build Scan](https://gradle.com/build-scans/) links in the Job Summary,
 The `setup-gradle` action makes this link available as an output of any Step that executes Gradle.
 
-The output name is `build-scan-url`. You can then use the build scan link in subsequent actions of your workflow. 
+The output name is `build-scan-url`. You can then use the build scan link in subsequent actions of your workflow.
 
 ### Saving arbitrary build outputs
 
-By default, a GitHub Actions workflow using `setup-gradle` will record the log output and any Build Scan 
+By default, a GitHub Actions workflow using `setup-gradle` will record the log output and any Build Scan
 links for your build, but any output files generated by the build will not be saved.
 
 To save selected files from your build execution, you can use the core [Upload-Artifact](https://github.com/actions/upload-artifact) action.
 For example:
 
 ```yaml
-jobs:   
+jobs:
   gradle:
     runs-on: ubuntu-latest
     steps:
@@ -506,7 +506,7 @@ Since Gradle applies init scripts in alphabetical order, one way to ensure this 
 
 ## Gradle Wrapper validation
 
-Instead of using the [wrapper-validation action](./wrapper-validation.md) separately, you can enable 
+Instead of using the [wrapper-validation action](./wrapper-validation.md) separately, you can enable
 wrapper validation directly in your Setup Gradle step.
 
 ```yaml
@@ -530,7 +530,7 @@ You can use the `setup-gradle` action on GitHub Enterprise Server, and benefit f
 ## GitHub Dependency Graph support
 
 > [!IMPORTANT]
-> The simplest (and recommended) way to generate a dependency graph is via a separate workflow 
+> The simplest (and recommended) way to generate a dependency graph is via a separate workflow
 > using `gradle/actions/dependency-submission`. This action will attempt to detect all dependencies used by your build
 > without building and testing the project itself.
 >
@@ -544,7 +544,7 @@ The dependency graph snapshot is generated via integration with the [GitHub Depe
 The generated dependency graph snapshot reports all of the dependencies that were resolved during a build execution, and is used by GitHub to generate [Dependabot Alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts) for vulnerable dependencies, as well as to populate the [Dependency Graph insights view](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exploring-the-dependencies-of-a-repository#viewing-the-dependency-graph).
 
 ### Basic usage
- 
+
 You enable GitHub Dependency Graph support by setting the `dependency-graph` action parameter. Valid values are:
 
 | Option | Behaviour |
@@ -560,7 +560,7 @@ Example of a CI workflow that generates and submits a dependency graph:
 name: CI build
 on:
   push:
-  
+
 permissions:
   contents: write
 
@@ -582,13 +582,13 @@ jobs:
       run: ./gradlew build
 ```
 
-The `contents: write` permission is required to submit (but not generate) the dependency graph file. 
+The `contents: write` permission is required to submit (but not generate) the dependency graph file.
 Depending on [repository settings](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token), this permission may be available by default or may need to be explicitly enabled in the workflow file (as above).
 
 > [!IMPORTANT]
-> The above configuration will work for workflows that run as a result of commits to a repository branch, 
+> The above configuration will work for workflows that run as a result of commits to a repository branch,
 > but not when a workflow is triggered by a PR from a repository fork.
-> This is because the `contents: write` permission is not available when executing a workflow 
+> This is because the `contents: write` permission is not available when executing a workflow
 > for a PR submitted from a forked repository.
 > For a configuration that supports this setup, see [Dependency Graphs for pull request workflows](dependency-submission.md#usage-with-pull-requests-from-public-forked-repositories).
 
@@ -610,7 +610,7 @@ graph cannot be generated or submitted. You can enable this behavior with the `d
 
 ### Using a custom plugin repository
 
-By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use. 
+By default, the action downloads the `github-dependency-graph-gradle-plugin` from the Gradle Plugin Portal (https://plugins.gradle.org). If your GitHub Actions environment does not have access to this URL, you can specify a custom plugin repository to use.
 
 Do so by setting the `GRADLE_PLUGIN_REPOSITORY_URL` environment variable with your Gradle invocation.
 The `GRADLE_PLUGIN_REPOSITORY_USERNAME` and `GRADLE_PLUGIN_REPOSITORY_PASSWORD` can be used when the plugin repository requires authentication.
@@ -670,7 +670,7 @@ jobs:
 
 ### Filtering which Gradle Configurations contribute to the dependency graph
 
-If you do not want the dependency graph to include every dependency configuration in every project in your build, 
+If you do not want the dependency graph to include every dependency configuration in every project in your build,
 you can limit the dependency extraction to a subset of these.
 
 See the documentation for [dependency-submission](dependency-submission.md) and the
@@ -678,7 +678,7 @@ See the documentation for [dependency-submission](dependency-submission.md) and 
 
 ### Gradle version compatibility
 
-Dependency-graph generation is compatible with most versions of Gradle >= `5.2`, and is tested regularly against 
+Dependency-graph generation is compatible with most versions of Gradle >= `5.2`, and is tested regularly against
 Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1` and `7.6.3`, as well as all patched versions of Gradle 8.x.
 
 A known exception to this is that Gradle `7.0`, `7.0.1`, and `7.0.2` are not supported.
@@ -687,7 +687,7 @@ See [here](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=r
 
 ### Reducing storage costs for saved dependency graph artifacts
 
-When `generate` or `generate-and-submit` is used with the action, the dependency graph that is generated is stored as a workflow artifact. 
+When `generate` or `generate-and-submit` is used with the action, the dependency graph that is generated is stored as a workflow artifact.
 By default, these artifacts are retained for 30 days (or as configured for the repository).
 To reduce storage costs for these artifacts, you can set the `artifact-retention-days` value to a lower number.
 
@@ -708,7 +708,7 @@ The same auto-injection behavior is available for the Common Custom User Data Gr
 
 ## Enabling Develocity injection
 
-To enable Develocity injection for your build, you must provide the required configuration via environment variables. 
+To enable Develocity injection for your build, you must provide the required configuration via environment variables.
 
 Here's a minimal example:
 
@@ -727,8 +727,29 @@ Here's a minimal example:
 This configuration will automatically apply `v3.17.3` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
 
 This example assumes that the `develocity.your-server.com` server allows anonymous publishing of build scans.
-In the likely scenario that your Develocity server requires authentication, you will also need to configure an additional environment variable
-with a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable).
+In the likely scenario that your Develocity server requires authentication, you will also need to pass a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable) taken from a secret:
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
+
+    - name: Run a Gradle build with Develocity injection enabled
+      run: ./gradlew build
+      env:
+        DEVELOCITY_INJECTION_ENABLED: true
+        DEVELOCITY_URL: https://develocity.your-server.com
+        DEVELOCITY_PLUGIN_VERSION: 3.17
+```
+
+This access key will be used during the action execution to get a short-lived token and set it to the DEVELOCITY_ACCESS_KEY environment variable.
+
+### Short-lived access tokens
+Develocity access keys are long-lived, creating risks if they are leaked. To avoid this, users can use short-lived access tokens to authenticate with Develocity. Access tokens can be used wherever an access key would be used. Access tokens are only valid for the Develocity instance that created them.
+If a short-lived token fails to be retrieved (for example, if the Develocity server version is lower than `2024.1`), no access key will be set.
+In that case, Develocity authenticated operations like build cache read/write and build scan publication will fail without failing the build.
+For more information on short-lived tokens, see [Develocity API documentation](https://docs.gradle.com/develocity/api-manual/#short_lived_access_tokens).
 
 ## Configuring Develocity injection
 

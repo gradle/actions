@@ -23,7 +23,7 @@ inputs:
 
   cache-write-only:
     description: |
-      When 'true', entries will not be restored from the cache but will be saved at the end of the Job. 
+      When 'true', entries will not be restored from the cache but will be saved at the end of the Job.
       Setting this to 'true' implies cache-read-only will be 'false'.
     required: false
     default: false
@@ -35,7 +35,7 @@ inputs:
 
   cache-encryption-key:
     description: |
-      A base64 encoded AES key used to encrypt the configuration-cache data. The key is exported as 'GRADLE_ENCRYPTION_KEY' for later steps. 
+      A base64 encoded AES key used to encrypt the configuration-cache data. The key is exported as 'GRADLE_ENCRYPTION_KEY' for later steps.
       A suitable key can be generated with `openssl rand -base64 16`.
       Configuration-cache data will not be saved/restored without an encryption key being provided.
     required: false
@@ -70,7 +70,7 @@ inputs:
   # Dependency Graph configuration
   dependency-graph:
     description: |
-      Specifies if a GitHub dependency snapshot should be generated for each Gradle build, and if so, how. 
+      Specifies if a GitHub dependency snapshot should be generated for each Gradle build, and if so, how.
       Valid values are 'disabled' (default), 'generate', 'generate-and-submit', 'generate-and-upload', 'download-and-submit' and 'clear'.
     required: false
     default: 'disabled'
@@ -95,9 +95,17 @@ inputs:
   build-scan-terms-of-use-url:
     description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service' or 'https://gradle.com/help/legal-terms-of-use'.
     required: false
-  
+
   build-scan-terms-of-use-agree:
     description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
+    required: false
+
+  develocity-access-key:
+    description: Develocity access key. Should be set to a secret containing the Develocity Access key.
+    required: false
+
+  develocity-token-expiry:
+    description: The Develocity short-lived access tokens expiry in hours. Default is 2 hours.
     required: false
 
   # Wrapper validation configuration
@@ -143,7 +151,7 @@ inputs:
     description: When 'true', the action will not attempt to restore the Gradle User Home entries from other Jobs.
     required: false
     default: false
-    
+
   # INTERNAL ACTION INPUTS
   # These inputs should not be configured directly, and are only used to pass environmental information to the action
   workflow-job-context:
