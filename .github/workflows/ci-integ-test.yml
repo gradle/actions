@@ -156,13 +156,13 @@ jobs:
     secrets:
       DEVELOCITY_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
 
-#  provision-gradle-versions:
-#    needs: [determine-suite, build-distribution]
-#    uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
-#    with:
-#      runner-os: '["ubuntu-latest"]'
-#      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-#      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+  provision-gradle-versions:
+    needs: [determine-suite, build-distribution]
+    uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
+    with:
+      runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   restore-configuration-cache:
     if: ${{ ! github.event.pull_request.head.repo.fork }}
