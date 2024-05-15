@@ -90053,6 +90053,12 @@ class BuildScanConfig {
     getBuildScanTermsOfUseAgree() {
         return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree');
     }
+    getDevelocityAccessKey() {
+        return core.getInput('develocity-access-key') || process.env['DEVELOCITY_ACCESS_KEY'] || '';
+    }
+    getDevelocityTokenExpiry() {
+        return core.getInput('develocity-token-expiry');
+    }
     verifyTermsOfUseAgreement() {
         if ((this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' &&
             this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/help/legal-terms-of-use') ||

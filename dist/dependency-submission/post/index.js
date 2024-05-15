@@ -94395,58 +94395,6 @@ function markProcessed(resultFile) {
 
 /***/ }),
 
-/***/ 5772:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-function setup(config) {
-    maybeExportVariable('DEVELOCITY_INJECTION_INIT_SCRIPT_NAME', 'gradle-actions.inject-develocity.init.gradle');
-    maybeExportVariable('DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE', 'gradle-actions');
-    if (config.getBuildScanPublishEnabled()) {
-        maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true');
-        maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.17.3');
-        maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '2.0');
-        maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', config.getBuildScanTermsOfUseUrl());
-        maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', config.getBuildScanTermsOfUseAgree());
-    }
-}
-exports.setup = setup;
-function maybeExportVariable(variableName, value) {
-    if (!process.env[variableName]) {
-        core.exportVariable(variableName, value);
-    }
-}
-
-
-/***/ }),
-
 /***/ 651:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -95901,6 +95849,12 @@ class BuildScanConfig {
     getBuildScanTermsOfUseAgree() {
         return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree');
     }
+    getDevelocityAccessKey() {
+        return core.getInput('develocity-access-key') || process.env['DEVELOCITY_ACCESS_KEY'] || '';
+    }
+    getDevelocityTokenExpiry() {
+        return core.getInput('develocity-token-expiry');
+    }
     verifyTermsOfUseAgreement() {
         if ((this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' &&
             this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/help/legal-terms-of-use') ||
@@ -96193,6 +96147,253 @@ function restoreDeprecationState() {
     });
 }
 exports.restoreDeprecationState = restoreDeprecationState;
+
+
+/***/ }),
+
+/***/ 9589:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setup = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const short_lived_token_1 = __nccwpck_require__(8698);
+async function setup(config) {
+    maybeExportVariable('DEVELOCITY_INJECTION_INIT_SCRIPT_NAME', 'gradle-actions.inject-develocity.init.gradle');
+    maybeExportVariable('DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE', 'gradle-actions');
+    if (config.getBuildScanPublishEnabled()) {
+        maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true');
+        maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.17.3');
+        maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '2.0');
+        maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', config.getBuildScanTermsOfUseUrl());
+        maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', config.getBuildScanTermsOfUseAgree());
+    }
+    (0, short_lived_token_1.setupToken)(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry(), getEnv('DEVELOCITY_ENFORCE_URL'), getEnv('DEVELOCITY_URL'));
+}
+exports.setup = setup;
+function getEnv(variableName) {
+    return process.env[variableName];
+}
+function maybeExportVariable(variableName, value) {
+    if (!process.env[variableName]) {
+        core.exportVariable(variableName, value);
+    }
+}
+
+
+/***/ }),
+
+/***/ 8698:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DevelocityAccessCredentials = exports.getToken = exports.setupToken = void 0;
+const httpm = __importStar(__nccwpck_require__(5538));
+const core = __importStar(__nccwpck_require__(2186));
+async function setupToken(develocityAccessKey, develocityTokenExpiry, enforceUrl, develocityUrl) {
+    const develocityAccesskeyEnvVar = 'DEVELOCITY_ACCESS_KEY';
+    if (develocityAccessKey) {
+        try {
+            core.debug('Fetching short-lived token...');
+            const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry);
+            if (tokens != null && !tokens.isEmpty()) {
+                core.debug(`Got token(s), setting the ${develocityAccesskeyEnvVar} env var`);
+                const token = tokens.raw();
+                core.setSecret(token);
+                core.exportVariable(develocityAccesskeyEnvVar, token);
+            }
+            else {
+                core.exportVariable(develocityAccesskeyEnvVar, '');
+            }
+        }
+        catch (e) {
+            core.exportVariable(develocityAccesskeyEnvVar, '');
+            core.warning(`Failed to fetch short-lived token, reason: ${e}`);
+        }
+    }
+}
+exports.setupToken = setupToken;
+async function getToken(enforceUrl, serverUrl, accessKey, expiry) {
+    const empty = new Promise(r => r(null));
+    const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey);
+    const shortLivedTokenClient = new ShortLivedTokenClient();
+    async function promiseError(message) {
+        return new Promise((resolve, reject) => reject(new Error(message)));
+    }
+    if (develocityAccessKey == null) {
+        return empty;
+    }
+    if (enforceUrl === 'true' || develocityAccessKey.isSingleKey()) {
+        if (!serverUrl) {
+            return promiseError('Develocity Server URL not configured');
+        }
+        const hostname = extractHostname(serverUrl);
+        if (hostname == null) {
+            return promiseError('Could not extract hostname from Develocity server URL');
+        }
+        const hostAccessKey = develocityAccessKey.forHostname(hostname);
+        if (!hostAccessKey) {
+            return promiseError(`Could not find corresponding key for hostname ${hostname}`);
+        }
+        try {
+            const token = await shortLivedTokenClient.fetchToken(serverUrl, hostAccessKey, expiry);
+            return DevelocityAccessCredentials.of([token]);
+        }
+        catch (e) {
+            return new Promise((resolve, reject) => reject(e));
+        }
+    }
+    const tokens = new Array();
+    for (const k of develocityAccessKey.keys) {
+        try {
+            const token = await shortLivedTokenClient.fetchToken(`https://${k.hostname}`, k, expiry);
+            tokens.push(token);
+        }
+        catch (e) {
+        }
+    }
+    if (tokens.length > 0) {
+        return DevelocityAccessCredentials.of(tokens);
+    }
+    return empty;
+}
+exports.getToken = getToken;
+function extractHostname(serverUrl) {
+    try {
+        const parsedUrl = new URL(serverUrl);
+        return parsedUrl.hostname;
+    }
+    catch (error) {
+        return null;
+    }
+}
+class ShortLivedTokenClient {
+    constructor() {
+        this.httpc = new httpm.HttpClient('gradle/setup-gradle');
+        this.maxRetries = 3;
+        this.retryInterval = 1000;
+    }
+    async fetchToken(serverUrl, accessKey, expiry) {
+        const queryParams = expiry ? `?expiresInHours${expiry}` : '';
+        const sanitizedServerUrl = !serverUrl.endsWith('/') ? `${serverUrl}/` : serverUrl;
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessKey.key}`
+        };
+        let attempts = 0;
+        while (attempts < this.maxRetries) {
+            try {
+                const requestUrl = `${sanitizedServerUrl}api/auth/token${queryParams}`;
+                core.debug(`Attempt ${attempts} to fetch short lived token at ${requestUrl}`);
+                const response = await this.httpc.post(requestUrl, '', headers);
+                if (response.message.statusCode === 200) {
+                    const text = await response.readBody();
+                    return new Promise(resolve => resolve({ hostname: accessKey.hostname, key: text }));
+                }
+                attempts++;
+                if (attempts === this.maxRetries) {
+                    return new Promise((resolve, reject) => reject(new Error(`Develocity short lived token request failed ${serverUrl} with status code ${response.message.statusCode}`)));
+                }
+            }
+            catch (error) {
+                attempts++;
+                if (attempts === this.maxRetries) {
+                    return new Promise((resolve, reject) => reject(error));
+                }
+            }
+            await new Promise(resolve => setTimeout(resolve, this.retryInterval));
+        }
+        return new Promise((resolve, reject) => reject(new Error('Illegal state')));
+    }
+}
+class DevelocityAccessCredentials {
+    constructor(allKeys) {
+        this.keys = allKeys;
+    }
+    static of(allKeys) {
+        return new DevelocityAccessCredentials(allKeys);
+    }
+    static parse(rawKey) {
+        if (!this.isValid(rawKey)) {
+            return null;
+        }
+        return new DevelocityAccessCredentials(rawKey.split(this.keyDelimiter).map(hostKey => {
+            const pair = hostKey.split(this.hostDelimiter);
+            return { hostname: pair[0], key: pair[1] };
+        }));
+    }
+    isEmpty() {
+        return this.keys.length === 0;
+    }
+    isSingleKey() {
+        return this.keys.length === 1;
+    }
+    forHostname(hostname) {
+        return this.keys.find(hostKey => hostKey.hostname === hostname);
+    }
+    raw() {
+        return this.keys
+            .map(k => `${k.hostname}${DevelocityAccessCredentials.hostDelimiter}${k.key}`)
+            .join(DevelocityAccessCredentials.keyDelimiter);
+    }
+    static isValid(allKeys) {
+        return this.accessKeyRegexp.test(allKeys);
+    }
+}
+exports.DevelocityAccessCredentials = DevelocityAccessCredentials;
+DevelocityAccessCredentials.accessKeyRegexp = /^(\S+=\w+)(;\S+=\w+)*$/;
+DevelocityAccessCredentials.keyDelimiter = ';';
+DevelocityAccessCredentials.hostDelimiter = '=';
 
 
 /***/ }),
@@ -96513,7 +96714,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const caches = __importStar(__nccwpck_require__(7504));
 const jobSummary = __importStar(__nccwpck_require__(7345));
-const buildScan = __importStar(__nccwpck_require__(5772));
+const buildScan = __importStar(__nccwpck_require__(9589));
 const build_results_1 = __nccwpck_require__(2107);
 const cache_reporting_1 = __nccwpck_require__(7391);
 const daemon_controller_1 = __nccwpck_require__(5146);
@@ -96538,7 +96739,7 @@ async function setup(cacheConfig, buildScanConfig) {
     const cacheListener = new cache_reporting_1.CacheListener();
     await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig);
     core.saveState(CACHE_LISTENER, cacheListener.stringify());
-    buildScan.setup(buildScanConfig);
+    await buildScan.setup(buildScanConfig);
     return true;
 }
 exports.setup = setup;
