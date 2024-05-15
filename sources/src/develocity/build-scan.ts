@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import {BuildScanConfig} from './configuration'
-import {getToken} from './shortlived-token/shortlived-token'
+import {BuildScanConfig} from '../configuration'
+import {getToken} from './short-lived-token'
 
 export async function setup(config: BuildScanConfig): Promise<void> {
     maybeExportVariable('DEVELOCITY_INJECTION_INIT_SCRIPT_NAME', 'gradle-actions.inject-develocity.init.gradle')

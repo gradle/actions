@@ -1,4 +1,4 @@
-import {DevelocityAccessCredentials, getToken} from "../../src/shortlived-token/shortlived-token";
+import {DevelocityAccessCredentials, getToken} from "../../src/develocity/short-lived-token";
 import nock from "nock";
 
 describe('short lived tokens', () => {
