@@ -23,7 +23,7 @@ jobs:
   inject-develocity:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
-      DEVELOCITY_URL: https://ge.solutions-team.gradle.com
+      DEVELOCITY_URL: https://ge-helm-cluster-unstable.grdev.net
       DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }} # required to test against GE plugin 3.16.2
@@ -68,7 +68,7 @@ jobs:
   inject-develocity-short-lived-token-with-input:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
-      DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
+      DEVELOCITY_URL: 'https://ge-helm-cluster-unstable.grdev.net'
       DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
     strategy:

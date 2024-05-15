@@ -1,6 +1,33 @@
 import * as httpm from 'typed-rest-client/HttpClient'
 import * as core from '@actions/core'
 
+export async function setupToken(
+    develocityAccessKey: string,
+    develocityTokenExpiry: string,
+    enforceUrl: string | undefined,
+    develocityUrl: string | undefined
+): Promise<void> {
+    const develocityAccesskeyEnvVar = 'DEVELOCITY_ACCESS_KEY'
+    if (develocityAccessKey) {
+        try {
+            core.debug('Fetching short-lived token...')
+            const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry)
+            if (tokens != null && !tokens.isEmpty()) {
+                core.debug(`Got token(s), setting the ${develocityAccesskeyEnvVar} env var`)
+                const token = tokens.raw()
+                core.setSecret(token)
+                core.exportVariable(develocityAccesskeyEnvVar, token)
+            } else {
+                // In case of not being able to generate a token we set the env variable to empty to avoid leaks
+                core.exportVariable(develocityAccesskeyEnvVar, '')
+            }
+        } catch (e) {
+            core.exportVariable(develocityAccesskeyEnvVar, '')
+            core.warning(`Failed to fetch short-lived token, reason: ${e}`)
+        }
+    }
+}
+
 export async function getToken(
     enforceUrl: string | undefined,
     serverUrl: string | undefined,
