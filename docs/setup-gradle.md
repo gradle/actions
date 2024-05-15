@@ -732,6 +732,8 @@ In the likely scenario that your Develocity server requires authentication, you 
 ```yaml
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+      with:
+        develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
 
     - name: Run a Gradle build with Develocity injection enabled
       run: ./gradlew build
@@ -739,8 +741,6 @@ In the likely scenario that your Develocity server requires authentication, you 
         DEVELOCITY_INJECTION_ENABLED: true
         DEVELOCITY_URL: https://develocity.your-server.com
         DEVELOCITY_PLUGIN_VERSION: 3.17
-      with:
-        develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
 ```
 
 This access key will be used during the action execution to get a short-lived token and set it to the DEVELOCITY_ACCESS_KEY environment variable.
