@@ -7,25 +7,28 @@ export async function setupToken(
     enforceUrl: string | undefined,
     develocityUrl: string | undefined
 ): Promise<void> {
-    const develocityAccesskeyEnvVar = 'DEVELOCITY_ACCESS_KEY'
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...')
             const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry)
             if (tokens != null && !tokens.isEmpty()) {
-                core.debug(`Got token(s), setting the ${develocityAccesskeyEnvVar} env var`)
+                core.debug(`Got token(s), setting the access key env vars`)
                 const token = tokens.raw()
                 core.setSecret(token)
-                core.exportVariable(develocityAccesskeyEnvVar, token)
+                exportAccessKeyEnvVars(token)
             } else {
                 // In case of not being able to generate a token we set the env variable to empty to avoid leaks
-                core.exportVariable(develocityAccesskeyEnvVar, '')
+                exportAccessKeyEnvVars('')
             }
         } catch (e) {
-            core.exportVariable(develocityAccesskeyEnvVar, '')
+            exportAccessKeyEnvVars('')
             core.warning(`Failed to fetch short-lived token, reason: ${e}`)
         }
     }
+}
+
+function exportAccessKeyEnvVars(value: string): void {
+    ;['DEVELOCITY_ACCESS_KEY', 'GRADLE_ENTERPRISE_ACCESS_KEY'].forEach(key => core.exportVariable(key, value))
 }
 
 export async function getToken(
