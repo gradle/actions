@@ -90054,7 +90054,10 @@ class BuildScanConfig {
         return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree');
     }
     getDevelocityAccessKey() {
-        return core.getInput('develocity-access-key') || process.env['DEVELOCITY_ACCESS_KEY'] || '';
+        return (core.getInput('develocity-access-key') ||
+            process.env[BuildScanConfig.DevelocityAccessKeyEnvVar] ||
+            process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar] ||
+            '');
     }
     getDevelocityTokenExpiry() {
         return core.getInput('develocity-token-expiry');
@@ -90082,6 +90085,8 @@ class BuildScanConfig {
     }
 }
 exports.BuildScanConfig = BuildScanConfig;
+BuildScanConfig.DevelocityAccessKeyEnvVar = 'DEVELOCITY_ACCESS_KEY';
+BuildScanConfig.GradleEnterpriseAccessKeyEnvVar = 'GRADLE_ENTERPRISE_ACCESS_KEY';
 class GradleExecutionConfig {
     getGradleVersion() {
         return core.getInput('gradle-version');

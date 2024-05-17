@@ -95850,7 +95850,10 @@ class BuildScanConfig {
         return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree');
     }
     getDevelocityAccessKey() {
-        return core.getInput('develocity-access-key') || process.env['DEVELOCITY_ACCESS_KEY'] || '';
+        return (core.getInput('develocity-access-key') ||
+            process.env[BuildScanConfig.DevelocityAccessKeyEnvVar] ||
+            process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar] ||
+            '');
     }
     getDevelocityTokenExpiry() {
         return core.getInput('develocity-token-expiry');
@@ -95878,6 +95881,8 @@ class BuildScanConfig {
     }
 }
 exports.BuildScanConfig = BuildScanConfig;
+BuildScanConfig.DevelocityAccessKeyEnvVar = 'DEVELOCITY_ACCESS_KEY';
+BuildScanConfig.GradleEnterpriseAccessKeyEnvVar = 'GRADLE_ENTERPRISE_ACCESS_KEY';
 class GradleExecutionConfig {
     getGradleVersion() {
         return core.getInput('gradle-version');
@@ -96240,29 +96245,40 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DevelocityAccessCredentials = exports.getToken = exports.setupToken = void 0;
 const httpm = __importStar(__nccwpck_require__(5538));
 const core = __importStar(__nccwpck_require__(2186));
+const configuration_1 = __nccwpck_require__(5778);
+const deprecation_collector_1 = __nccwpck_require__(2572);
 async function setupToken(develocityAccessKey, develocityTokenExpiry, enforceUrl, develocityUrl) {
-    const develocityAccesskeyEnvVar = 'DEVELOCITY_ACCESS_KEY';
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...');
             const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry);
             if (tokens != null && !tokens.isEmpty()) {
-                core.debug(`Got token(s), setting the ${develocityAccesskeyEnvVar} env var`);
+                core.debug(`Got token(s), setting the access key env vars`);
                 const token = tokens.raw();
                 core.setSecret(token);
-                core.exportVariable(develocityAccesskeyEnvVar, token);
+                exportAccessKeyEnvVars(token);
             }
             else {
-                core.exportVariable(develocityAccesskeyEnvVar, '');
+                clearAccessKeyEnvVarsWithDeprecationWarning();
             }
         }
         catch (e) {
-            core.exportVariable(develocityAccesskeyEnvVar, '');
+            clearAccessKeyEnvVarsWithDeprecationWarning();
             core.warning(`Failed to fetch short-lived token, reason: ${e}`);
         }
     }
 }
 exports.setupToken = setupToken;
+function exportAccessKeyEnvVars(value) {
+    ;
+    [configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar, configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key => core.exportVariable(key, value));
+}
+function clearAccessKeyEnvVarsWithDeprecationWarning() {
+    if (process.env[configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
+        (0, deprecation_collector_1.recordDeprecation)(`The ${configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`);
+    }
+    core.exportVariable(configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar, '');
+}
 async function getToken(enforceUrl, serverUrl, accessKey, expiry) {
     const empty = new Promise(r => r(null));
     const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey);
