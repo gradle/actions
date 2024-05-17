@@ -1,5 +1,7 @@
 import * as httpm from 'typed-rest-client/HttpClient'
 import * as core from '@actions/core'
+import {BuildScanConfig} from '../configuration'
+import {recordDeprecation} from '../deprecation-collector'
 
 export async function setupToken(
     develocityAccessKey: string,
@@ -7,25 +9,38 @@ export async function setupToken(
     enforceUrl: string | undefined,
     develocityUrl: string | undefined
 ): Promise<void> {
-    const develocityAccesskeyEnvVar = 'DEVELOCITY_ACCESS_KEY'
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...')
             const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry)
             if (tokens != null && !tokens.isEmpty()) {
-                core.debug(`Got token(s), setting the ${develocityAccesskeyEnvVar} env var`)
+                core.debug(`Got token(s), setting the access key env vars`)
                 const token = tokens.raw()
                 core.setSecret(token)
-                core.exportVariable(develocityAccesskeyEnvVar, token)
+                exportAccessKeyEnvVars(token)
             } else {
                 // In case of not being able to generate a token we set the env variable to empty to avoid leaks
-                core.exportVariable(develocityAccesskeyEnvVar, '')
+                clearAccessKeyEnvVarsWithDeprecationWarning()
             }
         } catch (e) {
-            core.exportVariable(develocityAccesskeyEnvVar, '')
+            clearAccessKeyEnvVarsWithDeprecationWarning()
             core.warning(`Failed to fetch short-lived token, reason: ${e}`)
         }
     }
+}
+
+function exportAccessKeyEnvVars(value: string): void {
+    ;[BuildScanConfig.DevelocityAccessKeyEnvVar, BuildScanConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key =>
+        core.exportVariable(key, value)
+    )
+}
+
+function clearAccessKeyEnvVarsWithDeprecationWarning(): void {
+    if (process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
+        // We do not clear the GRADLE_ENTERPRISE_ACCESS_KEY env var in v3, to let the users upgrade to DV 2024.1
+        recordDeprecation(`The ${BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
+    }
+    core.exportVariable(BuildScanConfig.DevelocityAccessKeyEnvVar, '')
 }
 
 export async function getToken(

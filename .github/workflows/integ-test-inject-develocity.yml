@@ -67,21 +67,23 @@ jobs:
       with:
         script: |
           core.setFailed('No Build Scan detected')
-    - name: Check short lived token
-      if: ${{ matrix.plugin-version == '3.17.3' }}
+    - name: Check short lived token (DEVELOCITY_ACCESS_KEY)
       run: "[ ${#DEVELOCITY_ACCESS_KEY} -gt 500 ] || (echo 'DEVELOCITY_ACCESS_KEY does not look like a short lived token'; exit 1)"
+    - name: Check short lived token (GRADLE_ENTERPRISE_ACCESS_KEY)
+      run: "[ ${#GRADLE_ENTERPRISE_ACCESS_KEY} -gt 500 ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY does not look like a short lived token'; exit 1)"
 
   inject-develocity-with-access-key:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
-      DEVELOCITY_PLUGIN_VERSION: 3.17.3
+      DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
     strategy:
       fail-fast: false
       matrix:
         gradle: [current, 7.6.2, 6.9.4, 5.6.4]
         os: ${{fromJSON(inputs.runner-os)}}
+        plugin-version: [3.16.2, 3.17.3]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout sources
@@ -105,8 +107,10 @@ jobs:
         id: gradle
         working-directory: .github/workflow-samples/no-ge
         run: gradle help
-      - name: Check short lived token
+      - name: Check short lived token (DEVELOCITY_ACCESS_KEY)
         run: "[ ${#DEVELOCITY_ACCESS_KEY} -gt 500 ] || (echo 'DEVELOCITY_ACCESS_KEY does not look like a short lived token'; exit 1)"
+      - name: Check short lived token (GRADLE_ENTERPRISE_ACCESS_KEY)
+        run: "[ ${#GRADLE_ENTERPRISE_ACCESS_KEY} -gt 500 ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY does not look like a short lived token'; exit 1)"
       - name: Check Build Scan url
         if: ${{ !steps.gradle.outputs.build-scan-url }}
         uses: actions/github-script@v7
@@ -118,10 +122,17 @@ jobs:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: 'https://localhost:3333/'
-      DEVELOCITY_PLUGIN_VERSION: 3.17.3
+      DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0'
       # Access key also set as an env var, we want to check it does not leak
+      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
       DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+    strategy:
+      fail-fast: false
+      matrix:
+        gradle: [ current, 7.6.2, 6.9.4, 5.6.4 ]
+        os: ${{fromJSON(inputs.runner-os)}}
+        plugin-version: [ 3.16.2, 3.17.3 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -144,5 +155,7 @@ jobs:
         id: gradle
         working-directory: .github/workflow-samples/no-ge
         run: gradle help
-      - name: Check access key is blank
+      - name: Check access key is blank (DEVELOCITY_ACCESS_KEY)
         run: "[ \"${DEVELOCITY_ACCESS_KEY}\" == \"\" ] || (echo 'DEVELOCITY_ACCESS_KEY has leaked!'; exit 1)"
+      - name: Check access key is not blank (GRADLE_ENTERPRISE_ACCESS_KEY)
+        run: "[ \"${GRADLE_ENTERPRISE_ACCESS_KEY}\" != \"\" ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY is still supported in v3!'; exit 1)"
