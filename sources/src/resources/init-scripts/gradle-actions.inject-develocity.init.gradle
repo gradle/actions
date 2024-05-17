@@ -1,14 +1,12 @@
 /*
  * Initscript for injection of Develocity into Gradle builds.
- * Version: v0.5.0
+ * Version: v0.5.1
  */
 
 import org.gradle.util.GradleVersion
 
-// note that there is no mechanism to share code between the initscript{} block and the main script, so some logic is duplicated
-
-// conditionally apply the Develocity plugin to the classpath so it can be applied to the build further down in this script
 initscript {
+    // NOTE: there is no mechanism to share code between the initscript{} block and the main script, so some logic is duplicated
     def isTopLevelBuild = !gradle.parent
     if (!isTopLevelBuild) {
         return
@@ -26,7 +24,7 @@ initscript {
         return
     }
 
-    // plugin loading is only required for Develocity injection
+    // Plugin loading is only required for Develocity injection. Abort early if not enabled.
     def develocityInjectionEnabled = Boolean.parseBoolean(getInputParam("develocity.injection-enabled"))
     if (!develocityInjectionEnabled) {
         return
