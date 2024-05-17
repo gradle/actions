@@ -1,5 +1,7 @@
 import * as httpm from 'typed-rest-client/HttpClient'
 import * as core from '@actions/core'
+import {BuildScanConfig} from '../configuration'
+import {recordDeprecation} from '../deprecation-collector'
 
 export async function setupToken(
     develocityAccessKey: string,
@@ -18,17 +20,27 @@ export async function setupToken(
                 exportAccessKeyEnvVars(token)
             } else {
                 // In case of not being able to generate a token we set the env variable to empty to avoid leaks
-                exportAccessKeyEnvVars('')
+                clearAccessKeyEnvVarsWithDeprecationWarning()
             }
         } catch (e) {
-            exportAccessKeyEnvVars('')
+            clearAccessKeyEnvVarsWithDeprecationWarning()
             core.warning(`Failed to fetch short-lived token, reason: ${e}`)
         }
     }
 }
 
 function exportAccessKeyEnvVars(value: string): void {
-    ;['DEVELOCITY_ACCESS_KEY', 'GRADLE_ENTERPRISE_ACCESS_KEY'].forEach(key => core.exportVariable(key, value))
+    ;[BuildScanConfig.DevelocityAccessKeyEnvVar, BuildScanConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key =>
+        core.exportVariable(key, value)
+    )
+}
+
+function clearAccessKeyEnvVarsWithDeprecationWarning(): void {
+    if (process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
+        // We do not clear the GRADLE_ENTERPRISE_ACCESS_KEY env var in v3, to let the users upgrade to DV 2024.1
+        recordDeprecation(`The ${BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
+    }
+    core.exportVariable(BuildScanConfig.DevelocityAccessKeyEnvVar, '')
 }
 
 export async function getToken(

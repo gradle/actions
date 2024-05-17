@@ -188,6 +188,9 @@ export enum JobSummaryOption {
 }
 
 export class BuildScanConfig {
+    static DevelocityAccessKeyEnvVar = 'DEVELOCITY_ACCESS_KEY'
+    static GradleEnterpriseAccessKeyEnvVar = 'GRADLE_ENTERPRISE_ACCESS_KEY'
+
     getBuildScanPublishEnabled(): boolean {
         return getBooleanInput('build-scan-publish') && this.verifyTermsOfUseAgreement()
     }
@@ -203,8 +206,8 @@ export class BuildScanConfig {
     getDevelocityAccessKey(): string {
         return (
             core.getInput('develocity-access-key') ||
-            process.env['DEVELOCITY_ACCESS_KEY'] ||
-            process.env['GRADLE_ENTERPRISE_ACCESS_KEY'] ||
+            process.env[BuildScanConfig.DevelocityAccessKeyEnvVar] ||
+            process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar] ||
             ''
         )
     }

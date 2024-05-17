@@ -1,9 +1,9 @@
 # Deprecation upgrade guide
 
-As these actions evolve, certain inputs, behaviour and usages are deprecated for removal. 
+As these actions evolve, certain inputs, behaviour and usages are deprecated for removal.
 Deprecated functionality will be fully supported during the current major release, and will be
-removed in the next major release. 
-Users will receive a deprecation warning when they rely on deprecated functionality, 
+removed in the next major release.
+Users will receive a deprecation warning when they rely on deprecated functionality,
 prompting them to update their workflows.
 
 ## The action `gradle/gradle-build-action` has been replaced by `gradle/actions/setup-gradle`
@@ -25,10 +25,10 @@ with
 
 ## The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`
 
-To facilitate ongoing development, the `wrapper-validation-action` action implementation has been merged into 
+To facilitate ongoing development, the `wrapper-validation-action` action implementation has been merged into
 the https://github.com/gradle/actions repository, and the `gradle/wrapper-validation-action` has been replaced by the `gradle/actions/wrapper-validation` action.
 
-As of `v3.x`, the `gradle/wrapper-validation-action` and `gradle/actions/wrappper-validation` actions are 
+As of `v3.x`, the `gradle/wrapper-validation-action` and `gradle/actions/wrappper-validation` actions are
 functionally identical, and are released with the same versions.
 
 In a future major version (likely `v4.x`) we will stop releasing new versions of `gradle/wrapper-validation-action`:
@@ -143,3 +143,8 @@ to this:
     build-scan-terms-of-use-agree: "yes"
 ```
 These deprecated build-scan parameters are scheduled to be removed in `setup-gradle@v4` and `dependency-submission@v4`.
+
+## The GRADLE_ENTERPRISE_ACCESS_KEY env var is deprecated
+Gradle Enterprise has been renamed to Develocity starting from Gradle plugin 3.17 and Develocity server 2024.1.
+In v4 release of the action, it will require setting the access key with the `develocity-access-key` input and Develocity 2024.1 at least to generate short-lived tokens.
+If those requirements are not met, the `GRADLE_ENTERPRISE_ACCESS_KEY` env var will be cleared out and build scan publication or other authenticated Develocity operations won't be possible.

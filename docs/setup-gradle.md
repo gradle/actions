@@ -747,8 +747,9 @@ This access key will be used during the action execution to get a short-lived to
 
 ### Short-lived access tokens
 Develocity access keys are long-lived, creating risks if they are leaked. To avoid this, users can use short-lived access tokens to authenticate with Develocity. Access tokens can be used wherever an access key would be used. Access tokens are only valid for the Develocity instance that created them.
-If a short-lived token fails to be retrieved (for example, if the Develocity server version is lower than `2024.1`), no access key will be set.
-In that case, Develocity authenticated operations like build cache read/write and build scan publication will fail without failing the build.
+If a short-lived token fails to be retrieved (for example, if the Develocity server version is lower than `2024.1`):
+ - if a `GRADLE_ENTERPRISE_ACCESS_KEY` env var has been set, we're falling back to it with a deprecation warning
+ - otherwise no access key env var will be set. In that case Develocity authenticated operations like build cache read/write and build scan publication will fail without failing the build.
 For more information on short-lived tokens, see [Develocity API documentation](https://docs.gradle.com/develocity/api-manual/#short_lived_access_tokens).
 
 ## Configuring Develocity injection
