@@ -367,6 +367,7 @@ on:
     types: [completed]
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
