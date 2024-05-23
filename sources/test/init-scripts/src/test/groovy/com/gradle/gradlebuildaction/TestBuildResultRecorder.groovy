@@ -190,7 +190,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         when:
         settingsFile.text = """
             plugins {
-                id 'com.gradle.develocity' version '3.17.3' apply(false)
+                id 'com.gradle.develocity' version '3.17.4' apply(false)
             }
             gradle.settingsEvaluated {
                 apply plugin: 'com.gradle.develocity'
