@@ -108,6 +108,42 @@ inputs:
     description: The Develocity short-lived access tokens expiry in hours. Default is 2 hours.
     required: false
 
+  develocity-injection-enabled:
+    description: Enables Develocity injection.
+    required: false
+
+  develocity-url:
+    description: The URL for the Develocity server.
+    required: false
+
+  develocity-allow-untrusted-server:
+    description: Allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed.
+    required: false
+
+  develocity-enforce-url:
+    description: Enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL.
+    required: false
+
+  develocity-plugin-version:
+    description: The version of the Develocity Gradle plugin to apply.
+    required: false
+
+  develocity-ccud-plugin-version:
+    description: The version of the Common Custom User Data Gradle plugin to apply, if any.
+    required: false
+
+  gradle-plugin-repository-url:
+    description: The URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default.
+    required: false
+
+  gradle-plugin-repository-username:
+    description: The username for the repository URL to use when resolving the Develocity and CCUD.
+    required: false
+
+  gradle-plugin-repository-password:
+    description: The password for the repository URL to use when resolving the Develocity and CCUD plugins; Consider using secrets to pass the value to this variable.
+    required: false
+
   # Wrapper validation configuration
   validate-wrappers:
     description: |

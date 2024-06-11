@@ -216,6 +216,46 @@ export class BuildScanConfig {
         return core.getInput('develocity-token-expiry')
     }
 
+    getDevelocityInjectionEnabled(): string {
+        return core.getInput('develocity-injection-enabled')
+    }
+
+    getDevelocityUrl(): string {
+        return core.getInput('develocity-url')
+    }
+
+    getDevelocityAllowUntrustedServer(): string {
+        return core.getInput('develocity-allow-untrusted-server')
+    }
+
+    getDevelocityCaptureFileFingerprints(): string {
+        return core.getInput('develocity-capture-file-fingerprints')
+    }
+
+    getDevelocityEnforceUrl(): string {
+        return core.getInput('develocity-enforce-url')
+    }
+
+    getDevelocityPluginVersion(): string {
+        return core.getInput('develocity-plugin-version')
+    }
+
+    getDevelocityCcudPluginVersion(): string {
+        return core.getInput('develocity-ccud-plugin-version')
+    }
+
+    getGradlePluginRepositoryUrl(): string {
+        return core.getInput('gradle-plugin-repository-url')
+    }
+
+    getGradlePluginRepositoryUsername(): string {
+        return core.getInput('gradle-plugin-repository-username')
+    }
+
+    getGradlePluginRepositoryPassword(): string {
+        return core.getInput('gradle-plugin-repository-password')
+    }
+
     private verifyTermsOfUseAgreement(): boolean {
         if (
             (this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' &&
