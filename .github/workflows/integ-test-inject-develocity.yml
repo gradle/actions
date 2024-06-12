@@ -160,7 +160,6 @@ jobs:
       - name: Check access key is not blank (GRADLE_ENTERPRISE_ACCESS_KEY)
         run: "[ \"${GRADLE_ENTERPRISE_ACCESS_KEY}\" != \"\" ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY is still supported in v3!'; exit 1)"
 
-
   inject-develocity-with-access-key-from-input-actions:
     env:
       DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
