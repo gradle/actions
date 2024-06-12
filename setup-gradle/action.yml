@@ -120,6 +120,10 @@ inputs:
     description: Allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed.
     required: false
 
+  develocity-capture-file-fingerprints:
+    description: Enables capturing the paths and content hashes of each individual input file
+    required: false
+
   develocity-enforce-url:
     description: Enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL.
     required: false

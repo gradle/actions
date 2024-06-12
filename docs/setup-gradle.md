@@ -726,6 +726,20 @@ Here's a minimal example:
 
 This configuration will automatically apply `v3.17.5` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
 
+Alternatively, you can use the predefined input actions instead of specifying the environment parameters:
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        develocity-injection-enabled: true
+        develocity-url: https://develocity.your-server.com
+        develocity-plugin-version: 3.17.4
+
+    - name: Run a Gradle build with Develocity injection enabled from input actions
+      run: ./gradlew build
+```
+
 This example assumes that the `develocity.your-server.com` server allows anonymous publishing of build scans.
 In the likely scenario that your Develocity server requires authentication, you will also need to pass a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable) taken from a secret:
 
@@ -768,6 +782,21 @@ The `init-script` supports several additional configuration parameters that you 
 | GRADLE_PLUGIN_REPOSITORY_URL         |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default                                            |
 | GRADLE_PLUGIN_REPOSITORY_USERNAME    |  | the username for the repository URL to use when resolving the Develocity and CCUD plugins                                                                               |
 | GRADLE_PLUGIN_REPOSITORY_PASSWORD    |  | the password for the repository URL to use when resolving the Develocity and CCUD plugins; Consider using secrets to pass the value to this variable                    |
+
+All additional configuration parameters can be specified as input actions using:
+
+| Variable                             | Input                                |
+|--------------------------------------|--------------------------------------|
+| DEVELOCITY_INJECTION_ENABLED         | develocity-injection-enabled         |
+| DEVELOCITY_URL                       | develocity-url                       |
+| DEVELOCITY_ALLOW_UNTRUSTED_SERVER    | develocity-allow-untrusted-server    |
+| DEVELOCITY_CAPTURE_FILE_FINGERPRINTS | develocity-capture-file-fingerprints |
+| DEVELOCITY_ENFORCE_URL               | develocity-enforce-url               |
+| DEVELOCITY_PLUGIN_VERSION            | develocity-plugin-version            |
+| DEVELOCITY_CCUD_PLUGIN_VERSION       | develocity-ccud-plugin-version       |
+| GRADLE_PLUGIN_REPOSITORY_URL         | gradle-plugin-repository-url         |
+| GRADLE_PLUGIN_REPOSITORY_USERNAME    | gradle-plugin-repository-username    |
+| GRADLE_PLUGIN_REPOSITORY_PASSWORD    | gradle-plugin-repository-password    |
 
 ## Publishing to scans.gradle.com
 
