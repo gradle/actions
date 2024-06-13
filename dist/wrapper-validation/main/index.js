@@ -90062,6 +90062,36 @@ class BuildScanConfig {
     getDevelocityTokenExpiry() {
         return core.getInput('develocity-token-expiry');
     }
+    getDevelocityInjectionEnabled() {
+        return getMaybeBooleanInput('develocity-injection-enabled');
+    }
+    getDevelocityUrl() {
+        return core.getInput('develocity-url');
+    }
+    getDevelocityAllowUntrustedServer() {
+        return getMaybeBooleanInput('develocity-allow-untrusted-server');
+    }
+    getDevelocityCaptureFileFingerprints() {
+        return getMaybeBooleanInput('develocity-capture-file-fingerprints');
+    }
+    getDevelocityEnforceUrl() {
+        return getMaybeBooleanInput('develocity-enforce-url');
+    }
+    getDevelocityPluginVersion() {
+        return core.getInput('develocity-plugin-version');
+    }
+    getDevelocityCcudPluginVersion() {
+        return core.getInput('develocity-ccud-plugin-version');
+    }
+    getGradlePluginRepositoryUrl() {
+        return core.getInput('gradle-plugin-repository-url');
+    }
+    getGradlePluginRepositoryUsername() {
+        return core.getInput('gradle-plugin-repository-username');
+    }
+    getGradlePluginRepositoryPassword() {
+        return core.getInput('gradle-plugin-repository-password');
+    }
     verifyTermsOfUseAgreement() {
         if ((this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' &&
             this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/help/legal-terms-of-use') ||
@@ -90160,6 +90190,17 @@ function getBooleanInput(paramName, paramDefault = false) {
             return true;
     }
     throw TypeError(`The value '${paramValue} is not valid for '${paramName}. Valid values are: [true, false]`);
+}
+function getMaybeBooleanInput(paramName) {
+    const paramValue = core.getInput(paramName);
+    switch (paramValue?.toLowerCase().trim()) {
+        case 'false':
+            return false;
+        case 'true':
+            return true;
+        default:
+            return undefined;
+    }
 }
 
 
