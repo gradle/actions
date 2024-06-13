@@ -96458,7 +96458,7 @@ class DevelocityAccessCredentials {
     }
 }
 exports.DevelocityAccessCredentials = DevelocityAccessCredentials;
-DevelocityAccessCredentials.accessKeyRegexp = /^(\S+=\w+)(;\S+=\w+)*$/;
+DevelocityAccessCredentials.accessKeyRegexp = /^([^;=\s]+=\w+)(;[^;=\s]+=\w+)*$/;
 DevelocityAccessCredentials.keyDelimiter = ';';
 DevelocityAccessCredentials.hostDelimiter = '=';
 
