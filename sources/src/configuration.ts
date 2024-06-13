@@ -216,24 +216,24 @@ export class BuildScanConfig {
         return core.getInput('develocity-token-expiry')
     }
 
-    getDevelocityInjectionEnabled(): string {
-        return core.getInput('develocity-injection-enabled')
+    getDevelocityInjectionEnabled(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-injection-enabled')
     }
 
     getDevelocityUrl(): string {
         return core.getInput('develocity-url')
     }
 
-    getDevelocityAllowUntrustedServer(): string {
-        return core.getInput('develocity-allow-untrusted-server')
+    getDevelocityAllowUntrustedServer(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-allow-untrusted-server')
     }
 
-    getDevelocityCaptureFileFingerprints(): string {
-        return core.getInput('develocity-capture-file-fingerprints')
+    getDevelocityCaptureFileFingerprints(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-capture-file-fingerprints')
     }
 
-    getDevelocityEnforceUrl(): string {
-        return core.getInput('develocity-enforce-url')
+    getDevelocityEnforceUrl(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-enforce-url')
     }
 
     getDevelocityPluginVersion(): string {
@@ -368,4 +368,16 @@ function getBooleanInput(paramName: string, paramDefault = false): boolean {
             return true
     }
     throw TypeError(`The value '${paramValue} is not valid for '${paramName}. Valid values are: [true, false]`)
+}
+
+function getMaybeBooleanInput(paramName: string): boolean | undefined {
+    const paramValue = core.getInput(paramName)
+    switch (paramValue?.toLowerCase().trim()) {
+        case 'false':
+            return false
+        case 'true':
+            return true
+        default:
+            return undefined
+    }
 }
