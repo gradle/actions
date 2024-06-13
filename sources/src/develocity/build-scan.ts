@@ -12,6 +12,17 @@ export async function setup(config: BuildScanConfig): Promise<void> {
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', config.getBuildScanTermsOfUseUrl())
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', config.getBuildScanTermsOfUseAgree())
     }
+
+    maybeExportVariableNotEmpty('DEVELOCITY_INJECTION_ENABLED', config.getDevelocityInjectionEnabled())
+    maybeExportVariableNotEmpty('DEVELOCITY_URL', config.getDevelocityUrl())
+    maybeExportVariableNotEmpty('DEVELOCITY_ALLOW_UNTRUSTED_SERVER', config.getDevelocityAllowUntrustedServer())
+    maybeExportVariableNotEmpty('DEVELOCITY_CAPTURE_FILE_FINGERPRINTS', config.getDevelocityCaptureFileFingerprints())
+    maybeExportVariableNotEmpty('DEVELOCITY_ENFORCE_URL', config.getDevelocityEnforceUrl())
+    maybeExportVariableNotEmpty('DEVELOCITY_PLUGIN_VERSION', config.getDevelocityPluginVersion())
+    maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_URL', config.getGradlePluginRepositoryUrl())
+    maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_USERNAME', config.getGradlePluginRepositoryUsername())
+    maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_PASSWORD', config.getGradlePluginRepositoryPassword())
+
     setupToken(
         config.getDevelocityAccessKey(),
         config.getDevelocityTokenExpiry(),
@@ -27,5 +38,11 @@ function getEnv(variableName: string): string | undefined {
 function maybeExportVariable(variableName: string, value: unknown): void {
     if (!process.env[variableName]) {
         core.exportVariable(variableName, value)
+    }
+}
+
+function maybeExportVariableNotEmpty(variableName: string, value: unknown): void {
+    if (value !== null && value !== undefined && value !== '') {
+        maybeExportVariable(variableName, value)
     }
 }

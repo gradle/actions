@@ -216,6 +216,46 @@ export class BuildScanConfig {
         return core.getInput('develocity-token-expiry')
     }
 
+    getDevelocityInjectionEnabled(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-injection-enabled')
+    }
+
+    getDevelocityUrl(): string {
+        return core.getInput('develocity-url')
+    }
+
+    getDevelocityAllowUntrustedServer(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-allow-untrusted-server')
+    }
+
+    getDevelocityCaptureFileFingerprints(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-capture-file-fingerprints')
+    }
+
+    getDevelocityEnforceUrl(): boolean | undefined {
+        return getMaybeBooleanInput('develocity-enforce-url')
+    }
+
+    getDevelocityPluginVersion(): string {
+        return core.getInput('develocity-plugin-version')
+    }
+
+    getDevelocityCcudPluginVersion(): string {
+        return core.getInput('develocity-ccud-plugin-version')
+    }
+
+    getGradlePluginRepositoryUrl(): string {
+        return core.getInput('gradle-plugin-repository-url')
+    }
+
+    getGradlePluginRepositoryUsername(): string {
+        return core.getInput('gradle-plugin-repository-username')
+    }
+
+    getGradlePluginRepositoryPassword(): string {
+        return core.getInput('gradle-plugin-repository-password')
+    }
+
     private verifyTermsOfUseAgreement(): boolean {
         if (
             (this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' &&
@@ -328,4 +368,16 @@ function getBooleanInput(paramName: string, paramDefault = false): boolean {
             return true
     }
     throw TypeError(`The value '${paramValue} is not valid for '${paramName}. Valid values are: [true, false]`)
+}
+
+function getMaybeBooleanInput(paramName: string): boolean | undefined {
+    const paramValue = core.getInput(paramName)
+    switch (paramValue?.toLowerCase().trim()) {
+        case 'false':
+            return false
+        case 'true':
+            return true
+        default:
+            return undefined
+    }
 }
