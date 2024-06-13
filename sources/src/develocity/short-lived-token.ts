@@ -159,8 +159,8 @@ export class DevelocityAccessCredentials {
     static readonly accessKeyRegexp = /^(\S+=\w+)(;\S+=\w+)*$/
     static readonly accessKeyRegexp2 = /^([^\s]+=\w+)(;\S+=\w+)*$/
     static readonly accessKeyRegexp3 = /^([^;\s]+=\w+)(;[^;\s]+=\w+)*$/
-    // static readonly accessKeyRegexp4 = /^([\w\.]+=\w+)(;[\w\.]+=\w+)*$/
-    // static readonly accessKeyRegexp5 = /^(\S+=\w+)(;\S+=\w+)*$/
+    static readonly accessKeyRegexp4 = /^([\w\.]+=\w+)(;[\w\.]+=\w+)*$/
+    static readonly accessKeyRegexp5 = /^(\S+=\d+)(;\S+=\d+)*$/
     readonly keys: HostnameAccessKey[]
 
     private constructor(allKeys: HostnameAccessKey[]) {
