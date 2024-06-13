@@ -157,6 +157,7 @@ type HostnameAccessKey = {
 
 export class DevelocityAccessCredentials {
     static readonly accessKeyRegexp = /^(\S+=\w+)(;\S+=\w+)*$/
+    static readonly accessKeyRegexp2 = /^([^\s]+=\w+)(;\S+=\w+)*$/
     readonly keys: HostnameAccessKey[]
 
     private constructor(allKeys: HostnameAccessKey[]) {
@@ -201,6 +202,6 @@ export class DevelocityAccessCredentials {
     }
 
     private static isValid(allKeys: string): boolean {
-        return this.accessKeyRegexp.test(allKeys)
+        return this.accessKeyRegexp.test(allKeys) && this.accessKeyRegexp2.test(allKeys)
     }
 }
