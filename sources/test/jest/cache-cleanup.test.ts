@@ -1,4 +1,5 @@
 import * as exec from '@actions/exec'
+import * as core from '@actions/core'
 import fs from 'fs'
 import path from 'path'
 import {CacheCleaner} from '../../src/caching/cache-cleaner'
@@ -23,13 +24,13 @@ test('will cleanup unused dependency jars and build-cache entries', async () => 
 
     expect(fs.existsSync(commonsMath31)).toBe(true)
     expect(fs.existsSync(commonsMath311)).toBe(true)
-    expect(fs.readdirSync(buildCacheDir).length).toBe(6)
+    expect(fs.readdirSync(buildCacheDir).length).toBe(4) // gc.properties, build-cache-1.lock, and 2 task entries
 
     await cacheCleaner.forceCleanup()
 
     expect(fs.existsSync(commonsMath31)).toBe(false)
     expect(fs.existsSync(commonsMath311)).toBe(true)
-    expect(fs.readdirSync(buildCacheDir).length).toBe(5)
+    expect(fs.readdirSync(buildCacheDir).length).toBe(3) // 1 task entry has been cleaned up
 })
 
 test('will cleanup unused gradle versions', async () => {
@@ -49,7 +50,7 @@ test('will cleanup unused gradle versions', async () => {
 
     const gradle802 = path.resolve(gradleUserHome, "caches/8.0.2")
     const wrapper802 = path.resolve(gradleUserHome, "wrapper/dists/gradle-8.0.2-bin")
-    const gradleCurrent = path.resolve(gradleUserHome, "caches/8.7")
+    const gradleCurrent = path.resolve(gradleUserHome, "caches/8.8")
 
     expect(fs.existsSync(gradle802)).toBe(true)
     expect(fs.existsSync(wrapper802)).toBe(true)
