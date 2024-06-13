@@ -796,7 +796,7 @@ Here's an example using the env vars:
       env:
         DEVELOCITY_INJECTION_ENABLED: true
         DEVELOCITY_URL: https://develocity.your-server.com
-        DEVELOCITY_PLUGIN_VERSION: 3.17.4
+        DEVELOCITY_PLUGIN_VERSION: 3.17.5
 ```
 
 ## Publishing to scans.gradle.com
