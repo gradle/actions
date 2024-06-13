@@ -95859,19 +95859,19 @@ class BuildScanConfig {
         return core.getInput('develocity-token-expiry');
     }
     getDevelocityInjectionEnabled() {
-        return getMaybeBooleanInput('develocity-injection-enabled');
+        return getOptionalBooleanInput('develocity-injection-enabled');
     }
     getDevelocityUrl() {
         return core.getInput('develocity-url');
     }
     getDevelocityAllowUntrustedServer() {
-        return getMaybeBooleanInput('develocity-allow-untrusted-server');
+        return getOptionalBooleanInput('develocity-allow-untrusted-server');
     }
     getDevelocityCaptureFileFingerprints() {
-        return getMaybeBooleanInput('develocity-capture-file-fingerprints');
+        return getOptionalBooleanInput('develocity-capture-file-fingerprints');
     }
     getDevelocityEnforceUrl() {
-        return getMaybeBooleanInput('develocity-enforce-url');
+        return getOptionalBooleanInput('develocity-enforce-url');
     }
     getDevelocityPluginVersion() {
         return core.getInput('develocity-plugin-version');
@@ -95987,16 +95987,12 @@ function getBooleanInput(paramName, paramDefault = false) {
     }
     throw TypeError(`The value '${paramValue} is not valid for '${paramName}. Valid values are: [true, false]`);
 }
-function getMaybeBooleanInput(paramName) {
+function getOptionalBooleanInput(paramName) {
     const paramValue = core.getInput(paramName);
-    switch (paramValue?.toLowerCase().trim()) {
-        case 'false':
-            return false;
-        case 'true':
-            return true;
-        default:
-            return undefined;
+    if (paramValue === '') {
+        return undefined;
     }
+    return getBooleanInput(paramName);
 }
 
 
