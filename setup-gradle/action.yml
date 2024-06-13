@@ -121,7 +121,7 @@ inputs:
     required: false
 
   develocity-capture-file-fingerprints:
-    description: Enables capturing the paths and content hashes of each individual input file
+    description: Enables capturing the paths and content hashes of each individual input file.
     required: false
 
   develocity-enforce-url:
