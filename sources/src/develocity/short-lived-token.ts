@@ -19,11 +19,10 @@ export async function setupToken(
                 core.setSecret(token)
                 exportAccessKeyEnvVars(token)
             } else {
-                // In case of not being able to generate a token we set the env variable to empty to avoid leaks
-                clearAccessKeyEnvVarsWithDeprecationWarning()
+                handleMissingAccessTokenWithDeprecationWarning()
             }
         } catch (e) {
-            clearAccessKeyEnvVarsWithDeprecationWarning()
+            handleMissingAccessTokenWithDeprecationWarning()
             core.warning(`Failed to fetch short-lived token, reason: ${e}`)
         }
     }
@@ -35,12 +34,14 @@ function exportAccessKeyEnvVars(value: string): void {
     )
 }
 
-function clearAccessKeyEnvVarsWithDeprecationWarning(): void {
+function handleMissingAccessTokenWithDeprecationWarning(): void {
     if (process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
         // We do not clear the GRADLE_ENTERPRISE_ACCESS_KEY env var in v3, to let the users upgrade to DV 2024.1
         recordDeprecation(`The ${BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
     }
-    core.exportVariable(BuildScanConfig.DevelocityAccessKeyEnvVar, '')
+    if (process.env[BuildScanConfig.DevelocityAccessKeyEnvVar]) {
+        core.warning(`Failed to fetch short-lived token, using Develocity Access key`)
+    }
 }
 
 export async function getToken(
