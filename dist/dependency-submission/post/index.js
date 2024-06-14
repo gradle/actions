@@ -96310,11 +96310,11 @@ async function setupToken(develocityAccessKey, develocityTokenExpiry, enforceUrl
                 exportAccessKeyEnvVars(token);
             }
             else {
-                clearAccessKeyEnvVarsWithDeprecationWarning();
+                handleMissingAccessTokenWithDeprecationWarning();
             }
         }
         catch (e) {
-            clearAccessKeyEnvVarsWithDeprecationWarning();
+            handleMissingAccessTokenWithDeprecationWarning();
             core.warning(`Failed to fetch short-lived token, reason: ${e}`);
         }
     }
@@ -96324,11 +96324,13 @@ function exportAccessKeyEnvVars(value) {
     ;
     [configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar, configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key => core.exportVariable(key, value));
 }
-function clearAccessKeyEnvVarsWithDeprecationWarning() {
+function handleMissingAccessTokenWithDeprecationWarning() {
     if (process.env[configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
         (0, deprecation_collector_1.recordDeprecation)(`The ${configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`);
     }
-    core.exportVariable(configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar, '');
+    if (process.env[configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar]) {
+        core.warning(`Failed to fetch short-lived token, using Develocity Access key`);
+    }
 }
 async function getToken(enforceUrl, serverUrl, accessKey, expiry) {
     const empty = new Promise(r => r(null));
