@@ -30,12 +30,14 @@ function exportAccessKeyEnvVars(value: string): void {
 }
 
 function handleMissingAccessToken(): void {
+    core.warning(`Failed to fetch short-lived token for Develocity`)
+
     if (process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
         // We do not clear the GRADLE_ENTERPRISE_ACCESS_KEY env var in v3, to let the users upgrade to DV 2024.1
         recordDeprecation(`The ${BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
     }
     if (process.env[BuildScanConfig.DevelocityAccessKeyEnvVar]) {
-        core.warning(`Failed to fetch short-lived token, using Develocity Access key`)
+        core.warning(`The ${BuildScanConfig.DevelocityAccessKeyEnvVar} env var should be mapped to a short-lived token`)
     }
 }
 
@@ -50,8 +52,8 @@ export async function getToken(accessKey: string, expiry: string): Promise<Devel
     const tokens = new Array<HostnameAccessKey>()
     for (const k of develocityAccessKey.keys) {
         try {
+            core.info(`Requesting short-lived Develocity access token for ${k.hostname}`)
             const token = await shortLivedTokenClient.fetchToken(`https://${k.hostname}`, k, expiry)
-            core.info(`Obtained short-lived Develocity access token for ${k.hostname}`)
             tokens.push(token)
         } catch (e) {
             // Ignore failure to obtain token
