@@ -96244,12 +96244,9 @@ async function setup(config) {
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_URL', config.getGradlePluginRepositoryUrl());
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_USERNAME', config.getGradlePluginRepositoryUsername());
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_PASSWORD', config.getGradlePluginRepositoryPassword());
-    (0, short_lived_token_1.setupToken)(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry(), getEnv('DEVELOCITY_ENFORCE_URL'), getEnv('DEVELOCITY_URL'));
+    (0, short_lived_token_1.setupToken)(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry());
 }
 exports.setup = setup;
-function getEnv(variableName) {
-    return process.env[variableName];
-}
 function maybeExportVariable(variableName, value) {
     if (!process.env[variableName]) {
         core.exportVariable(variableName, value);
@@ -96298,11 +96295,11 @@ const httpm = __importStar(__nccwpck_require__(5538));
 const core = __importStar(__nccwpck_require__(2186));
 const configuration_1 = __nccwpck_require__(5778);
 const deprecation_collector_1 = __nccwpck_require__(2572);
-async function setupToken(develocityAccessKey, develocityTokenExpiry, enforceUrl, develocityUrl) {
+async function setupToken(develocityAccessKey, develocityTokenExpiry) {
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...');
-            const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry);
+            const tokens = await getToken(develocityAccessKey, develocityTokenExpiry);
             if (tokens != null && !tokens.isEmpty()) {
                 core.debug(`Got token(s), setting the access key env vars`);
                 const token = tokens.raw();
@@ -96310,11 +96307,11 @@ async function setupToken(develocityAccessKey, develocityTokenExpiry, enforceUrl
                 exportAccessKeyEnvVars(token);
             }
             else {
-                handleMissingAccessTokenWithDeprecationWarning();
+                handleMissingAccessToken();
             }
         }
         catch (e) {
-            handleMissingAccessTokenWithDeprecationWarning();
+            handleMissingAccessToken();
             core.warning(`Failed to fetch short-lived token, reason: ${e}`);
         }
     }
@@ -96324,51 +96321,31 @@ function exportAccessKeyEnvVars(value) {
     ;
     [configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar, configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key => core.exportVariable(key, value));
 }
-function handleMissingAccessTokenWithDeprecationWarning() {
+function handleMissingAccessToken() {
+    core.warning(`Failed to fetch short-lived token for Develocity`);
     if (process.env[configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
         (0, deprecation_collector_1.recordDeprecation)(`The ${configuration_1.BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`);
     }
     if (process.env[configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar]) {
-        core.warning(`Failed to fetch short-lived token, using Develocity Access key`);
+        core.warning(`The ${configuration_1.BuildScanConfig.DevelocityAccessKeyEnvVar} env var should be mapped to a short-lived token`);
     }
 }
-async function getToken(enforceUrl, serverUrl, accessKey, expiry) {
+async function getToken(accessKey, expiry) {
     const empty = new Promise(r => r(null));
     const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey);
     const shortLivedTokenClient = new ShortLivedTokenClient();
-    async function promiseError(message) {
-        return new Promise((resolve, reject) => reject(new Error(message)));
-    }
     if (develocityAccessKey == null) {
         return empty;
-    }
-    if (enforceUrl === 'true' || develocityAccessKey.isSingleKey()) {
-        if (!serverUrl) {
-            return promiseError('Develocity Server URL not configured');
-        }
-        const hostname = extractHostname(serverUrl);
-        if (hostname == null) {
-            return promiseError('Could not extract hostname from Develocity server URL');
-        }
-        const hostAccessKey = develocityAccessKey.forHostname(hostname);
-        if (!hostAccessKey) {
-            return promiseError(`Could not find corresponding key for hostname ${hostname}`);
-        }
-        try {
-            const token = await shortLivedTokenClient.fetchToken(serverUrl, hostAccessKey, expiry);
-            return DevelocityAccessCredentials.of([token]);
-        }
-        catch (e) {
-            return new Promise((resolve, reject) => reject(e));
-        }
     }
     const tokens = new Array();
     for (const k of develocityAccessKey.keys) {
         try {
+            core.info(`Requesting short-lived Develocity access token for ${k.hostname}`);
             const token = await shortLivedTokenClient.fetchToken(`https://${k.hostname}`, k, expiry);
             tokens.push(token);
         }
         catch (e) {
+            core.info(`Failed to obtain short-lived Develocity access token for ${k.hostname}: ${e}`);
         }
     }
     if (tokens.length > 0) {
@@ -96377,18 +96354,9 @@ async function getToken(enforceUrl, serverUrl, accessKey, expiry) {
     return empty;
 }
 exports.getToken = getToken;
-function extractHostname(serverUrl) {
-    try {
-        const parsedUrl = new URL(serverUrl);
-        return parsedUrl.hostname;
-    }
-    catch (error) {
-        return null;
-    }
-}
 class ShortLivedTokenClient {
     constructor() {
-        this.httpc = new httpm.HttpClient('gradle/setup-gradle');
+        this.httpc = new httpm.HttpClient('gradle/actions/setup-gradle');
         this.maxRetries = 3;
         this.retryInterval = 1000;
     }
@@ -96443,12 +96411,6 @@ class DevelocityAccessCredentials {
     }
     isEmpty() {
         return this.keys.length === 0;
-    }
-    isSingleKey() {
-        return this.keys.length === 1;
-    }
-    forHostname(hostname) {
-        return this.keys.find(hostKey => hostKey.hostname === hostname);
     }
     raw() {
         return this.keys
