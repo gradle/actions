@@ -3,26 +3,21 @@ import * as core from '@actions/core'
 import {BuildScanConfig} from '../configuration'
 import {recordDeprecation} from '../deprecation-collector'
 
-export async function setupToken(
-    develocityAccessKey: string,
-    develocityTokenExpiry: string,
-    enforceUrl: string | undefined,
-    develocityUrl: string | undefined
-): Promise<void> {
+export async function setupToken(develocityAccessKey: string, develocityTokenExpiry: string): Promise<void> {
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...')
-            const tokens = await getToken(enforceUrl, develocityUrl, develocityAccessKey, develocityTokenExpiry)
+            const tokens = await getToken(develocityAccessKey, develocityTokenExpiry)
             if (tokens != null && !tokens.isEmpty()) {
                 core.debug(`Got token(s), setting the access key env vars`)
                 const token = tokens.raw()
                 core.setSecret(token)
                 exportAccessKeyEnvVars(token)
             } else {
-                handleMissingAccessTokenWithDeprecationWarning()
+                handleMissingAccessToken()
             }
         } catch (e) {
-            handleMissingAccessTokenWithDeprecationWarning()
+            handleMissingAccessToken()
             core.warning(`Failed to fetch short-lived token, reason: ${e}`)
         }
     }
@@ -34,60 +29,35 @@ function exportAccessKeyEnvVars(value: string): void {
     )
 }
 
-function handleMissingAccessTokenWithDeprecationWarning(): void {
+function handleMissingAccessToken(): void {
+    core.warning(`Failed to fetch short-lived token for Develocity`)
+
     if (process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
         // We do not clear the GRADLE_ENTERPRISE_ACCESS_KEY env var in v3, to let the users upgrade to DV 2024.1
         recordDeprecation(`The ${BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
     }
     if (process.env[BuildScanConfig.DevelocityAccessKeyEnvVar]) {
-        core.warning(`Failed to fetch short-lived token, using Develocity Access key`)
+        core.warning(`The ${BuildScanConfig.DevelocityAccessKeyEnvVar} env var should be mapped to a short-lived token`)
     }
 }
 
-export async function getToken(
-    enforceUrl: string | undefined,
-    serverUrl: string | undefined,
-    accessKey: string,
-    expiry: string
-): Promise<DevelocityAccessCredentials | null> {
+export async function getToken(accessKey: string, expiry: string): Promise<DevelocityAccessCredentials | null> {
     const empty: Promise<DevelocityAccessCredentials | null> = new Promise(r => r(null))
     const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey)
     const shortLivedTokenClient = new ShortLivedTokenClient()
 
-    async function promiseError(message: string): Promise<DevelocityAccessCredentials | null> {
-        return new Promise((resolve, reject) => reject(new Error(message)))
-    }
-
     if (develocityAccessKey == null) {
         return empty
     }
-    if (enforceUrl === 'true' || develocityAccessKey.isSingleKey()) {
-        if (!serverUrl) {
-            return promiseError('Develocity Server URL not configured')
-        }
-        const hostname = extractHostname(serverUrl)
-        if (hostname == null) {
-            return promiseError('Could not extract hostname from Develocity server URL')
-        }
-        const hostAccessKey = develocityAccessKey.forHostname(hostname)
-        if (!hostAccessKey) {
-            return promiseError(`Could not find corresponding key for hostname ${hostname}`)
-        }
-        try {
-            const token = await shortLivedTokenClient.fetchToken(serverUrl, hostAccessKey, expiry)
-            return DevelocityAccessCredentials.of([token])
-        } catch (e) {
-            return new Promise((resolve, reject) => reject(e))
-        }
-    }
-
     const tokens = new Array<HostnameAccessKey>()
     for (const k of develocityAccessKey.keys) {
         try {
+            core.info(`Requesting short-lived Develocity access token for ${k.hostname}`)
             const token = await shortLivedTokenClient.fetchToken(`https://${k.hostname}`, k, expiry)
             tokens.push(token)
         } catch (e) {
-            // Ignoring failed token, TODO: log this ?
+            // Ignore failure to obtain token
+            core.info(`Failed to obtain short-lived Develocity access token for ${k.hostname}: ${e}`)
         }
     }
     if (tokens.length > 0) {
@@ -96,17 +66,8 @@ export async function getToken(
     return empty
 }
 
-function extractHostname(serverUrl: string): string | null {
-    try {
-        const parsedUrl = new URL(serverUrl)
-        return parsedUrl.hostname
-    } catch (error) {
-        return null
-    }
-}
-
 class ShortLivedTokenClient {
-    httpc = new httpm.HttpClient('gradle/setup-gradle')
+    httpc = new httpm.HttpClient('gradle/actions/setup-gradle')
     maxRetries = 3
     retryInterval = 1000
 
@@ -185,14 +146,6 @@ export class DevelocityAccessCredentials {
 
     isEmpty(): boolean {
         return this.keys.length === 0
-    }
-
-    isSingleKey(): boolean {
-        return this.keys.length === 1
-    }
-
-    forHostname(hostname: string): HostnameAccessKey | undefined {
-        return this.keys.find(hostKey => hostKey.hostname === hostname)
     }
 
     raw(): string {
