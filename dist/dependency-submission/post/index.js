@@ -96244,7 +96244,7 @@ async function setup(config) {
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_URL', config.getGradlePluginRepositoryUrl());
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_USERNAME', config.getGradlePluginRepositoryUsername());
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_PASSWORD', config.getGradlePluginRepositoryPassword());
-    (0, short_lived_token_1.setupToken)(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry());
+    return (0, short_lived_token_1.setupToken)(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry());
 }
 exports.setup = setup;
 function maybeExportVariable(variableName, value) {
