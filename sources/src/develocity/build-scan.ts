@@ -23,7 +23,7 @@ export async function setup(config: BuildScanConfig): Promise<void> {
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_USERNAME', config.getGradlePluginRepositoryUsername())
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_PASSWORD', config.getGradlePluginRepositoryPassword())
 
-    setupToken(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry())
+    return setupToken(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry())
 }
 
 function maybeExportVariable(variableName: string, value: unknown): void {
