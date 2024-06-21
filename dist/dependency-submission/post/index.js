@@ -96315,6 +96315,9 @@ async function setupToken(develocityAccessKey, develocityTokenExpiry) {
             core.warning(`Failed to fetch short-lived token, reason: ${e}`);
         }
     }
+    else {
+        core.debug('Passed Develocity access key is null or empty');
+    }
 }
 exports.setupToken = setupToken;
 function exportAccessKeyEnvVars(value) {
@@ -96335,6 +96338,7 @@ async function getToken(accessKey, expiry) {
     const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey);
     const shortLivedTokenClient = new ShortLivedTokenClient();
     if (develocityAccessKey == null) {
+        core.debug('Develocity access key is invalid');
         return empty;
     }
     const tokens = new Array();
