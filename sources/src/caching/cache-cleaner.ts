@@ -59,7 +59,7 @@ export class CacheCleaner {
             this.gradleUserHome,
             '-I',
             'init.gradle',
-            '--quiet',
+            '--info',
             '--no-daemon',
             '--no-scan',
             '--build-cache',
