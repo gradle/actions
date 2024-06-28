@@ -6,7 +6,7 @@ buildscript {
   def pluginRepositoryUrl = getInputParam('gradle.plugin-repository.url') ?: 'https://plugins.gradle.org/m2'
   def pluginRepositoryUsername = getInputParam('gradle.plugin-repository.username')
   def pluginRepositoryPassword = getInputParam('gradle.plugin-repository.password')
-  def dependencyGraphPluginVersion = getInputParam('dependency-graph-plugin.version') ?: '1.3.0'
+  def dependencyGraphPluginVersion = getInputParam('dependency-graph-plugin.version') ?: '1.3.1'
 
   logger.lifecycle("Resolving dependency graph plugin ${dependencyGraphPluginVersion} from plugin repository: ${pluginRepositoryUrl}")
   repositories {
