@@ -35,7 +35,7 @@ jobs:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
     - name: Build with 3.1
       working-directory: sources/test/jest/resources/cache-cleanup
-      run: gradle --no-daemon --build-cache -Dcommons_math3_version="3.1" build
+      run: ./gradlew --no-daemon --build-cache -Dcommons_math3_version="3.1" build
 
   # Second build will use the cache from the first build, but cleanup should remove unused artifacts
   assemble-build:
@@ -58,7 +58,7 @@ jobs:
         gradle-home-cache-cleanup: true
     - name: Build with 3.1.1
       working-directory: sources/test/jest/resources/cache-cleanup
-      run: gradle --no-daemon --build-cache -Dcommons_math3_version="3.1.1" build
+      run: ./gradlew --no-daemon --build-cache -Dcommons_math3_version="3.1.1" build
 
   check-clean-cache:
     needs: assemble-build
@@ -78,7 +78,9 @@ jobs:
       with:
         cache-read-only: true
     - name: Report Gradle User Home
-      run: du -hc ~/.gradle/caches/modules-2
+      run: |
+        du -hc ~/.gradle/caches/modules-2
+        du -hc ~/.gradle/wrapper/dists
     - name: Verify cleaned cache
       shell: bash
       run: |
@@ -88,5 +90,9 @@ jobs:
         fi
         if [ -e ~/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.1 ]; then
           echo "::error ::Should NOT find commons-math3 3.1 in cache"
+          exit 1
+        fi
+        if [ ! -e ~/.gradle/wrapper/dists/gradle-8.0.2-bin ]; then
+          echo "::error ::Should find gradle-8.0.2 in wrapper/dists"
           exit 1
         fi
