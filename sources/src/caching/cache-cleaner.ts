@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
+import {provisionAndMaybeExecute} from '../execution/gradle'
 
 export class CacheCleaner {
     private readonly gradleUserHome: string
@@ -42,10 +42,16 @@ export class CacheCleaner {
         )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
 
-        const gradleCommand = `gradle -g ${this.gradleUserHome} --no-daemon --build-cache --no-scan --quiet -DGITHUB_DEPENDENCY_GRAPH_ENABLED=false noop`
-        await exec.exec(gradleCommand, [], {
-            cwd: cleanupProjectDir
-        })
+        await provisionAndMaybeExecute('current', cleanupProjectDir, [
+            '-g',
+            this.gradleUserHome,
+            '--quiet',
+            '--no-daemon',
+            '--no-scan',
+            '--build-cache',
+            '-DGITHUB_DEPENDENCY_GRAPH_ENABLED=false',
+            'noop'
+        ])
     }
 
     private async ageAllFiles(fileName = '*'): Promise<void> {
