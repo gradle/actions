@@ -218,7 +218,7 @@ Using either of these mechanisms may interfere with the caching provided by this
 
 The GitHub Actions cache has some properties that present problems for efficient caching of the Gradle User Home.
 - Immutable entries: once a cache entry is written for a key, it cannot be overwritten or changed.
-- Branch scope: cache entries written for a Git branch are not visible from actions running against different branches. Entries written for the default branch are visible to all. https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
+- Branch scope: cache entries written for a Git branch are not visible from actions running against different branches or tags. Entries written for the default branch are visible to all. https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
 - Restore keys: if no exact match is found, a set of partial keys can be provided that will match by cache key prefix. https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
 Each of these properties has influenced the design and implementation of the caching in `setup-gradle`, as described below.
@@ -316,8 +316,8 @@ Some techniques can be used to avoid/mitigate this issue:
 
 ### Select which branches should write to the cache
 
-GitHub cache entries are not shared between builds on different branches.
-Workflow runs can restore caches created in either the current branch or the default branch (usually main).
+GitHub cache entries are not shared between builds on different branches or tags.
+Workflow runs can _only_ restore caches created in either the same branch or the default branch (usually `main`).
 This means that each branch will have its own Gradle User Home cache scope, and will not benefit from cache entries written for other (non-default) branches.
 
 By default, The `setup-gradle` action will only _write_ to the cache for builds run on the default (`master`/`main`) branch.
