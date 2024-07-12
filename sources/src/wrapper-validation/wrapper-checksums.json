@@ -1,5 +1,13 @@
 [
   {
+    "version": "8.9",
+    "checksum": "498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17"
+  },
+  {
+    "version": "8.9-rc-2",
+    "checksum": "498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17"
+  },
+  {
     "version": "8.9-rc-1",
     "checksum": "498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17"
   },
