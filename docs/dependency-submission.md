@@ -418,3 +418,10 @@ Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1` and `7.6.3`, as well
 A known exception to this is that Gradle `7.0`, `7.0.1` and `7.0.2` are not supported.
 
 See [here](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#gradle-compatibility) for complete compatibility information.
+
+# Additional references
+
+- Dependency Submission Demo repository: https://github.com/gradle/github-dependency-submission-demo
+- GitHub Dependency Graph Gradle Plugin: https://github.com/gradle/github-dependency-graph-gradle-plugin
+- Webinar - Gradle at Scale with GitHub and GitHub Actions at Allegro: https://www.youtube.com/watch?v=gV94I28FPos
+
