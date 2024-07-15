@@ -60,44 +60,19 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
                 return
             case DependencyGraphOption.GenerateAndSubmit:
             case DependencyGraphOption.Clear: // Submit the empty dependency graph
-                await submitDependencyGraphs(await findDependencyGraphFiles())
+                await findAndSubmitDependencyGraphs(config)
                 return
             case DependencyGraphOption.GenerateAndUpload:
-                await uploadDependencyGraphs(await findDependencyGraphFiles(), config)
+                await findAndUploadDependencyGraphs(config)
         }
     } catch (e) {
         warnOrFail(config, option, e)
     }
 }
 
-async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: DependencyGraphConfig): Promise<void> {
-    if (dependencyGraphFiles.length === 0) {
-        core.info('No dependency graph files found to upload.')
-        return
-    }
-
-    if (isRunningInActEnvironment()) {
-        core.info('Dependency graph upload not supported in the ACT environment.')
-        core.info(`Would upload: ${dependencyGraphFiles.join(', ')}`)
-        return
-    }
-
-    const workspaceDirectory = getWorkspaceDirectory()
-
-    const artifactClient = new DefaultArtifactClient()
-    for (const dependencyGraphFile of dependencyGraphFiles) {
-        const relativePath = getRelativePathFromWorkspace(dependencyGraphFile)
-        core.info(`Uploading dependency graph file: ${relativePath}`)
-        const artifactName = `${DEPENDENCY_GRAPH_PREFIX}${path.basename(dependencyGraphFile)}`
-        await artifactClient.uploadArtifact(artifactName, [dependencyGraphFile], workspaceDirectory, {
-            retentionDays: config.getArtifactRetentionDays()
-        })
-    }
-}
-
 async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig): Promise<void> {
     if (isRunningInActEnvironment()) {
-        core.info('Dependency graph download and submit not supported in the ACT environment.')
+        core.info('Dependency graph not supported in the ACT environment.')
         return
     }
 
@@ -108,53 +83,32 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
     }
 }
 
-async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<void> {
-    if (dependencyGraphFiles.length === 0) {
-        core.info('No dependency graph files found to submit.')
-        return
-    }
-
+async function findAndSubmitDependencyGraphs(config: DependencyGraphConfig): Promise<void> {
     if (isRunningInActEnvironment()) {
-        core.info('Dependency graph submit not supported in the ACT environment.')
-        core.info(`Would submit: ${dependencyGraphFiles.join(', ')}`)
+        core.info('Dependency graph not supported in the ACT environment.')
         return
     }
 
-    for (const dependencyGraphFile of dependencyGraphFiles) {
+    const dependencyGraphFiles = await findDependencyGraphFiles()
+    try {
+        await submitDependencyGraphs(dependencyGraphFiles)
+    } catch (e) {
         try {
-            await submitDependencyGraphFile(dependencyGraphFile)
-        } catch (error) {
-            if (error instanceof RequestError) {
-                error.message = translateErrorMessage(dependencyGraphFile, error)
-            }
-            throw error
+            await uploadDependencyGraphs(dependencyGraphFiles, config)
+        } catch (uploadError) {
+            core.info(String(uploadError))
         }
+        throw e
     }
 }
 
-function translateErrorMessage(jsonFile: string, error: RequestError): string {
-    const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
-    const mainWarning = `Dependency submission failed for ${relativeJsonFile}.\n${error.message}`
-    if (error.message === 'Resource not accessible by integration') {
-        return `${mainWarning}
-Please ensure that the 'contents: write' permission is available for the workflow job.
-Note that this permission is never available for a 'pull_request' trigger from a repository fork.
-        `
+async function findAndUploadDependencyGraphs(config: DependencyGraphConfig): Promise<void> {
+    if (isRunningInActEnvironment()) {
+        core.info('Dependency graph not supported in the ACT environment.')
+        return
     }
-    return mainWarning
-}
 
-async function submitDependencyGraphFile(jsonFile: string): Promise<void> {
-    const octokit = getOctokit()
-    const jsonContent = fs.readFileSync(jsonFile, 'utf8')
-
-    const jsonObject = JSON.parse(jsonContent)
-    jsonObject.owner = github.context.repo.owner
-    jsonObject.repo = github.context.repo.repo
-    const response = await octokit.request('POST /repos/{owner}/{repo}/dependency-graph/snapshots', jsonObject)
-
-    const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
-    core.notice(`Submitted ${relativeJsonFile}: ${response.data.message}`)
+    await uploadDependencyGraphs(await findDependencyGraphFiles(), config)
 }
 
 async function downloadDependencyGraphs(): Promise<string[]> {
@@ -195,6 +149,67 @@ async function findDependencyGraphFiles(): Promise<string[]> {
     return unprocessedFiles
 }
 
+async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: DependencyGraphConfig): Promise<void> {
+    if (dependencyGraphFiles.length === 0) {
+        core.info('No dependency graph files found to upload.')
+        return
+    }
+
+    const workspaceDirectory = getWorkspaceDirectory()
+
+    const artifactClient = new DefaultArtifactClient()
+    for (const dependencyGraphFile of dependencyGraphFiles) {
+        const relativePath = getRelativePathFromWorkspace(dependencyGraphFile)
+        core.info(`Uploading dependency graph file: ${relativePath}`)
+        const artifactName = `${DEPENDENCY_GRAPH_PREFIX}${path.basename(dependencyGraphFile)}`
+        await artifactClient.uploadArtifact(artifactName, [dependencyGraphFile], workspaceDirectory, {
+            retentionDays: config.getArtifactRetentionDays()
+        })
+    }
+}
+
+async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<void> {
+    if (dependencyGraphFiles.length === 0) {
+        core.info('No dependency graph files found to submit.')
+        return
+    }
+
+    for (const dependencyGraphFile of dependencyGraphFiles) {
+        try {
+            await submitDependencyGraphFile(dependencyGraphFile)
+        } catch (error) {
+            if (error instanceof RequestError) {
+                error.message = translateErrorMessage(dependencyGraphFile, error)
+            }
+            throw error
+        }
+    }
+}
+
+function translateErrorMessage(jsonFile: string, error: RequestError): string {
+    const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
+    const mainWarning = `Dependency submission failed for ${relativeJsonFile}.\n${error.message}`
+    if (error.message === 'Resource not accessible by integration') {
+        return `${mainWarning}
+Please ensure that the 'contents: write' permission is available for the workflow job.
+Note that this permission is never available for a 'pull_request' trigger from a repository fork.
+        `
+    }
+    return mainWarning
+}
+
+async function submitDependencyGraphFile(jsonFile: string): Promise<void> {
+    const octokit = getOctokit()
+    const jsonContent = fs.readFileSync(jsonFile, 'utf8')
+
+    const jsonObject = JSON.parse(jsonContent)
+    jsonObject.owner = github.context.repo.owner
+    jsonObject.repo = github.context.repo.repo
+    const response = await octokit.request('POST /repos/{owner}/{repo}/dependency-graph/snapshots', jsonObject)
+
+    const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
+    core.notice(`Submitted ${relativeJsonFile}: ${response.data.message}`)
+}
 function getReportDirectory(): string {
     return process.env.DEPENDENCY_GRAPH_REPORT_DIR!
 }
