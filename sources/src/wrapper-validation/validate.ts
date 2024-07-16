@@ -31,7 +31,7 @@ export async function findInvalidWrapperJars(
         // Otherwise fall back to fetching checksums from Gradle API and compare against them
         if (notYetValidatedWrappers.length > 0) {
             result.fetchedChecksums = true
-            const fetchedValidChecksums = await checksums.fetchUnknownChecksums(allowSnapshots)
+            const fetchedValidChecksums = await checksums.fetchUnknownChecksums(allowSnapshots, knownValidChecksums)
 
             for (const wrapperJar of notYetValidatedWrappers) {
                 if (!fetchedValidChecksums.has(wrapperJar.checksum)) {

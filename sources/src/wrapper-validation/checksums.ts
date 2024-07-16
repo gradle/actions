@@ -4,12 +4,20 @@ import fileWrapperChecksums from './wrapper-checksums.json'
 
 const httpc = new httpm.HttpClient('gradle/wrapper-validation-action', undefined, {allowRetries: true, maxRetries: 3})
 
-/**
- * Known checksums from previously published Wrapper versions.
- *
- * Maps from the checksum to the names of the Gradle versions whose wrapper has this checksum.
- */
-export const KNOWN_CHECKSUMS = loadKnownChecksums()
+export class WrapperChecksums {
+    checksums = new Map<string, Set<string>>()
+    versions = new Set<string>()
+
+    add(version: string, checksum: string): void {
+        if (this.checksums.has(checksum)) {
+            this.checksums.get(checksum)!.add(version)
+        } else {
+            this.checksums.set(checksum, new Set([version]))
+        }
+
+        this.versions.add(version)
+    }
+}
 
 function loadKnownChecksums(): WrapperChecksums {
     const checksums = new WrapperChecksums()
@@ -19,7 +27,17 @@ function loadKnownChecksums(): WrapperChecksums {
     return checksums
 }
 
-export async function fetchUnknownChecksums(allowSnapshots: boolean): Promise<Set<string>> {
+/**
+ * Known checksums from previously published Wrapper versions.
+ *
+ * Maps from the checksum to the names of the Gradle versions whose wrapper has this checksum.
+ */
+export const KNOWN_CHECKSUMS = loadKnownChecksums()
+
+export async function fetchUnknownChecksums(
+    allowSnapshots: boolean,
+    knownChecksums: WrapperChecksums
+): Promise<Set<string>> {
     const all = await httpGetJsonArray('https://services.gradle.org/versions/all')
     const withChecksum = all.filter(
         entry => typeof entry === 'object' && entry != null && entry.hasOwnProperty('wrapperChecksumUrl')
@@ -30,7 +48,7 @@ export async function fetchUnknownChecksums(allowSnapshots: boolean): Promise<Se
     )
     const notKnown = allowed.filter(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (entry: any) => !KNOWN_CHECKSUMS.versions.has(entry.version)
+        (entry: any) => !knownChecksums.versions.has(entry.version)
     )
     const checksumUrls = notKnown.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,14 +65,4 @@ async function httpGetJsonArray(url: string): Promise<unknown[]> {
 async function httpGetText(url: string): Promise<string> {
     const response = await httpc.get(url)
     return await response.readBody()
-}
-
-export class WrapperChecksums {
-    checksums = new Set<string>()
-    versions = new Set<string>()
-
-    add(version: string, checksum: string): void {
-        this.versions.add(version)
-        this.checksums.add(checksum)
-    }
 }

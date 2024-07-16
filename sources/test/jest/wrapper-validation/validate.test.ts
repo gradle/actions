@@ -1,6 +1,7 @@
 import * as path from 'path'
 import * as validate from '../../../src/wrapper-validation/validate'
 import {expect, test, jest} from '@jest/globals'
+import { WrapperChecksums } from '../../../src/wrapper-validation/checksums'
 
 jest.setTimeout(30000)
 
@@ -24,7 +25,7 @@ test('succeeds if all found wrapper jars are valid', async () => {
 })
 
 test('succeeds if all found wrapper jars are valid (and checksums are fetched from Gradle API)', async () => {
-  const knownValidChecksums = new Map<string, Set<string>>()
+  const knownValidChecksums = new WrapperChecksums()
   const result = await validate.findInvalidWrapperJars(
     baseDir,
     1,
@@ -32,6 +33,7 @@ test('succeeds if all found wrapper jars are valid (and checksums are fetched fr
     ['e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'],
     knownValidChecksums
   )
+  console.log(`fetchedChecksums = ${result.fetchedChecksums}`)
 
   expect(result.isValid()).toBe(true)
   // Should have fetched checksums because no known checksums were provided
