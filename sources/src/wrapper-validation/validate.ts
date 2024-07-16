@@ -8,7 +8,7 @@ export async function findInvalidWrapperJars(
     minWrapperCount: number,
     allowSnapshots: boolean,
     allowedChecksums: string[],
-    knownValidChecksums: Map<string, Set<string>> = checksums.KNOWN_VALID_CHECKSUMS
+    knownValidChecksums: checksums.WrapperChecksums = checksums.KNOWN_CHECKSUMS
 ): Promise<ValidationResult> {
     const wrapperJars = await find.findWrapperJars(gitRepoRoot)
     const result = new ValidationResult([], [])
@@ -21,7 +21,7 @@ export async function findInvalidWrapperJars(
         const notYetValidatedWrappers = []
         for (const wrapperJar of wrapperJars) {
             const sha = await hash.sha256File(resolve(gitRepoRoot, wrapperJar))
-            if (allowedChecksums.includes(sha) || knownValidChecksums.has(sha)) {
+            if (allowedChecksums.includes(sha) || knownValidChecksums.checksums.has(sha)) {
                 result.valid.push(new WrapperJar(wrapperJar, sha))
             } else {
                 notYetValidatedWrappers.push(new WrapperJar(wrapperJar, sha))
@@ -31,7 +31,7 @@ export async function findInvalidWrapperJars(
         // Otherwise fall back to fetching checksums from Gradle API and compare against them
         if (notYetValidatedWrappers.length > 0) {
             result.fetchedChecksums = true
-            const fetchedValidChecksums = await checksums.fetchValidChecksums(allowSnapshots)
+            const fetchedValidChecksums = await checksums.fetchUnknownChecksums(allowSnapshots, knownValidChecksums)
 
             for (const wrapperJar of notYetValidatedWrappers) {
                 if (!fetchedValidChecksums.has(wrapperJar.checksum)) {
