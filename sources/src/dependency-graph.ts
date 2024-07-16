@@ -77,7 +77,7 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
     }
 
     try {
-        await submitDependencyGraphs(await downloadDependencyGraphs())
+        await submitDependencyGraphs(await downloadDependencyGraphs(config))
     } catch (e) {
         warnOrFail(config, DependencyGraphOption.DownloadAndSubmit, e)
     }
@@ -111,7 +111,7 @@ async function findAndUploadDependencyGraphs(config: DependencyGraphConfig): Pro
     await uploadDependencyGraphs(await findDependencyGraphFiles(), config)
 }
 
-async function downloadDependencyGraphs(): Promise<string[]> {
+async function downloadDependencyGraphs(config: DependencyGraphConfig): Promise<string[]> {
     const findBy = github.context.payload.workflow_run
         ? {
               token: getGithubToken(),
@@ -123,12 +123,18 @@ async function downloadDependencyGraphs(): Promise<string[]> {
 
     const artifactClient = new DefaultArtifactClient()
 
-    const dependencyGraphArtifacts = (
+    let dependencyGraphArtifacts = (
         await artifactClient.listArtifacts({
             latest: true,
             findBy
         })
     ).artifacts.filter(artifact => artifact.name.startsWith(DEPENDENCY_GRAPH_PREFIX))
+
+    const artifactName = config.getDownloadArtifactName()
+    if (artifactName) {
+        core.info(`Filtering for artifacts ending with ${artifactName}`)
+        dependencyGraphArtifacts = dependencyGraphArtifacts.filter(artifact => artifact.name.includes(artifactName))
+    }
 
     for (const artifact of dependencyGraphArtifacts) {
         const downloadedArtifact = await artifactClient.downloadArtifact(artifact.id, {

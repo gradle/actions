@@ -80,6 +80,8 @@ jobs:
       uses: ./dependency-submission
       with:
         dependency-graph: download-and-submit
+      env:
+        DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: groovy-generate-and-upload-${{ matrix.os }}
 
   kotlin-generate-and-submit:
     strategy:
@@ -313,6 +315,8 @@ jobs:
         build-root-directory: .github/workflow-samples/groovy-dsl
       env: 
         DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
+        DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: custom-report-dir-upload
+
     - name: Check downloaded dependency graph
       shell: bash
       run: |
