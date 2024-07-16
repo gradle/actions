@@ -90405,33 +90405,44 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fetchValidChecksums = exports.KNOWN_VALID_CHECKSUMS = void 0;
+exports.fetchUnknownChecksums = exports.KNOWN_CHECKSUMS = exports.WrapperChecksums = void 0;
 const httpm = __importStar(__nccwpck_require__(5538));
 const wrapper_checksums_json_1 = __importDefault(__nccwpck_require__(3802));
 const httpc = new httpm.HttpClient('gradle/wrapper-validation-action', undefined, { allowRetries: true, maxRetries: 3 });
-function getKnownValidChecksums() {
-    const versionsMap = new Map();
-    for (const entry of wrapper_checksums_json_1.default) {
-        const checksum = entry.checksum;
-        let versionNames = versionsMap.get(checksum);
-        if (versionNames === undefined) {
-            versionNames = new Set();
-            versionsMap.set(checksum, versionNames);
-        }
-        versionNames.add(entry.version);
+class WrapperChecksums {
+    constructor() {
+        this.checksums = new Map();
+        this.versions = new Set();
     }
-    return versionsMap;
+    add(version, checksum) {
+        if (this.checksums.has(checksum)) {
+            this.checksums.get(checksum).add(version);
+        }
+        else {
+            this.checksums.set(checksum, new Set([version]));
+        }
+        this.versions.add(version);
+    }
 }
-exports.KNOWN_VALID_CHECKSUMS = getKnownValidChecksums();
-async function fetchValidChecksums(allowSnapshots) {
+exports.WrapperChecksums = WrapperChecksums;
+function loadKnownChecksums() {
+    const checksums = new WrapperChecksums();
+    for (const entry of wrapper_checksums_json_1.default) {
+        checksums.add(entry.version, entry.checksum);
+    }
+    return checksums;
+}
+exports.KNOWN_CHECKSUMS = loadKnownChecksums();
+async function fetchUnknownChecksums(allowSnapshots, knownChecksums) {
     const all = await httpGetJsonArray('https://services.gradle.org/versions/all');
     const withChecksum = all.filter(entry => typeof entry === 'object' && entry != null && entry.hasOwnProperty('wrapperChecksumUrl'));
     const allowed = withChecksum.filter((entry) => allowSnapshots || !entry.snapshot);
-    const checksumUrls = allowed.map((entry) => entry.wrapperChecksumUrl);
+    const notKnown = allowed.filter((entry) => !knownChecksums.versions.has(entry.version));
+    const checksumUrls = notKnown.map((entry) => entry.wrapperChecksumUrl);
     const checksums = await Promise.all(checksumUrls.map(async (url) => httpGetText(url)));
     return new Set(checksums);
 }
-exports.fetchValidChecksums = fetchValidChecksums;
+exports.fetchUnknownChecksums = fetchUnknownChecksums;
 async function httpGetJsonArray(url) {
     return JSON.parse(await httpGetText(url));
 }
@@ -90655,7 +90666,7 @@ const find = __importStar(__nccwpck_require__(849));
 const checksums = __importStar(__nccwpck_require__(907));
 const hash = __importStar(__nccwpck_require__(79));
 const path_1 = __nccwpck_require__(1017);
-async function findInvalidWrapperJars(gitRepoRoot, minWrapperCount, allowSnapshots, allowedChecksums, knownValidChecksums = checksums.KNOWN_VALID_CHECKSUMS) {
+async function findInvalidWrapperJars(gitRepoRoot, minWrapperCount, allowSnapshots, allowedChecksums, knownValidChecksums = checksums.KNOWN_CHECKSUMS) {
     const wrapperJars = await find.findWrapperJars(gitRepoRoot);
     const result = new ValidationResult([], []);
     if (wrapperJars.length < minWrapperCount) {
@@ -90665,7 +90676,7 @@ async function findInvalidWrapperJars(gitRepoRoot, minWrapperCount, allowSnapsho
         const notYetValidatedWrappers = [];
         for (const wrapperJar of wrapperJars) {
             const sha = await hash.sha256File((0, path_1.resolve)(gitRepoRoot, wrapperJar));
-            if (allowedChecksums.includes(sha) || knownValidChecksums.has(sha)) {
+            if (allowedChecksums.includes(sha) || knownValidChecksums.checksums.has(sha)) {
                 result.valid.push(new WrapperJar(wrapperJar, sha));
             }
             else {
@@ -90674,7 +90685,7 @@ async function findInvalidWrapperJars(gitRepoRoot, minWrapperCount, allowSnapsho
         }
         if (notYetValidatedWrappers.length > 0) {
             result.fetchedChecksums = true;
-            const fetchedValidChecksums = await checksums.fetchValidChecksums(allowSnapshots);
+            const fetchedValidChecksums = await checksums.fetchUnknownChecksums(allowSnapshots, knownValidChecksums);
             for (const wrapperJar of notYetValidatedWrappers) {
                 if (!fetchedValidChecksums.has(wrapperJar.checksum)) {
                     result.invalid.push(wrapperJar);
