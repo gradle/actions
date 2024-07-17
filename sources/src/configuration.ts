@@ -49,6 +49,10 @@ export class DependencyGraphConfig {
         return path.resolve(getWorkspaceDirectory(), 'dependency-graph-reports')
     }
 
+    getDownloadArtifactName(): string | undefined {
+        return process.env['DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME']
+    }
+
     static constructJobCorrelator(workflow: string, jobId: string, matrixJson: string): string {
         const matrixString = this.describeMatrix(matrixJson)
         const label = matrixString ? `${workflow}-${jobId}-${matrixString}` : `${workflow}-${jobId}`
