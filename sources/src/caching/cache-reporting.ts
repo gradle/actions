@@ -1,5 +1,21 @@
 import * as cache from '@actions/cache'
 
+export const DEFAULT_READONLY_REASON = `Cache was read-only: by default the action will only write to the cache for Jobs running on the default ('main'/'master') branch. 
+    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only) for more details.
+`
+
+export const DEFAULT_DISABLED_REASON = `Cache was set to disabled via action confiugration. Gradle User Home was not restored from or saved to the cache.
+    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#disabling-caching) for more details.
+`
+
+export const DEFAULT_WRITEONLY_REASON = `Cache was set to write-only via action configuration. Gradle User Home was not restored from cache.
+    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-write-only) for more details.
+`
+
+export const EXISTING_GRADLE_HOME = `Cache was disabled to avoid overwriting a pre-existing Gradle User Home. Gradle User Home was not restored from or saved to the cache.
+    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home) for a more details.
+`
+
 /**
  * Collects information on what entries were saved and restored during the action.
  * This information is used to generate a summary of the cache usage.
@@ -9,7 +25,7 @@ export class CacheListener {
     cacheReadOnly = false
     cacheWriteOnly = false
     cacheDisabled = false
-    cacheDisabledReason = 'disabled'
+    cacheStatusReason: string | undefined
 
     get fullyRestored(): boolean {
         return this.cacheEntries.every(x => !x.wasRequestedButNotRestored())
@@ -17,10 +33,25 @@ export class CacheListener {
 
     get cacheStatus(): string {
         if (!cache.isFeatureAvailable()) return 'not available'
-        if (this.cacheDisabled) return this.cacheDisabledReason
+        if (this.cacheDisabled) return 'disabled'
         if (this.cacheWriteOnly) return 'write-only'
         if (this.cacheReadOnly) return 'read-only'
         return 'enabled'
+    }
+
+    setReadOnly(reason: string = DEFAULT_READONLY_REASON): void {
+        this.cacheReadOnly = true
+        this.cacheStatusReason = reason
+    }
+
+    setDisabled(reason: string = DEFAULT_DISABLED_REASON): void {
+        this.cacheDisabled = true
+        this.cacheStatusReason = reason
+    }
+
+    setWriteOnly(reason: string = DEFAULT_WRITEONLY_REASON): void {
+        this.cacheWriteOnly = true
+        this.cacheStatusReason = reason
     }
 
     entry(name: string): CacheEntryListener {
@@ -117,6 +148,9 @@ export function generateCachingReport(listener: CacheListener): string {
     return `
 <details>
 <summary><h4>Caching for Gradle actions was ${listener.cacheStatus} - expand for details</h4></summary>
+
+${listener.cacheStatusReason}
+
 ${renderEntryTable(entries)}
 
 <h5>Cache Entry Details</h5>
