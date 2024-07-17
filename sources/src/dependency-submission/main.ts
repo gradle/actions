@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as setupGradle from '../setup-gradle'
 import * as gradle from '../execution/gradle'
 import * as dependencyGraph from '../dependency-graph'
@@ -23,6 +24,9 @@ export async function run(): Promise<void> {
 
         // Configure Gradle environment (Gradle User Home)
         await setupGradle.setup(new CacheConfig(), new BuildScanConfig())
+
+        // Capture the enabled state of dependency-graph
+        const originallyEnabled = process.env['GITHUB_DEPENDENCY_GRAPH_ENABLED']
 
         // Configure the dependency graph submission
         const config = new DependencyGraphConfig()
@@ -52,6 +56,9 @@ export async function run(): Promise<void> {
         )
 
         await dependencyGraph.complete(config)
+
+        // Reset the enabled state of dependency graph
+        core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', originallyEnabled)
 
         saveDeprecationState()
     } catch (error) {
