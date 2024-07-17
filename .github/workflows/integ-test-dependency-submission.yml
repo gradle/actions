@@ -228,11 +228,7 @@ jobs:
         build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
 
   with-setup-gradle:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ${{fromJSON(inputs.runner-os)}}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
