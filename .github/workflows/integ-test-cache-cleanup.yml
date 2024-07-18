@@ -55,7 +55,7 @@ jobs:
       uses: ./setup-gradle
       with:
         cache-read-only: false
-        gradle-home-cache-cleanup: true
+        cache-cleanup: 'on-success'
     - name: Build with 3.1.1
       working-directory: sources/test/jest/resources/cache-cleanup
       run: ./gradlew --no-daemon --build-cache -Dcommons_math3_version="3.1.1" build
