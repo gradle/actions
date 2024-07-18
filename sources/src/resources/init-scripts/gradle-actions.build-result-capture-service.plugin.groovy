@@ -38,9 +38,7 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
             requestedTasks: getParameters().getRequestedTasks().get(),
             gradleVersion: GradleVersion.current().version,
             gradleHomeDir: getParameters().getGradleHomeDir().get(),
-            buildFailed: buildFailed,
-            buildScanUri: null,
-            buildScanFailed: false
+            buildFailed: buildFailed
         ]
 
         def runnerTempDir = System.getProperty("RUNNER_TEMP") ?: System.getenv("RUNNER_TEMP")
@@ -50,7 +48,7 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
         }
 
         try {
-            def buildResultsDir = new File(runnerTempDir, ".build-results")
+            def buildResultsDir = new File(runnerTempDir, ".gradle-actions/build-results")
             buildResultsDir.mkdirs()
             def buildResultsFile = new File(buildResultsDir, githubActionStep + getParameters().getInvocationId().get() + ".json")
             if (!buildResultsFile.exists()) {

@@ -122,6 +122,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         then:
         assertResults('help', testGradleVersion, false, true)
         assert buildResultFile.delete()
+        assert scanResultFile.delete()
 
         when:
         run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
@@ -240,17 +241,31 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assert results['gradleVersion'] == testGradleVersion.gradleVersion.version
         assert results['gradleHomeDir'] != null
         assert results['buildFailed'] == hasFailure
-        assert results['buildScanUri'] == (hasBuildScan ? "${mockScansServer.address}s/${PUBLIC_BUILD_SCAN_ID}" : null)
-        assert results['buildScanFailed'] == scanUploadFailed
+
+        if (hasBuildScan || scanUploadFailed) {
+            def scanResults = new JsonSlurper().parse(scanResultFile)
+            assert scanResults['buildScanUri'] == (hasBuildScan ? "${mockScansServer.address}s/${PUBLIC_BUILD_SCAN_ID}" : null)
+            assert scanResults['buildScanFailed'] == scanUploadFailed
+        }
     }
 
     private File getBuildResultFile() {
-        def buildResultsDir = new File(testProjectDir, '.build-results')
+        def buildResultsDir = new File(testProjectDir, '.gradle-actions/build-results')
         assert buildResultsDir.directory
         assert buildResultsDir.listFiles().size() == 1
         def resultsFile = buildResultsDir.listFiles()[0]
         assert resultsFile.name.startsWith('github-step-id')
         assert resultsFile.text.count('rootProjectName') == 1
+        return resultsFile
+    }
+
+    private File getScanResultFile() {
+        def buildResultsDir = new File(testProjectDir, '.gradle-actions/build-scans')
+        assert buildResultsDir.directory
+        assert buildResultsDir.listFiles().size() == 1
+        def resultsFile = buildResultsDir.listFiles()[0]
+        assert resultsFile.name.startsWith('github-step-id')
+        assert resultsFile.text.count('buildScanUri') == 1
         return resultsFile
     }
 }
