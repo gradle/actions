@@ -111,7 +111,40 @@ export class CacheConfig {
     }
 
     isCacheCleanupEnabled(): boolean {
-        return getBooleanInput('gradle-home-cache-cleanup') && !this.isCacheReadOnly()
+        if (this.isCacheReadOnly()) {
+            return false
+        }
+        const cleanupOption = this.getCacheCleanupOption()
+        return cleanupOption === CacheCleanupOption.Always || cleanupOption === CacheCleanupOption.OnSuccess
+    }
+
+    shouldPerformCacheCleanup(hasFailure: boolean): boolean {
+        const cleanupOption = this.getCacheCleanupOption()
+        if (cleanupOption === CacheCleanupOption.Always) {
+            return true
+        }
+        if (cleanupOption === CacheCleanupOption.OnSuccess) {
+            return !hasFailure
+        }
+        return false
+    }
+
+    private getCacheCleanupOption(): CacheCleanupOption {
+        const val = core.getInput('cache-cleanup')
+        switch (val.toLowerCase().trim()) {
+            case 'always':
+                return CacheCleanupOption.Always
+            case 'on-success':
+                return CacheCleanupOption.OnSuccess
+            case 'never':
+                // When set to 'never' (the default), honour the legacy parameter setting.
+                return getBooleanInput('gradle-home-cache-cleanup')
+                    ? CacheCleanupOption.Always
+                    : CacheCleanupOption.Never
+        }
+        throw TypeError(
+            `The value '${val}' is not valid for cache-cleanup. Valid values are: [never, always, on-success].`
+        )
     }
 
     getCacheEncryptionKey(): string {
@@ -125,6 +158,12 @@ export class CacheConfig {
     getCacheExcludes(): string[] {
         return core.getMultilineInput('gradle-home-cache-excludes')
     }
+}
+
+export enum CacheCleanupOption {
+    Never = 'never',
+    OnSuccess = 'on-success',
+    Always = 'always'
 }
 
 export class SummaryConfig {

@@ -10,9 +10,14 @@ export const DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://g
 
 export const EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`
 
-export const DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#remove-unused-files-from-gradle-user-home-before-saving-to-the-cache) was not enabled. It must be explicitly enabled.`
+export const CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) is always disabled when cache is read-only or disabled.`
 
-export const DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#remove-unused-files-from-gradle-user-home-before-saving-to-the-cache) was enabled.`
+export const DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was not enabled. It must be explicitly enabled.`
+
+export const DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was enabled.`
+
+export const CLEANUP_DISABLED_DUE_TO_FAILURE =
+    '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). Use `cache-cleanup: always` to override this behavior.'
 
 /**
  * Collects information on what entries were saved and restored during the action.
@@ -41,11 +46,13 @@ export class CacheListener {
     setReadOnly(reason: string = DEFAULT_READONLY_REASON): void {
         this.cacheReadOnly = true
         this.cacheStatusReason = reason
+        this.cacheCleanupMessage = CLEANUP_DISABLED_READONLY
     }
 
     setDisabled(reason: string = DEFAULT_DISABLED_REASON): void {
         this.cacheDisabled = true
         this.cacheStatusReason = reason
+        this.cacheCleanupMessage = CLEANUP_DISABLED_READONLY
     }
 
     setWriteOnly(reason: string = DEFAULT_WRITEONLY_REASON): void {
@@ -55,6 +62,10 @@ export class CacheListener {
 
     setCacheCleanupEnabled(): void {
         this.cacheCleanupMessage = DEFAULT_CLEANUP_ENABLED_REASON
+    }
+
+    setCacheCleanupDisabled(reason: string = DEFAULT_CLEANUP_DISABLED_REASON): void {
+        this.cacheCleanupMessage = reason
     }
 
     entry(name: string): CacheEntryListener {

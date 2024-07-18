@@ -60,7 +60,7 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
     const cacheListener: CacheListener = CacheListener.rehydrate(core.getState(CACHE_LISTENER))
 
     const daemonController = new DaemonController(buildResults)
-    await caches.save(userHome, gradleUserHome, cacheListener, daemonController, cacheConfig)
+    await caches.save(userHome, gradleUserHome, cacheListener, daemonController, buildResults, cacheConfig)
 
     const cachingReport = generateCachingReport(cacheListener)
     await jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig)
