@@ -1,7 +1,9 @@
-import * as setupGradle from '../setup-gradle'
+import * as setupGradle from '../../setup-gradle'
+import * as dependencyGraph from '../../dependency-graph'
 
-import {CacheConfig, SummaryConfig} from '../configuration'
-import {handlePostActionError} from '../errors'
+import {CacheConfig, DependencyGraphConfig, SummaryConfig} from '../../configuration'
+import {handlePostActionError} from '../../errors'
+import {emitDeprecationWarnings, restoreDeprecationState} from '../../deprecation-collector'
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
@@ -13,7 +15,13 @@ process.on('uncaughtException', e => handlePostActionError(e))
  */
 export async function run(): Promise<void> {
     try {
-        await setupGradle.complete(new CacheConfig(), new SummaryConfig())
+        restoreDeprecationState()
+        emitDeprecationWarnings()
+
+        if (await setupGradle.complete(new CacheConfig(), new SummaryConfig())) {
+            // Only submit the dependency graphs once per job
+            await dependencyGraph.complete(new DependencyGraphConfig())
+        }
     } catch (error) {
         handlePostActionError(error)
     }

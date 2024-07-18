@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import * as setupGradle from '../setup-gradle'
-import * as gradle from '../execution/gradle'
-import * as dependencyGraph from '../dependency-graph'
+import * as setupGradle from '../../setup-gradle'
+import * as gradle from '../../execution/gradle'
+import * as dependencyGraph from '../../dependency-graph'
 
 import {parseArgsStringToArgv} from 'string-argv'
 import {
@@ -11,9 +11,9 @@ import {
     DependencyGraphOption,
     GradleExecutionConfig,
     setActionId
-} from '../configuration'
-import {saveDeprecationState} from '../deprecation-collector'
-import {handleMainActionError} from '../errors'
+} from '../../configuration'
+import {saveDeprecationState} from '../../deprecation-collector'
+import {handleMainActionError} from '../../errors'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.

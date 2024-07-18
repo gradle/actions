@@ -1,6 +1,6 @@
-import * as setupGradle from '../setup-gradle'
-import * as gradle from '../execution/gradle'
-import * as dependencyGraph from '../dependency-graph'
+import * as setupGradle from '../../setup-gradle'
+import * as gradle from '../../execution/gradle'
+import * as dependencyGraph from '../../dependency-graph'
 import {
     BuildScanConfig,
     CacheConfig,
@@ -9,9 +9,9 @@ import {
     doValidateWrappers,
     getActionId,
     setActionId
-} from '../configuration'
-import {recordDeprecation, saveDeprecationState} from '../deprecation-collector'
-import {handleMainActionError} from '../errors'
+} from '../../configuration'
+import {recordDeprecation, saveDeprecationState} from '../../deprecation-collector'
+import {handleMainActionError} from '../../errors'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
