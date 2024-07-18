@@ -1,10 +1,10 @@
 import * as path from 'path'
 import * as core from '@actions/core'
 
-import * as validate from './validate'
-import {getActionId, setActionId} from '../configuration'
-import {recordDeprecation, emitDeprecationWarnings} from '../deprecation-collector'
-import {handleMainActionError} from '../errors'
+import * as validate from '../../wrapper-validation/validate'
+import {getActionId, setActionId} from '../../configuration'
+import {recordDeprecation, emitDeprecationWarnings} from '../../deprecation-collector'
+import {handleMainActionError} from '../../errors'
 
 export async function run(): Promise<void> {
     try {

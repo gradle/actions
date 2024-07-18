@@ -12,11 +12,29 @@ export interface BuildResult {
     get buildScanFailed(): boolean
 }
 
-export function loadBuildResults(): BuildResult[] {
-    return getUnprocessedResults().map(filePath => {
+export class BuildResults {
+    results: BuildResult[]
+
+    constructor(results: BuildResult[]) {
+        this.results = results
+    }
+
+    anyFailed(): boolean {
+        return this.results.some(result => result.buildFailed)
+    }
+
+    uniqueGradleHomes(): string[] {
+        const allHomes = this.results.map(buildResult => buildResult.gradleHomeDir)
+        return Array.from(new Set(allHomes))
+    }
+}
+
+export function loadBuildResults(): BuildResults {
+    const results = getUnprocessedResults().map(filePath => {
         const content = fs.readFileSync(filePath, 'utf8')
         return JSON.parse(content) as BuildResult
     })
+    return new BuildResults(results)
 }
 
 export function markBuildResultsProcessed(): void {

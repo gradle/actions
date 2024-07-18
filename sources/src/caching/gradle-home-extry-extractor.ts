@@ -449,7 +449,7 @@ export class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
     }
 
     private getConfigCacheDirectoriesWithAssociatedBuildResults(): Record<string, BuildResult[]> {
-        return loadBuildResults().reduce(
+        return loadBuildResults().results.reduce(
             (acc, buildResult) => {
                 // For each build result, find the config-cache dir
                 const configCachePath = path.resolve(buildResult.rootProjectDir, '.gradle/configuration-cache')

@@ -2,14 +2,13 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as fs from 'fs'
 import * as path from 'path'
-import {BuildResult} from './build-results'
+import {BuildResults} from './build-results'
 
 export class DaemonController {
     private readonly gradleHomes
 
-    constructor(buildResults: BuildResult[]) {
-        const allHomes = buildResults.map(buildResult => buildResult.gradleHomeDir)
-        this.gradleHomes = Array.from(new Set(allHomes))
+    constructor(buildResults: BuildResults) {
+        this.gradleHomes = buildResults.uniqueGradleHomes()
     }
 
     async stopAllDaemons(): Promise<void> {

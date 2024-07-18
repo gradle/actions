@@ -23,6 +23,9 @@ jobs:
 
     - name: Setup Gradle
       uses: ./setup-gradle
+      with:
+        cache-read-only: false
+        cache-cleanup: 'on-success'
     - name: Build kotlin-dsl project
       working-directory: .github/workflow-samples/kotlin-dsl
       run: ./gradlew assemble

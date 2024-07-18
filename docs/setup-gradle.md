@@ -153,6 +153,23 @@ In certain circumstances it may be desirable to start with a clean Gradle User H
 cache-write-only: true
 ```
 
+### Enabling cache cleanup
+
+The Gradle User Home directory tends to grow over time. When you switch to a new Gradle wrapper version or upgrade a dependency version
+the old files are not automatically and immediately removed. While this can make sense in a local environment, in a GitHub Actions environment
+it can lead to ever-larger Gradle User Home cache entries being saved and restored.
+
+To avoid this situation, The `setup-gradle` action supports the `cache-cleanup` parameter.
+When cache-cleanup is enabled, this feature will attempt to delete any files in the Gradle User Home that were not used by Gradle during the GitHub Actions Workflow, before saving the Gradle User Home to the GitHub Actions cache.
+
+If cache cleanup runs after a failing Gradle build, it is possible that some required files and dependencies will not be touched, and will be removed.
+To prevent this scenario, cache cleanup can be configured to run only when all Gradle builds in the Job are successful.
+
+Gradle Home cache cleanup is considered experimental and is disabled by default.  You can enable this feature for the action as follows:
+```yaml
+cache-cleanup: 'on-success' # Valid values are 'never' (default), 'on-success' and 'always'
+```
+
 ### Overwriting an existing Gradle User Home
 
 When the action detects that the Gradle User Home caches directory already exists (`~/.gradle/caches`), then by default it will not overwrite the existing content of this directory.
@@ -362,13 +379,7 @@ The Gradle User Home directory tends to grow over time. When you switch to a new
 the old files are not automatically and immediately removed. While this can make sense in a local environment, in a GitHub Actions environment
 it can lead to ever-larger Gradle User Home cache entries being saved and restored.
 
-To avoid this situation, The `setup-gradle` action supports the `gradle-home-cache-cleanup` parameter.
-When enabled, this feature will attempt to delete any files in the Gradle User Home that were not used by Gradle during the GitHub Actions Workflow, before saving the Gradle User Home to the GitHub Actions cache.
-
-Gradle Home cache cleanup is considered experimental and is disabled by default.  You can enable this feature for the action as follows:
-```yaml
-gradle-home-cache-cleanup: true
-```
+See [Enabling cache cleanup](#enabling-cache-cleanup) for a mechanism to mitigate this problem.
 
 ### Disable local build-cache when remote build-cache is available
 

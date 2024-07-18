@@ -2,18 +2,18 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {RequestError} from '@octokit/request-error'
 
-import {BuildResult} from './build-results'
+import {BuildResults, BuildResult} from './build-results'
 import {SummaryConfig, getActionId, getGithubToken} from './configuration'
 import {Deprecation, getDeprecations} from './deprecation-collector'
 
 export async function generateJobSummary(
-    buildResults: BuildResult[],
+    buildResults: BuildResults,
     cachingReport: string,
     config: SummaryConfig
 ): Promise<void> {
-    const summaryTable = renderSummaryTable(buildResults)
+    const summaryTable = renderSummaryTable(buildResults.results)
 
-    const hasFailure = buildResults.some(result => result.buildFailed)
+    const hasFailure = buildResults.anyFailed()
     if (config.shouldGenerateJobSummary(hasFailure)) {
         core.info('Generating Job Summary')
 
