@@ -10,6 +10,7 @@ const successfulHelpBuild: BuildResult = {
     gradleVersion: '8.0',
     gradleHomeDir: '/opt/gradle',
     buildFailed: false,
+    configCacheHit: false,
     buildScanUri: 'https://scans.gradle.com/s/abc123',
     buildScanFailed: false
 }
