@@ -88,6 +88,7 @@ export async function save(
     await daemonController.stopAllDaemons()
 
     if (cacheConfig.isCacheCleanupEnabled()) {
+        cacheListener.setCacheCleanupEnabled()
         core.info('Forcing cache cleanup.')
         const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
         try {

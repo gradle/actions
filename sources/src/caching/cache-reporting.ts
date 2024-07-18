@@ -1,20 +1,18 @@
 import * as cache from '@actions/cache'
 
-export const DEFAULT_READONLY_REASON = `Cache was read-only: by default the action will only write to the cache for Jobs running on the default ('main'/'master') branch. 
-    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only) for more details.
-`
+export const DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`
 
-export const DEFAULT_DISABLED_REASON = `Cache was set to disabled via action confiugration. Gradle User Home was not restored from or saved to the cache.
-    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#disabling-caching) for more details.
-`
+export const DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`
 
-export const DEFAULT_WRITEONLY_REASON = `Cache was set to write-only via action configuration. Gradle User Home was not restored from cache.
-    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-write-only) for more details.
-`
+export const DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#disabling-caching) via action confiugration. Gradle User Home was not restored from or saved to the cache.`
 
-export const EXISTING_GRADLE_HOME = `Cache was disabled to avoid overwriting a pre-existing Gradle User Home. Gradle User Home was not restored from or saved to the cache.
-    See [the docs](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home) for a more details.
-`
+export const DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`
+
+export const EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`
+
+export const DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#remove-unused-files-from-gradle-user-home-before-saving-to-the-cache) was not enabled. It must be explicitly enabled.`
+
+export const DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#remove-unused-files-from-gradle-user-home-before-saving-to-the-cache) was enabled.`
 
 /**
  * Collects information on what entries were saved and restored during the action.
@@ -25,7 +23,8 @@ export class CacheListener {
     cacheReadOnly = false
     cacheWriteOnly = false
     cacheDisabled = false
-    cacheStatusReason: string | undefined
+    cacheStatusReason: string = DEFAULT_CACHE_ENABLED_REASON
+    cacheCleanupMessage: string = DEFAULT_CLEANUP_DISABLED_REASON
 
     get fullyRestored(): boolean {
         return this.cacheEntries.every(x => !x.wasRequestedButNotRestored())
@@ -52,6 +51,10 @@ export class CacheListener {
     setWriteOnly(reason: string = DEFAULT_WRITEONLY_REASON): void {
         this.cacheWriteOnly = true
         this.cacheStatusReason = reason
+    }
+
+    setCacheCleanupEnabled(): void {
+        this.cacheCleanupMessage = DEFAULT_CLEANUP_ENABLED_REASON
     }
 
     entry(name: string): CacheEntryListener {
@@ -149,7 +152,8 @@ export function generateCachingReport(listener: CacheListener): string {
 <details>
 <summary><h4>Caching for Gradle actions was ${listener.cacheStatus} - expand for details</h4></summary>
 
-${listener.cacheStatusReason}
+- ${listener.cacheStatusReason}
+- ${listener.cacheCleanupMessage}
 
 ${renderEntryTable(entries)}
 
