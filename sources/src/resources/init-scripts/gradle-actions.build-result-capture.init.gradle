@@ -21,16 +21,16 @@ if (isTopLevelBuild) {
     def invocationId = "-${System.currentTimeMillis()}"
 
     if (atLeastGradle6) {
+        // By default, use standard mechanisms to capture build results
         def useBuildService = version >= GradleVersion.version("6.6")
+        if (useBuildService) {
+            captureUsingBuildService(invocationId)
+        } else {
+            captureUsingBuildFinished(gradle, invocationId)
+        }
+
+        // Use the Develocity plugin to also capture build scan links, when available
         settingsEvaluated { settings ->
-            // By default, use standard mechanisms to capture build results
-            if (useBuildService) {
-                captureUsingBuildService(settings, invocationId)
-            } else {
-                captureUsingBuildFinished(gradle, invocationId)
-            }
-
-
             settings.pluginManager.withPlugin(GE_PLUGIN_ID) {
                 // Only execute if develocity plugin isn't applied.
                 if (!settings.extensions.findByName(DEVELOCITY_EXTENSION)) {
@@ -100,7 +100,7 @@ def captureUsingBuildFinished(gradle, invocationId) {
     }
 }
 
-def captureUsingBuildService(settings, invocationId) {
+def captureUsingBuildService(invocationId) {
     gradle.ext.invocationId = invocationId
     apply from: 'gradle-actions.build-result-capture-service.plugin.groovy'
 }
