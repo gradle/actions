@@ -76,7 +76,8 @@ void captureUsingBuildFinished(gradle, String invocationId, ResultsWriter result
             requestedTasks: gradle.startParameter.taskNames.join(" "),
             gradleVersion: GradleVersion.current().version,
             gradleHomeDir: gradle.gradleHomeDir.absolutePath,
-            buildFailed: result.failure != null
+            buildFailed: result.failure != null,
+            configCacheHit: false
         ]
         resultsWriter.writeToResultsFile("build-results", invocationId, buildResults)
     }
