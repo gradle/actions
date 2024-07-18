@@ -89855,6 +89855,72 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 2401:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const path = __importStar(__nccwpck_require__(1017));
+const core = __importStar(__nccwpck_require__(2186));
+const validate = __importStar(__nccwpck_require__(8568));
+const configuration_1 = __nccwpck_require__(5778);
+const deprecation_collector_1 = __nccwpck_require__(2572);
+const errors_1 = __nccwpck_require__(6976);
+async function run() {
+    try {
+        if ((0, configuration_1.getActionId)() === 'gradle/wrapper-validation-action') {
+            (0, deprecation_collector_1.recordDeprecation)('The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`');
+        }
+        else {
+            (0, configuration_1.setActionId)('gradle/actions/wrapper-validation');
+        }
+        const result = await validate.findInvalidWrapperJars(path.resolve('.'), +core.getInput('min-wrapper-count'), core.getInput('allow-snapshots') === 'true', core.getInput('allow-checksums').split(','));
+        if (result.isValid()) {
+            core.info(result.toDisplayString());
+        }
+        else {
+            core.setFailed(`Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`);
+            if (result.invalid.length > 0) {
+                core.setOutput('failed-wrapper', `${result.invalid.map(w => w.path).join('|')}`);
+            }
+        }
+        (0, deprecation_collector_1.emitDeprecationWarnings)(false);
+    }
+    catch (error) {
+        (0, errors_1.handleMainActionError)(error);
+    }
+}
+exports.run = run;
+run();
+
+
+/***/ }),
+
 /***/ 5778:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -89887,7 +89953,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseNumericInput = exports.setActionId = exports.getActionId = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.doValidateWrappers = exports.GradleExecutionConfig = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
+exports.parseNumericInput = exports.setActionId = exports.getActionId = exports.getWorkspaceDirectory = exports.getGithubToken = exports.getJobMatrix = exports.doValidateWrappers = exports.GradleExecutionConfig = exports.BuildScanConfig = exports.JobSummaryOption = exports.SummaryConfig = exports.CacheCleanupOption = exports.CacheConfig = exports.DependencyGraphOption = exports.DependencyGraphConfig = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
@@ -89981,7 +90047,35 @@ class CacheConfig {
         return getBooleanInput('gradle-home-cache-strict-match');
     }
     isCacheCleanupEnabled() {
-        return getBooleanInput('gradle-home-cache-cleanup') && !this.isCacheReadOnly();
+        if (this.isCacheReadOnly()) {
+            return false;
+        }
+        const cleanupOption = this.getCacheCleanupOption();
+        return cleanupOption === CacheCleanupOption.Always || cleanupOption === CacheCleanupOption.OnSuccess;
+    }
+    shouldPerformCacheCleanup(hasFailure) {
+        const cleanupOption = this.getCacheCleanupOption();
+        if (cleanupOption === CacheCleanupOption.Always) {
+            return true;
+        }
+        if (cleanupOption === CacheCleanupOption.OnSuccess) {
+            return !hasFailure;
+        }
+        return false;
+    }
+    getCacheCleanupOption() {
+        const val = core.getInput('cache-cleanup');
+        switch (val.toLowerCase().trim()) {
+            case 'always':
+                return CacheCleanupOption.Always;
+            case 'on-success':
+                return CacheCleanupOption.OnSuccess;
+            case 'never':
+                return getBooleanInput('gradle-home-cache-cleanup')
+                    ? CacheCleanupOption.Always
+                    : CacheCleanupOption.Never;
+        }
+        throw TypeError(`The value '${val}' is not valid for cache-cleanup. Valid values are: [never, always, on-success].`);
     }
     getCacheEncryptionKey() {
         return core.getInput('cache-encryption-key');
@@ -89994,6 +90088,12 @@ class CacheConfig {
     }
 }
 exports.CacheConfig = CacheConfig;
+var CacheCleanupOption;
+(function (CacheCleanupOption) {
+    CacheCleanupOption["Never"] = "never";
+    CacheCleanupOption["OnSuccess"] = "on-success";
+    CacheCleanupOption["Always"] = "always";
+})(CacheCleanupOption || (exports.CacheCleanupOption = CacheCleanupOption = {}));
 class SummaryConfig {
     shouldGenerateJobSummary(hasFailure) {
         if (!process.env[summary_1.SUMMARY_ENV_VAR]) {
@@ -90569,72 +90669,6 @@ exports.sha256File = sha256File;
 
 /***/ }),
 
-/***/ 8095:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
-const path = __importStar(__nccwpck_require__(1017));
-const core = __importStar(__nccwpck_require__(2186));
-const validate = __importStar(__nccwpck_require__(8568));
-const configuration_1 = __nccwpck_require__(5778);
-const deprecation_collector_1 = __nccwpck_require__(2572);
-const errors_1 = __nccwpck_require__(6976);
-async function run() {
-    try {
-        if ((0, configuration_1.getActionId)() === 'gradle/wrapper-validation-action') {
-            (0, deprecation_collector_1.recordDeprecation)('The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`');
-        }
-        else {
-            (0, configuration_1.setActionId)('gradle/actions/wrapper-validation');
-        }
-        const result = await validate.findInvalidWrapperJars(path.resolve('.'), +core.getInput('min-wrapper-count'), core.getInput('allow-snapshots') === 'true', core.getInput('allow-checksums').split(','));
-        if (result.isValid()) {
-            core.info(result.toDisplayString());
-        }
-        else {
-            core.setFailed(`Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`);
-            if (result.invalid.length > 0) {
-                core.setOutput('failed-wrapper', `${result.invalid.map(w => w.path).join('|')}`);
-            }
-        }
-        (0, deprecation_collector_1.emitDeprecationWarnings)(false);
-    }
-    catch (error) {
-        (0, errors_1.handleMainActionError)(error);
-    }
-}
-exports.run = run;
-run();
-
-
-/***/ }),
-
 /***/ 8568:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -91131,7 +91165,7 @@ module.exports = JSON.parse('[{"version":"8.9","checksum":"498495120a03b9a6ab5d1
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(8095);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(2401);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
