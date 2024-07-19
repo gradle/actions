@@ -24,6 +24,10 @@ export class BuildResults {
         return this.results.some(result => result.buildFailed)
     }
 
+    anyConfigCacheHit(): boolean {
+        return this.results.some(result => result.configCacheHit)
+    }
+
     uniqueGradleHomes(): string[] {
         const allHomes = this.results.map(buildResult => buildResult.gradleHomeDir)
         return Array.from(new Set(allHomes))

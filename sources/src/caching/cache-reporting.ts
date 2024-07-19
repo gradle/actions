@@ -19,6 +19,9 @@ export const DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.co
 export const CLEANUP_DISABLED_DUE_TO_FAILURE =
     '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). Use `cache-cleanup: always` to override this behavior.'
 
+export const CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT =
+    '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). This is expected.'
+
 /**
  * Collects information on what entries were saved and restored during the action.
  * This information is used to generate a summary of the cache usage.
