@@ -31,16 +31,23 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     core.exportVariable('GITHUB_DEPENDENCY_GRAPH_ENABLED', 'true')
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.getDependencyGraphContinueOnFailure())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', config.getJobCorrelator())
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId)
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId.toString())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', github.context.ref)
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_SHA', getShaFromContext())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_WORKSPACE', getWorkspaceDirectory())
     maybeExportVariable('DEPENDENCY_GRAPH_REPORT_DIR', config.getReportDirectory())
+
+    maybeExportVariable('DEPENDENCY_GRAPH_EXCLUDE_PROJECTS', config.getExcludeProjects())
+    maybeExportVariable('DEPENDENCY_GRAPH_INCLUDE_PROJECTS', config.getIncludeProjects())
+    maybeExportVariable('DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS', config.getExcludeConfigurations())
+    maybeExportVariable('DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS', config.getIncludeConfigurations())
 }
 
-function maybeExportVariable(variableName: string, value: unknown): void {
+function maybeExportVariable(variableName: string, value: string | boolean | undefined): void {
     if (!process.env[variableName]) {
-        core.exportVariable(variableName, value)
+        if (value !== undefined) {
+            core.exportVariable(variableName, value)
+        }
     }
 }
 

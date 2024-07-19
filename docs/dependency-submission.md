@@ -242,26 +242,26 @@ contribute to the dependency graph.
 > These dependencies would be assigned to different scopes (eg development, runtime, testing) and the GitHub UI would make it easy to opt-in to security alerts for different dependency scopes.
 > However, this functionality does not yet exist.
 
-### Excluding certain Gradle projects from the dependency graph
+### Selecting Gradle projects that will contribute to the dependency graph
 
 If you do not want the dependency graph to include dependencies from every project in your build, 
-you can easily exclude certain projects from the dependency extraction process.
+you can easily exclude or include certain projects from the dependency extraction process.
 
-To restrict which Gradle subprojects contribute to the report, specify which projects to exclude via a regular expression.
-You can provide this value via the `DEPENDENCY_GRAPH_EXCLUDE_PROJECTS` environment variable or system property.
+To restrict which Gradle subprojects contribute to the report, specify which projects to exclude or include via a regular expression.
+You can use the `dependency-graph-exclude-projects` and `dependency-graph-include-projects` input parameters for this purpose.
 
 Note that excluding a project in this way only removes dependencies that are _resolved_ as part of that project, and may
 not necessarily remove all dependencies _declared_ in that project. If another project depends on the excluded project
 then it may transitively resolve dependencies declared in the excluded project: these dependencies will still be included
 in the generated dependency graph.
 
-### Excluding certain Gradle configurations from the dependency graph
+### Selecting Gradle configurations that will contribute to the dependency graph
 
-Similarly to Gradle projects, it is possible to exclude a set of configuration instances from dependency graph generation,
-so that dependencies resolved by those configurations are not included.
+Similarly to Gradle projects, it is possible to exclude or include a set of dependency configurations from dependency graph generation,
+so that only dependencies resolved by the included configurations are reported.
 
-To restrict which Gradle configurations contribute to the report, specify which configurations to exclude via a regular expression.
-You can provide this value via the `DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS` environment variable or system property.
+To restrict which Gradle configurations contribute to the report, specify which configurations to exclude or include via a regular expression.
+You can use the `dependency-graph-exclude-configurations` and `dependency-graph-include-configurations` input parameters for this purpose.
 
 Note that configuration exclusion applies to the configuration in which the dependency is _resolved_ which is not necessarily
 the configuration where the dependency is _declared_. For example if you decare a dependency as `implementation` in
@@ -269,23 +269,17 @@ a Java project, that dependency will be resolved in `compileClasspath`, `runtime
 
 ### Example of project and configuration filtering
 
-For example, if you want to exclude dependencies in the `buildSrc` project, and exclude dependencies from the `testCompileClasspath` and `testRuntimeClasspath` configurations, you would use the following configuration:
+For example, if you want to exclude dependencies resolved by the `buildSrc` project, and exclude dependencies from the `testCompileClasspath` and `testRuntimeClasspath` configurations, you would use the following configuration:
 
 ```yaml
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v3
-      env:
+      with:
         # Exclude all dependencies that originate solely in the 'buildSrc' project
-        DEPENDENCY_GRAPH_EXCLUDE_PROJECTS: ':buildSrc'
+        dependency-graph-exclude-projets: ':buildSrc'
         # Exclude dependencies that are only resolved in test classpaths
-        DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS: '.*[Tt]est(Compile|Runtime)Classpath'
+        dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'
 ```
-
-### Other filtering options
-
-The [GitHub Dependency Graph Gradle Plugin](https://plugins.gradle.org/plugin/org.gradle.github-dependency-graph-gradle-plugin)
-has other filtering options that may be useful.
- See [the docs](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#filtering-which-gradle-configurations-contribute-to-the-dependency-graph) for details.
 
 # Advance usage scenarios
 
