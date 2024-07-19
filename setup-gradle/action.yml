@@ -166,31 +166,10 @@ inputs:
     default: false
 
   # DEPRECATED ACTION INPUTS
-  build-scan-terms-of-service-url:
-    description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.
-    required: false
-    deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-url' instead.
-
-  build-scan-terms-of-service-agree:
-    description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
-    required: false
-    deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-agree' instead.
-
-  generate-job-summary:
-    description: When 'false', no Job Summary will be generated for the Job.
-    required: false
-    default: true
-    deprecation-message: Superceded by the new 'add-job-summary' and 'add-job-summary-as-pr-comment' parameters.
-
   arguments:
     description: Gradle command line arguments (supports multi-line input)
     required: false
-    deprecation-message: Using the action to execute Gradle directly is deprecated in favor of using the action to setup Gradle, and executing Gradle in a subsequent Step.
-
-  build-root-directory:
-    description: Path to the root directory of the build. Default is the root of the GitHub workspace.
-    required: false
-    deprecation-message: Using the action to execute Gradle directly is deprecated in favor of using the action to setup Gradle, and executing Gradle in a subsequent Step.
+    deprecation-message: This parameter has been deprecated and removed. It is only left here to allow for better reporting to assist users to migrate.
 
   # EXPERIMENTAL ACTION INPUTS
   # The following action properties allow fine-grained tweaking of the action caching behaviour.
