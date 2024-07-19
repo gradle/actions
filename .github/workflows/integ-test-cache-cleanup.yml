@@ -78,6 +78,7 @@ jobs:
       with:
         cache-read-only: true
     - name: Report Gradle User Home
+      shell: bash
       run: |
         du -hc $GRADLE_USER_HOME/caches/modules-2
         du -hc $GRADLE_USER_HOME/wrapper/dists
