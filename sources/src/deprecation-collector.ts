@@ -22,11 +22,9 @@ export function recordDeprecation(message: string): void {
     }
 }
 
-export function failOnUseOfRemovedFeature(removalMessage: string, deprecationMessage: string): void {
+export function failOnUseOfRemovedFeature(removalMessage: string, deprecationMessage: string = removalMessage): void {
     const deprecation = new Deprecation(deprecationMessage)
-    core.error(
-        `${removalMessage}. See ${deprecation.getDocumentationLink()}`
-    )
+    core.error(`${removalMessage}. See ${deprecation.getDocumentationLink()}`)
 }
 
 export function getDeprecations(): Deprecation[] {

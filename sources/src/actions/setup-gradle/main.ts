@@ -10,7 +10,7 @@ import {
     getActionId,
     setActionId
 } from '../../configuration'
-import {recordDeprecation, saveDeprecationState} from '../../deprecation-collector'
+import {failOnUseOfRemovedFeature, saveDeprecationState} from '../../deprecation-collector'
 import {handleMainActionError} from '../../errors'
 
 /**
@@ -19,13 +19,12 @@ import {handleMainActionError} from '../../errors'
 export async function run(): Promise<void> {
     try {
         if (getActionId() === 'gradle/gradle-build-action') {
-            
-            recordDeprecation(
+            failOnUseOfRemovedFeature(
                 'The action `gradle/gradle-build-action` has been replaced by `gradle/actions/setup-gradle`'
             )
-        } else {
-            setActionId('gradle/actions/setup-gradle')
         }
+
+        setActionId('gradle/actions/setup-gradle')
 
         // Check for invalid wrapper JARs if requested
         if (doValidateWrappers()) {
