@@ -98127,6 +98127,7 @@ class GradleUserHomeCache {
         await this.debugReportGradleUserHomeSize('as restored from cache');
         await new gradle_home_extry_extractor_1.GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
         await new gradle_home_extry_extractor_1.ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener);
+        await this.deleteExcludedPaths();
         await this.debugReportGradleUserHomeSize('after restoring common artifacts');
     }
     async save(listener) {
