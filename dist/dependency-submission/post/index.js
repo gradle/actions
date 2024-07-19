@@ -99432,7 +99432,7 @@ async function installGradleVersion(versionInfo) {
     });
 }
 async function locateGradleAndDownloadIfRequired(versionInfo) {
-    const installsDir = path.join(os.homedir(), 'gradle-installations/installs');
+    const installsDir = path.join(getProvisionDir(), 'installs');
     const installDir = path.join(installsDir, `gradle-${versionInfo.version}`);
     if (fs.existsSync(installDir)) {
         core.info(`Gradle installation already exists at ${installDir}`);
@@ -99447,7 +99447,7 @@ async function locateGradleAndDownloadIfRequired(versionInfo) {
     return executable;
 }
 async function downloadAndCacheGradleDistribution(versionInfo) {
-    const downloadPath = path.join(os.homedir(), `gradle-installations/downloads/gradle-${versionInfo.version}-bin.zip`);
+    const downloadPath = path.join(getProvisionDir(), `downloads/gradle-${versionInfo.version}-bin.zip`);
     const cacheConfig = new configuration_1.CacheConfig();
     if (cacheConfig.isCacheDisabled()) {
         await downloadGradleDistribution(versionInfo, downloadPath);
@@ -99475,6 +99475,10 @@ async function downloadAndCacheGradleDistribution(versionInfo) {
         }
     }
     return downloadPath;
+}
+function getProvisionDir() {
+    const tmpDir = process.env['RUNNER_TEMP'] ?? os.tmpdir();
+    return path.join(tmpDir, `.gradle-actions/gradle-installations`);
 }
 async function downloadGradleDistribution(versionInfo, downloadPath) {
     await toolCache.downloadTool(versionInfo.downloadUrl, downloadPath);
@@ -99723,6 +99727,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkNoInvalidWrapperJars = exports.complete = exports.setup = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
+const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const caches = __importStar(__nccwpck_require__(7504));
@@ -99781,7 +99786,18 @@ async function determineGradleUserHome() {
         const rootDir = (0, configuration_1.getWorkspaceDirectory)();
         return path.resolve(rootDir, customGradleUserHome);
     }
-    return path.resolve(await determineUserHome(), '.gradle');
+    const defaultGradleUserHome = path.resolve(await determineUserHome(), '.gradle');
+    if (fs.existsSync(defaultGradleUserHome)) {
+        core.info(`Gradle User Home already exists at ${defaultGradleUserHome}`);
+        return defaultGradleUserHome;
+    }
+    if (os.platform() === 'win32' && defaultGradleUserHome.startsWith('C:\\') && fs.existsSync('D:\\a\\')) {
+        const fasterGradleUserHome = 'D:\\a\\.gradle';
+        core.info(`Setting GRADLE_USER_HOME to ${fasterGradleUserHome} to leverage (potentially) faster drive.`);
+        core.exportVariable('GRADLE_USER_HOME', fasterGradleUserHome);
+        return fasterGradleUserHome;
+    }
+    return defaultGradleUserHome;
 }
 async function determineUserHome() {
     const output = await exec.getExecOutput('java', ['-XshowSettings:properties', '-version'], { silent: true });
