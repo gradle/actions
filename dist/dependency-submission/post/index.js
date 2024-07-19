@@ -96961,6 +96961,9 @@ class BuildResults {
     anyFailed() {
         return this.results.some(result => result.buildFailed);
     }
+    anyConfigCacheHit() {
+        return this.results.some(result => result.configCacheHit);
+    }
     uniqueGradleHomes() {
         const allHomes = this.results.map(buildResult => buildResult.gradleHomeDir);
         return Array.from(new Set(allHomes));
@@ -96970,7 +96973,9 @@ exports.BuildResults = BuildResults;
 function loadBuildResults() {
     const results = getUnprocessedResults().map(filePath => {
         const content = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(content);
+        const buildResult = JSON.parse(content);
+        addScanResults(filePath, buildResult);
+        return buildResult;
     });
     return new BuildResults(results);
 }
@@ -96980,7 +96985,7 @@ function markBuildResultsProcessed() {
 }
 exports.markBuildResultsProcessed = markBuildResultsProcessed;
 function getUnprocessedResults() {
-    const buildResultsDir = path.resolve(process.env['RUNNER_TEMP'], '.build-results');
+    const buildResultsDir = path.resolve(process.env['RUNNER_TEMP'], '.gradle-actions', 'build-results');
     if (!fs.existsSync(buildResultsDir)) {
         return [];
     }
@@ -96992,6 +96997,19 @@ function getUnprocessedResults() {
         .filter(filePath => {
         return path.extname(filePath) === '.json' && !isProcessed(filePath);
     });
+}
+function addScanResults(buildResultsFile, buildResult) {
+    const buildScansDir = path.resolve(process.env['RUNNER_TEMP'], '.gradle-actions', 'build-scans');
+    if (!fs.existsSync(buildScansDir)) {
+        return;
+    }
+    const buildScanResults = path.resolve(buildScansDir, path.basename(buildResultsFile));
+    if (fs.existsSync(buildScanResults)) {
+        const content = fs.readFileSync(buildScanResults, 'utf8');
+        const scanResults = JSON.parse(content);
+        Object.assign(buildResult, scanResults);
+    }
+    return;
 }
 function isProcessed(resultFile) {
     const markerFile = `${resultFile}.processed`;
@@ -97211,7 +97229,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateCachingReport = exports.CacheEntryListener = exports.CacheListener = exports.CLEANUP_DISABLED_DUE_TO_FAILURE = exports.DEFAULT_CLEANUP_ENABLED_REASON = exports.DEFAULT_CLEANUP_DISABLED_REASON = exports.CLEANUP_DISABLED_READONLY = exports.EXISTING_GRADLE_HOME = exports.DEFAULT_WRITEONLY_REASON = exports.DEFAULT_DISABLED_REASON = exports.DEFAULT_READONLY_REASON = exports.DEFAULT_CACHE_ENABLED_REASON = void 0;
+exports.generateCachingReport = exports.CacheEntryListener = exports.CacheListener = exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = exports.CLEANUP_DISABLED_DUE_TO_FAILURE = exports.DEFAULT_CLEANUP_ENABLED_REASON = exports.DEFAULT_CLEANUP_DISABLED_REASON = exports.CLEANUP_DISABLED_READONLY = exports.EXISTING_GRADLE_HOME = exports.DEFAULT_WRITEONLY_REASON = exports.DEFAULT_DISABLED_REASON = exports.DEFAULT_READONLY_REASON = exports.DEFAULT_CACHE_ENABLED_REASON = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 exports.DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`;
 exports.DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`;
@@ -97222,6 +97240,7 @@ exports.CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/a
 exports.DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was not enabled. It must be explicitly enabled.`;
 exports.DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was enabled.`;
 exports.CLEANUP_DISABLED_DUE_TO_FAILURE = '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). Use `cache-cleanup: always` to override this behavior.';
+exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). This is expected.';
 class CacheListener {
     constructor() {
         this.cacheEntries = [];
@@ -97677,7 +97696,11 @@ async function save(userHome, gradleUserHome, cacheListener, daemonController, b
     }
     await daemonController.stopAllDaemons();
     if (cacheConfig.isCacheCleanupEnabled()) {
-        if (cacheConfig.shouldPerformCacheCleanup(buildResults.anyFailed())) {
+        if (buildResults.anyConfigCacheHit()) {
+            core.info('Not performing cache-cleanup due to config-cache reuse');
+            cacheListener.setCacheCleanupDisabled(cache_reporting_1.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT);
+        }
+        else if (cacheConfig.shouldPerformCacheCleanup(buildResults.anyFailed())) {
             cacheListener.setCacheCleanupEnabled();
             await performCacheCleanup(gradleUserHome);
         }
