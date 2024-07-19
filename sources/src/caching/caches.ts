@@ -51,6 +51,12 @@ export async function restore(
     // Mark the state as restored so that post-action will perform save.
     core.saveState(CACHE_RESTORED_VAR, true)
 
+    if (cacheConfig.isCacheCleanupEnabled()) {
+        core.info('Preparing cache for cleanup.')
+        const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
+        await cacheCleaner.prepare()
+    }
+
     if (cacheConfig.isCacheWriteOnly()) {
         core.info('Cache is write-only: will not restore from cache.')
         cacheListener.setWriteOnly()
@@ -60,12 +66,6 @@ export async function restore(
     await core.group('Restore Gradle state from cache', async () => {
         await gradleStateCache.restore(cacheListener)
     })
-
-    if (cacheConfig.isCacheCleanupEnabled()) {
-        core.info('Preparing cache for cleanup.')
-        const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
-        await cacheCleaner.prepare()
-    }
 }
 
 export async function save(
