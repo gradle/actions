@@ -53,14 +53,6 @@ jobs:
       if: ${{ needs.determine-suite.outputs.suite != 'full' }}
       uses: ./.github/actions/build-dist
 
-  action-inputs:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-action-inputs.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
   build-scan-publish:
     needs: [determine-suite, build-distribution]
     uses: ./.github/workflows/integ-test-build-scan-publish.yml
@@ -113,22 +105,6 @@ jobs:
     uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
     permissions:
       contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  execution-with-caching:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-execution-with-caching.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  execution:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-execution.yml
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
