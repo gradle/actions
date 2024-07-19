@@ -100,7 +100,7 @@ async function installGradleVersion(versionInfo: GradleVersionInfo): Promise<str
 }
 
 async function locateGradleAndDownloadIfRequired(versionInfo: GradleVersionInfo): Promise<string> {
-    const installsDir = path.join(os.homedir(), 'gradle-installations/installs')
+    const installsDir = path.join(getProvisionDir(), 'installs')
     const installDir = path.join(installsDir, `gradle-${versionInfo.version}`)
     if (fs.existsSync(installDir)) {
         core.info(`Gradle installation already exists at ${installDir}`)
@@ -119,7 +119,7 @@ async function locateGradleAndDownloadIfRequired(versionInfo: GradleVersionInfo)
 }
 
 async function downloadAndCacheGradleDistribution(versionInfo: GradleVersionInfo): Promise<string> {
-    const downloadPath = path.join(os.homedir(), `gradle-installations/downloads/gradle-${versionInfo.version}-bin.zip`)
+    const downloadPath = path.join(getProvisionDir(), `downloads/gradle-${versionInfo.version}-bin.zip`)
 
     // TODO: Convert this to a class and inject config
     const cacheConfig = new CacheConfig()
@@ -150,6 +150,11 @@ async function downloadAndCacheGradleDistribution(versionInfo: GradleVersionInfo
         }
     }
     return downloadPath
+}
+
+function getProvisionDir(): string {
+    const tmpDir = process.env['RUNNER_TEMP'] ?? os.tmpdir()
+    return path.join(tmpDir, `.gradle-actions/gradle-installations`)
 }
 
 async function downloadGradleDistribution(versionInfo: GradleVersionInfo, downloadPath: string): Promise<void> {
