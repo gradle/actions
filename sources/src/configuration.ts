@@ -4,7 +4,6 @@ import * as cache from '@actions/cache'
 import * as deprecator from './deprecation-collector'
 import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 
-import {parseArgsStringToArgv} from 'string-argv'
 import path from 'path'
 
 const ACTION_ID_VAR = 'GRADLE_ACTION_ID'
@@ -23,11 +22,9 @@ export class DependencyGraphConfig {
                 return DependencyGraphOption.GenerateAndUpload
             case 'download-and-submit':
                 return DependencyGraphOption.DownloadAndSubmit
-            case 'clear':
-                return DependencyGraphOption.Clear
         }
         throw TypeError(
-            `The value '${val}' is not valid for 'dependency-graph'. Valid values are: [disabled, generate, generate-and-submit, generate-and-upload, download-and-submit, clear]. The default value is 'disabled'.`
+            `The value '${val}' is not valid for 'dependency-graph'. Valid values are: [disabled, generate, generate-and-submit, generate-and-upload, download-and-submit]. The default value is 'disabled'.`
         )
     }
 
@@ -81,8 +78,7 @@ export enum DependencyGraphOption {
     Generate = 'generate',
     GenerateAndSubmit = 'generate-and-submit',
     GenerateAndUpload = 'generate-and-upload',
-    DownloadAndSubmit = 'download-and-submit',
-    Clear = 'clear'
+    DownloadAndSubmit = 'download-and-submit'
 }
 
 export class CacheConfig {
@@ -173,11 +169,6 @@ export class SummaryConfig {
             return false
         }
 
-        // Check if Job Summary is disabled using the deprecated input
-        if (!this.isJobSummaryEnabled()) {
-            return false
-        }
-
         return this.shouldAddJobSummary(this.getJobSummaryOption(), hasFailure)
     }
 
@@ -194,10 +185,6 @@ export class SummaryConfig {
             case JobSummaryOption.OnFailure:
                 return hasFailure
         }
-    }
-
-    private isJobSummaryEnabled(): boolean {
-        return getBooleanInput('generate-job-summary', true)
     }
 
     private getJobSummaryOption(): JobSummaryOption {
@@ -239,11 +226,11 @@ export class BuildScanConfig {
     }
 
     getBuildScanTermsOfUseUrl(): string {
-        return this.getTermsOfUseProp('build-scan-terms-of-use-url', 'build-scan-terms-of-service-url')
+        return core.getInput('build-scan-terms-of-use-url')
     }
 
     getBuildScanTermsOfUseAgree(): string {
-        return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree')
+        return core.getInput('build-scan-terms-of-use-agree')
     }
 
     getDevelocityAccessKey(): string {
@@ -312,22 +299,6 @@ export class BuildScanConfig {
         }
         return true
     }
-
-    /**
-     * TODO @bigdaz: remove support for the deprecated input property in the next major release of the action
-     */
-    private getTermsOfUseProp(newPropName: string, oldPropName: string): string {
-        const newProp = core.getInput(newPropName)
-        if (newProp !== '') {
-            return newProp
-        }
-        const oldProp = core.getInput(oldPropName)
-        if (oldProp !== '') {
-            deprecator.recordDeprecation('The `build-scan-terms-of-service` input parameters have been renamed')
-            return oldProp
-        }
-        return core.getInput(oldPropName)
-    }
 }
 
 export class GradleExecutionConfig {
@@ -345,22 +316,22 @@ export class GradleExecutionConfig {
         return resolvedBuildRootDirectory
     }
 
-    getArguments(): string[] {
-        const input = core.getInput('arguments')
-        if (input.length !== 0) {
-            deprecator.recordDeprecation(
-                'Using the action to execute Gradle via the `arguments` parameter is deprecated'
-            )
-        }
-        return parseArgsStringToArgv(input)
-    }
-
     getDependencyResolutionTask(): string {
         return core.getInput('dependency-resolution-task') || ':ForceDependencyResolutionPlugin_resolveAllDependencies'
     }
 
     getAdditionalArguments(): string {
         return core.getInput('additional-arguments')
+    }
+
+    verifyNoArguments(): void {
+        const input = core.getInput('arguments')
+        if (input.length !== 0) {
+            deprecator.failOnUseOfRemovedFeature(
+                `The 'arguments' parameter is no longer supported for ${getActionId()}`,
+                'Using the action to execute Gradle via the `arguments` parameter is deprecated'
+            )
+        }
     }
 }
 

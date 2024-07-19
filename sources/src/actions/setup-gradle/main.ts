@@ -1,5 +1,5 @@
 import * as setupGradle from '../../setup-gradle'
-import * as gradle from '../../execution/gradle'
+import * as provisioner from '../../execution/provision'
 import * as dependencyGraph from '../../dependency-graph'
 import {
     BuildScanConfig,
@@ -10,7 +10,7 @@ import {
     getActionId,
     setActionId
 } from '../../configuration'
-import {recordDeprecation, saveDeprecationState} from '../../deprecation-collector'
+import {failOnUseOfRemovedFeature, saveDeprecationState} from '../../deprecation-collector'
 import {handleMainActionError} from '../../errors'
 
 /**
@@ -19,12 +19,12 @@ import {handleMainActionError} from '../../errors'
 export async function run(): Promise<void> {
     try {
         if (getActionId() === 'gradle/gradle-build-action') {
-            recordDeprecation(
+            failOnUseOfRemovedFeature(
                 'The action `gradle/gradle-build-action` has been replaced by `gradle/actions/setup-gradle`'
             )
-        } else {
-            setActionId('gradle/actions/setup-gradle')
         }
+
+        setActionId('gradle/actions/setup-gradle')
 
         // Check for invalid wrapper JARs if requested
         if (doValidateWrappers()) {
@@ -38,11 +38,8 @@ export async function run(): Promise<void> {
         await dependencyGraph.setup(new DependencyGraphConfig())
 
         const config = new GradleExecutionConfig()
-        await gradle.provisionAndMaybeExecute(
-            config.getGradleVersion(),
-            config.getBuildRootDirectory(),
-            config.getArguments()
-        )
+        config.verifyNoArguments()
+        await provisioner.provisionGradle(config.getGradleVersion())
 
         saveDeprecationState()
     } catch (error) {

@@ -143,21 +143,6 @@ inputs:
     required: false
 
   # DEPRECATED ACTION INPUTS
-  build-scan-terms-of-service-url:
-    description: The URL to the Build Scan® terms of use. This input must be set to 'https://gradle.com/terms-of-service'.
-    required: false
-    deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-url' instead.
-
-  build-scan-terms-of-service-agree:
-    description: Indicate that you agree to the Build Scan® terms of use. This input value must be "yes".
-    required: false
-    deprecation-message: The input has been renamed to align with the Develocity API. Use 'build-scan-terms-of-use-agree' instead.
-
-  generate-job-summary:
-    description: When 'false', no Job Summary will be generated for the Job.
-    required: false
-    default: true
-    deprecation-message: Superceded by the new 'add-job-summary' and 'add-job-summary-as-pr-comment' parameters.
 
   # EXPERIMENTAL ACTION INPUTS
   # The following action properties allow fine-grained tweaking of the action caching behaviour.
