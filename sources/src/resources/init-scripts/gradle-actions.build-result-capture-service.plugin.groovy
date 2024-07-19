@@ -1,23 +1,27 @@
 import org.gradle.tooling.events.*
 import org.gradle.tooling.events.task.*
+import org.gradle.internal.operations.*
+import org.gradle.initialization.*
+import org.gradle.api.internal.tasks.execution.*
+import org.gradle.execution.*
+import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.util.GradleVersion
 
-// Can't use settingsEvaluated since this script is applied inside a settingsEvaluated handler
-// But projectsEvaluated is good enough, since the build service won't catch configuration failures anyway
-projectsEvaluated {
+settingsEvaluated { settings ->
     def projectTracker = gradle.sharedServices.registerIfAbsent("gradle-action-buildResultsRecorder", BuildResultsRecorder, { spec ->
-        spec.getParameters().getRootProjectName().set(gradle.rootProject.name)
-        spec.getParameters().getRootProjectDir().set(gradle.rootProject.rootDir.absolutePath)
+        spec.getParameters().getRootProjectName().set(settings.rootProject.name)
+        spec.getParameters().getRootProjectDir().set(settings.rootDir.absolutePath)
         spec.getParameters().getRequestedTasks().set(gradle.startParameter.taskNames.join(" "))
         spec.getParameters().getGradleHomeDir().set(gradle.gradleHomeDir.absolutePath)
         spec.getParameters().getInvocationId().set(gradle.ext.invocationId)
     })
 
-    gradle.services.get(BuildEventsListenerRegistry).onTaskCompletion(projectTracker)
+    gradle.services.get(BuildEventListenerRegistryInternal).onOperationCompletion(projectTracker)
 }
 
-abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder.Params>, OperationCompletionListener, AutoCloseable {
+abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder.Params>, BuildOperationListener, AutoCloseable {
     private boolean buildFailed = false
+    private boolean configCacheHit = true
     interface Params extends BuildServiceParameters {
         Property<String> getRootProjectName()
         Property<String> getRootProjectDir()
@@ -26,9 +30,19 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
         Property<String> getInvocationId()
     }
 
-    public void onFinish(FinishEvent finishEvent) {
-        if (finishEvent instanceof TaskFinishEvent && finishEvent.result instanceof TaskFailureResult) {
-            buildFailed = true
+    void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
+
+    void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {}
+
+    void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        if (buildOperation.details in EvaluateSettingsBuildOperationType.Details) {
+            // Got EVALUATE SETTINGS event: not a config-cache hit"
+            configCacheHit = false
+        }
+        if (buildOperation.details in RunRootBuildWorkBuildOperationType.Details) {
+            if (finishEvent.failure != null) {
+                buildFailed = true
+            }
         }
     }
 
@@ -41,8 +55,7 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
             gradleVersion: GradleVersion.current().version,
             gradleHomeDir: getParameters().getGradleHomeDir().get(),
             buildFailed: buildFailed,
-            buildScanUri: null,
-            buildScanFailed: false
+            configCacheHit: configCacheHit
         ]
 
         def runnerTempDir = System.getProperty("RUNNER_TEMP") ?: System.getenv("RUNNER_TEMP")
@@ -52,7 +65,7 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
         }
 
         try {
-            def buildResultsDir = new File(runnerTempDir, ".build-results")
+            def buildResultsDir = new File(runnerTempDir, ".gradle-actions/build-results")
             buildResultsDir.mkdirs()
             def buildResultsFile = new File(buildResultsDir, githubActionStep + getParameters().getInvocationId().get() + ".json")
             if (!buildResultsFile.exists()) {

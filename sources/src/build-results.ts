@@ -8,6 +8,7 @@ export interface BuildResult {
     get gradleVersion(): string
     get gradleHomeDir(): string
     get buildFailed(): boolean
+    get configCacheHit(): boolean
     get buildScanUri(): string
     get buildScanFailed(): boolean
 }
@@ -23,6 +24,10 @@ export class BuildResults {
         return this.results.some(result => result.buildFailed)
     }
 
+    anyConfigCacheHit(): boolean {
+        return this.results.some(result => result.configCacheHit)
+    }
+
     uniqueGradleHomes(): string[] {
         const allHomes = this.results.map(buildResult => buildResult.gradleHomeDir)
         return Array.from(new Set(allHomes))
@@ -32,7 +37,9 @@ export class BuildResults {
 export function loadBuildResults(): BuildResults {
     const results = getUnprocessedResults().map(filePath => {
         const content = fs.readFileSync(filePath, 'utf8')
-        return JSON.parse(content) as BuildResult
+        const buildResult = JSON.parse(content) as BuildResult
+        addScanResults(filePath, buildResult)
+        return buildResult
     })
     return new BuildResults(results)
 }
@@ -42,7 +49,7 @@ export function markBuildResultsProcessed(): void {
 }
 
 function getUnprocessedResults(): string[] {
-    const buildResultsDir = path.resolve(process.env['RUNNER_TEMP']!, '.build-results')
+    const buildResultsDir = path.resolve(process.env['RUNNER_TEMP']!, '.gradle-actions', 'build-results')
     if (!fs.existsSync(buildResultsDir)) {
         return []
     }
@@ -55,6 +62,22 @@ function getUnprocessedResults(): string[] {
         .filter(filePath => {
             return path.extname(filePath) === '.json' && !isProcessed(filePath)
         })
+}
+
+function addScanResults(buildResultsFile: string, buildResult: BuildResult): void {
+    const buildScansDir = path.resolve(process.env['RUNNER_TEMP']!, '.gradle-actions', 'build-scans')
+    if (!fs.existsSync(buildScansDir)) {
+        return
+    }
+
+    const buildScanResults = path.resolve(buildScansDir, path.basename(buildResultsFile))
+    if (fs.existsSync(buildScanResults)) {
+        const content = fs.readFileSync(buildScanResults, 'utf8')
+        const scanResults = JSON.parse(content)
+        Object.assign(buildResult, scanResults)
+    }
+
+    return
 }
 
 function isProcessed(resultFile: string): boolean {

@@ -1,5 +1,10 @@
 import * as core from '@actions/core'
-import {CacheListener, EXISTING_GRADLE_HOME, CLEANUP_DISABLED_DUE_TO_FAILURE} from './cache-reporting'
+import {
+    CacheListener,
+    EXISTING_GRADLE_HOME,
+    CLEANUP_DISABLED_DUE_TO_FAILURE,
+    CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT
+} from './cache-reporting'
 import {GradleUserHomeCache} from './gradle-user-home-cache'
 import {CacheCleaner} from './cache-cleaner'
 import {DaemonController} from '../daemon-controller'
@@ -90,7 +95,10 @@ export async function save(
     await daemonController.stopAllDaemons()
 
     if (cacheConfig.isCacheCleanupEnabled()) {
-        if (cacheConfig.shouldPerformCacheCleanup(buildResults.anyFailed())) {
+        if (buildResults.anyConfigCacheHit()) {
+            core.info('Not performing cache-cleanup due to config-cache reuse')
+            cacheListener.setCacheCleanupDisabled(CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT)
+        } else if (cacheConfig.shouldPerformCacheCleanup(buildResults.anyFailed())) {
             cacheListener.setCacheCleanupEnabled()
             await performCacheCleanup(gradleUserHome)
         } else {

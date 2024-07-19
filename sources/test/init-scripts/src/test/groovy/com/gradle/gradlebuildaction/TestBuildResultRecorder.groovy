@@ -1,7 +1,6 @@
 package com.gradle.gradlebuildaction
 
 import groovy.json.JsonSlurper
-import org.gradle.util.GradleVersion
 
 import static org.junit.Assume.assumeTrue
 
@@ -15,7 +14,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, false)
+        assertResults('help', testGradleVersion, false)
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -29,7 +28,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         runAndFail(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('expectFailure', testGradleVersion, true, false)
+        assertResults('expectFailure', testGradleVersion, true)
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -49,7 +48,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, false)
+        assertResults('help', testGradleVersion, false, true)
 
         where:
         testGradleVersion << CONFIGURATION_CACHE_VERSIONS
@@ -63,7 +62,8 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, true)
+        assertResults('help', testGradleVersion, false)
+        assertScanResults()
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -77,7 +77,8 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, true)
+        assertResults('help', testGradleVersion, false)
+        assertScanResults()
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -91,7 +92,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(['help', '--no-scan'], testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, false)
+        assertResults('help', testGradleVersion, false)
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -106,7 +107,8 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         runAndFail(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('expectFailure', testGradleVersion, true, true)
+        assertResults('expectFailure', testGradleVersion, true)
+        assertScanResults()
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -120,14 +122,17 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, true)
+        assertResults('help', testGradleVersion, false, false)
+        assertScanResults()
         assert buildResultFile.delete()
+        assert scanResultFile.delete()
 
         when:
         run(['help', '--configuration-cache'], testGradleVersion.gradleVersion)
 
         then:
         assertResults('help', testGradleVersion, false, true)
+        assertScanResults()
 
         where:
         testGradleVersion << CONFIGURATION_CACHE_VERSIONS
@@ -143,7 +148,8 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         runAndFail(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('expectFailure', testGradleVersion, true, false, true)
+        assertResults('expectFailure', testGradleVersion, true)
+        assertScanResults(true)
 
         where:
         testGradleVersion << ALL_VERSIONS
@@ -204,7 +210,8 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         run(testGradleVersion.gradleVersion)
 
         then:
-        assertResults('help', testGradleVersion, false, true)
+        assertResults('help', testGradleVersion, false)
+        assertScanResults()
 
         where:
         testGradleVersion << SETTINGS_PLUGIN_VERSIONS
@@ -232,7 +239,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         ]
     }
 
-    void assertResults(String task, TestGradleVersion testGradleVersion, boolean hasFailure, boolean hasBuildScan, boolean scanUploadFailed = false) {
+    void assertResults(String task, TestGradleVersion testGradleVersion, boolean hasFailure, boolean configCacheHit = false) {
         def results = new JsonSlurper().parse(buildResultFile)
         assert results['rootProjectName'] == ROOT_PROJECT_NAME
         assert results['rootProjectDir'] == testProjectDir.canonicalPath
@@ -240,17 +247,32 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         assert results['gradleVersion'] == testGradleVersion.gradleVersion.version
         assert results['gradleHomeDir'] != null
         assert results['buildFailed'] == hasFailure
-        assert results['buildScanUri'] == (hasBuildScan ? "${mockScansServer.address}s/${PUBLIC_BUILD_SCAN_ID}" : null)
-        assert results['buildScanFailed'] == scanUploadFailed
+        assert results['configCacheHit'] == configCacheHit
+    }
+
+    void assertScanResults(boolean scanUploadFailed = false) {
+        def scanResults = new JsonSlurper().parse(scanResultFile)
+        assert scanResults['buildScanUri'] == (scanUploadFailed ? null : "${mockScansServer.address}s/${PUBLIC_BUILD_SCAN_ID}")
+        assert scanResults['buildScanFailed'] == scanUploadFailed
     }
 
     private File getBuildResultFile() {
-        def buildResultsDir = new File(testProjectDir, '.build-results')
+        def buildResultsDir = new File(testProjectDir, '.gradle-actions/build-results')
         assert buildResultsDir.directory
         assert buildResultsDir.listFiles().size() == 1
         def resultsFile = buildResultsDir.listFiles()[0]
         assert resultsFile.name.startsWith('github-step-id')
         assert resultsFile.text.count('rootProjectName') == 1
+        return resultsFile
+    }
+
+    private File getScanResultFile() {
+        def buildResultsDir = new File(testProjectDir, '.gradle-actions/build-scans')
+        assert buildResultsDir.directory
+        assert buildResultsDir.listFiles().size() == 1
+        def resultsFile = buildResultsDir.listFiles()[0]
+        assert resultsFile.name.startsWith('github-step-id')
+        assert resultsFile.text.count('buildScanUri') == 1
         return resultsFile
     }
 }
