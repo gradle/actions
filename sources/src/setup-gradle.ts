@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
 import * as caches from './caching/caches'
@@ -79,7 +80,22 @@ async function determineGradleUserHome(): Promise<string> {
         return path.resolve(rootDir, customGradleUserHome)
     }
 
-    return path.resolve(await determineUserHome(), '.gradle')
+    const defaultGradleUserHome = path.resolve(await determineUserHome(), '.gradle')
+    // Use the default Gradle User Home if it already exists
+    if (fs.existsSync(defaultGradleUserHome)) {
+        core.info(`Gradle User Home already exists at ${defaultGradleUserHome}`)
+        return defaultGradleUserHome
+    }
+
+    // Switch Gradle User Home to faster 'D:' drive if possible
+    if (os.platform() === 'win32' && defaultGradleUserHome.startsWith('C:\\') && fs.existsSync('D:\\a\\')) {
+        const fasterGradleUserHome = 'D:\\a\\.gradle'
+        core.info(`Setting GRADLE_USER_HOME to ${fasterGradleUserHome} to leverage (potentially) faster drive.`)
+        core.exportVariable('GRADLE_USER_HOME', fasterGradleUserHome)
+        return fasterGradleUserHome
+    }
+
+    return defaultGradleUserHome
 }
 
 /**
