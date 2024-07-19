@@ -36,12 +36,6 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_SHA', getShaFromContext())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_WORKSPACE', getWorkspaceDirectory())
     maybeExportVariable('DEPENDENCY_GRAPH_REPORT_DIR', config.getReportDirectory())
-
-    // To clear the dependency graph, we generate an empty graph by excluding all projects and configurations
-    if (option === DependencyGraphOption.Clear) {
-        core.exportVariable('DEPENDENCY_GRAPH_INCLUDE_PROJECTS', '')
-        core.exportVariable('DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS', '')
-    }
 }
 
 function maybeExportVariable(variableName: string, value: unknown): void {
@@ -59,7 +53,6 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
             case DependencyGraphOption.DownloadAndSubmit: // Performed in setup
                 return
             case DependencyGraphOption.GenerateAndSubmit:
-            case DependencyGraphOption.Clear: // Submit the empty dependency graph
                 await findAndSubmitDependencyGraphs(config)
                 return
             case DependencyGraphOption.GenerateAndUpload:
