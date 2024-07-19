@@ -89894,11 +89894,9 @@ const errors_1 = __nccwpck_require__(6976);
 async function run() {
     try {
         if ((0, configuration_1.getActionId)() === 'gradle/wrapper-validation-action') {
-            (0, deprecation_collector_1.recordDeprecation)('The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`');
+            (0, deprecation_collector_1.failOnUseOfRemovedFeature)('The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`');
         }
-        else {
-            (0, configuration_1.setActionId)('gradle/actions/wrapper-validation');
-        }
+        (0, configuration_1.setActionId)('gradle/actions/wrapper-validation');
         const result = await validate.findInvalidWrapperJars(path.resolve('.'), +core.getInput('min-wrapper-count'), core.getInput('allow-snapshots') === 'true', core.getInput('allow-checksums').split(','));
         if (result.isValid()) {
             core.info(result.toDisplayString());
@@ -89959,7 +89957,6 @@ const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const deprecator = __importStar(__nccwpck_require__(2572));
 const summary_1 = __nccwpck_require__(1327);
-const string_argv_1 = __nccwpck_require__(9663);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const ACTION_ID_VAR = 'GRADLE_ACTION_ID';
 class DependencyGraphConfig {
@@ -89976,10 +89973,8 @@ class DependencyGraphConfig {
                 return DependencyGraphOption.GenerateAndUpload;
             case 'download-and-submit':
                 return DependencyGraphOption.DownloadAndSubmit;
-            case 'clear':
-                return DependencyGraphOption.Clear;
         }
-        throw TypeError(`The value '${val}' is not valid for 'dependency-graph'. Valid values are: [disabled, generate, generate-and-submit, generate-and-upload, download-and-submit, clear]. The default value is 'disabled'.`);
+        throw TypeError(`The value '${val}' is not valid for 'dependency-graph'. Valid values are: [disabled, generate, generate-and-submit, generate-and-upload, download-and-submit]. The default value is 'disabled'.`);
     }
     getDependencyGraphContinueOnFailure() {
         return getBooleanInput('dependency-graph-continue-on-failure', true);
@@ -90025,7 +90020,6 @@ var DependencyGraphOption;
     DependencyGraphOption["GenerateAndSubmit"] = "generate-and-submit";
     DependencyGraphOption["GenerateAndUpload"] = "generate-and-upload";
     DependencyGraphOption["DownloadAndSubmit"] = "download-and-submit";
-    DependencyGraphOption["Clear"] = "clear";
 })(DependencyGraphOption || (exports.DependencyGraphOption = DependencyGraphOption = {}));
 class CacheConfig {
     isCacheDisabled() {
@@ -90099,9 +90093,6 @@ class SummaryConfig {
         if (!process.env[summary_1.SUMMARY_ENV_VAR]) {
             return false;
         }
-        if (!this.isJobSummaryEnabled()) {
-            return false;
-        }
         return this.shouldAddJobSummary(this.getJobSummaryOption(), hasFailure);
     }
     shouldAddPRComment(hasFailure) {
@@ -90116,9 +90107,6 @@ class SummaryConfig {
             case JobSummaryOption.OnFailure:
                 return hasFailure;
         }
-    }
-    isJobSummaryEnabled() {
-        return getBooleanInput('generate-job-summary', true);
     }
     getJobSummaryOption() {
         return this.parseJobSummaryOption('add-job-summary');
@@ -90151,10 +90139,10 @@ class BuildScanConfig {
         return getBooleanInput('build-scan-publish') && this.verifyTermsOfUseAgreement();
     }
     getBuildScanTermsOfUseUrl() {
-        return this.getTermsOfUseProp('build-scan-terms-of-use-url', 'build-scan-terms-of-service-url');
+        return core.getInput('build-scan-terms-of-use-url');
     }
     getBuildScanTermsOfUseAgree() {
-        return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree');
+        return core.getInput('build-scan-terms-of-use-agree');
     }
     getDevelocityAccessKey() {
         return (core.getInput('develocity-access-key') ||
@@ -90204,18 +90192,6 @@ class BuildScanConfig {
         }
         return true;
     }
-    getTermsOfUseProp(newPropName, oldPropName) {
-        const newProp = core.getInput(newPropName);
-        if (newProp !== '') {
-            return newProp;
-        }
-        const oldProp = core.getInput(oldPropName);
-        if (oldProp !== '') {
-            deprecator.recordDeprecation('The `build-scan-terms-of-service` input parameters have been renamed');
-            return oldProp;
-        }
-        return core.getInput(oldPropName);
-    }
 }
 exports.BuildScanConfig = BuildScanConfig;
 BuildScanConfig.DevelocityAccessKeyEnvVar = 'DEVELOCITY_ACCESS_KEY';
@@ -90232,18 +90208,17 @@ class GradleExecutionConfig {
             : path_1.default.resolve(baseDirectory, buildRootDirectoryInput);
         return resolvedBuildRootDirectory;
     }
-    getArguments() {
-        const input = core.getInput('arguments');
-        if (input.length !== 0) {
-            deprecator.recordDeprecation('Using the action to execute Gradle via the `arguments` parameter is deprecated');
-        }
-        return (0, string_argv_1.parseArgsStringToArgv)(input);
-    }
     getDependencyResolutionTask() {
         return core.getInput('dependency-resolution-task') || ':ForceDependencyResolutionPlugin_resolveAllDependencies';
     }
     getAdditionalArguments() {
         return core.getInput('additional-arguments');
+    }
+    verifyNoArguments() {
+        const input = core.getInput('arguments');
+        if (input.length !== 0) {
+            deprecator.failOnUseOfRemovedFeature(`The 'arguments' parameter is no longer supported for ${getActionId()}`, 'Using the action to execute Gradle via the `arguments` parameter is deprecated');
+        }
     }
 }
 exports.GradleExecutionConfig = GradleExecutionConfig;
@@ -90334,7 +90309,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getDeprecations = exports.recordDeprecation = exports.Deprecation = void 0;
+exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getDeprecations = exports.failOnUseOfRemovedFeature = exports.recordDeprecation = exports.Deprecation = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const configuration_1 = __nccwpck_require__(5778);
 const DEPRECATION_UPGRADE_PAGE = 'https://github.com/gradle/actions/blob/main/docs/deprecation-upgrade-guide.md';
@@ -90358,6 +90333,11 @@ function recordDeprecation(message) {
     }
 }
 exports.recordDeprecation = recordDeprecation;
+function failOnUseOfRemovedFeature(removalMessage, deprecationMessage = removalMessage) {
+    const deprecation = new Deprecation(deprecationMessage);
+    core.error(`${removalMessage}. See ${deprecation.getDocumentationLink()}`);
+}
+exports.failOnUseOfRemovedFeature = failOnUseOfRemovedFeature;
 function getDeprecations() {
     return recordedDeprecations;
 }
@@ -91035,59 +91015,6 @@ module.exports = require("worker_threads");
 
 "use strict";
 module.exports = require("zlib");
-
-/***/ }),
-
-/***/ 9663:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-exports.__esModule = true;
-exports.parseArgsStringToArgv = void 0;
-function parseArgsStringToArgv(value, env, file) {
-    // ([^\s'"]([^\s'"]*(['"])([^\3]*?)\3)+[^\s'"]*) Matches nested quotes until the first space outside of quotes
-    // [^\s'"]+ or Match if not a space ' or "
-    // (['"])([^\5]*?)\5 or Match "quoted text" without quotes
-    // `\3` and `\5` are a backreference to the quote style (' or ") captured
-    var myRegexp = /([^\s'"]([^\s'"]*(['"])([^\3]*?)\3)+[^\s'"]*)|[^\s'"]+|(['"])([^\5]*?)\5/gi;
-    var myString = value;
-    var myArray = [];
-    if (env) {
-        myArray.push(env);
-    }
-    if (file) {
-        myArray.push(file);
-    }
-    var match;
-    do {
-        // Each call to exec returns the next regex match as an array
-        match = myRegexp.exec(myString);
-        if (match !== null) {
-            // Index 1 in the array is the captured group if it exists
-            // Index 0 is the matched text, which we use if no captured group exists
-            myArray.push(firstString(match[1], match[6], match[0]));
-        }
-    } while (match !== null);
-    return myArray;
-}
-exports["default"] = parseArgsStringToArgv;
-exports.parseArgsStringToArgv = parseArgsStringToArgv;
-// Accepts any number of arguments, and returns the first one that is a string
-// (even an empty string)
-function firstString() {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
-    for (var i = 0; i < args.length; i++) {
-        var arg = args[i];
-        if (typeof arg === "string") {
-            return arg;
-        }
-    }
-}
-
 
 /***/ }),
 

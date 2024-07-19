@@ -97347,7 +97347,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateCachingReport = exports.CacheEntryListener = exports.CacheListener = exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = exports.CLEANUP_DISABLED_DUE_TO_FAILURE = exports.DEFAULT_CLEANUP_ENABLED_REASON = exports.DEFAULT_CLEANUP_DISABLED_REASON = exports.CLEANUP_DISABLED_READONLY = exports.EXISTING_GRADLE_HOME = exports.DEFAULT_WRITEONLY_REASON = exports.DEFAULT_DISABLED_REASON = exports.DEFAULT_READONLY_REASON = exports.DEFAULT_CACHE_ENABLED_REASON = void 0;
+exports.generateCachingReport = exports.CacheEntryListener = exports.CacheListener = exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = exports.CLEANUP_DISABLED_DUE_TO_FAILURE = exports.DEFAULT_CLEANUP_DISABLED_REASON = exports.DEFAULT_CLEANUP_ENABLED_REASON = exports.CLEANUP_DISABLED_READONLY = exports.EXISTING_GRADLE_HOME = exports.DEFAULT_WRITEONLY_REASON = exports.DEFAULT_DISABLED_REASON = exports.DEFAULT_READONLY_REASON = exports.DEFAULT_CACHE_ENABLED_REASON = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 exports.DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`;
 exports.DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`;
@@ -97355,8 +97355,8 @@ exports.DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradl
 exports.DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`;
 exports.EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`;
 exports.CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) is always disabled when cache is read-only or disabled.`;
-exports.DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was not enabled. It must be explicitly enabled.`;
-exports.DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was enabled.`;
+exports.DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was enabled. Stale files in Gradle User Home were purged before saving to the cache.`;
+exports.DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was disabled via action parameter. No cleanup of Gradle User Home was performed.`;
 exports.CLEANUP_DISABLED_DUE_TO_FAILURE = '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). Use `cache-cleanup: always` to override this behavior.';
 exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). This is expected.';
 class CacheListener {
@@ -97783,6 +97783,11 @@ async function restore(userHome, gradleUserHome, cacheListener, cacheConfig) {
     }
     gradleStateCache.init();
     core.saveState(CACHE_RESTORED_VAR, true);
+    if (cacheConfig.isCacheCleanupEnabled()) {
+        core.info('Preparing cache for cleanup.');
+        const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
+        await cacheCleaner.prepare();
+    }
     if (cacheConfig.isCacheWriteOnly()) {
         core.info('Cache is write-only: will not restore from cache.');
         cacheListener.setWriteOnly();
@@ -97791,11 +97796,6 @@ async function restore(userHome, gradleUserHome, cacheListener, cacheConfig) {
     await core.group('Restore Gradle state from cache', async () => {
         await gradleStateCache.restore(cacheListener);
     });
-    if (cacheConfig.isCacheCleanupEnabled()) {
-        core.info('Preparing cache for cleanup.');
-        const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
-        await cacheCleaner.prepare();
-    }
 }
 exports.restore = restore;
 async function save(userHome, gradleUserHome, cacheListener, daemonController, buildResults, cacheConfig) {
@@ -98493,7 +98493,6 @@ const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const deprecator = __importStar(__nccwpck_require__(2572));
 const summary_1 = __nccwpck_require__(1327);
-const string_argv_1 = __nccwpck_require__(9663);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const ACTION_ID_VAR = 'GRADLE_ACTION_ID';
 class DependencyGraphConfig {
@@ -98510,10 +98509,8 @@ class DependencyGraphConfig {
                 return DependencyGraphOption.GenerateAndUpload;
             case 'download-and-submit':
                 return DependencyGraphOption.DownloadAndSubmit;
-            case 'clear':
-                return DependencyGraphOption.Clear;
         }
-        throw TypeError(`The value '${val}' is not valid for 'dependency-graph'. Valid values are: [disabled, generate, generate-and-submit, generate-and-upload, download-and-submit, clear]. The default value is 'disabled'.`);
+        throw TypeError(`The value '${val}' is not valid for 'dependency-graph'. Valid values are: [disabled, generate, generate-and-submit, generate-and-upload, download-and-submit]. The default value is 'disabled'.`);
     }
     getDependencyGraphContinueOnFailure() {
         return getBooleanInput('dependency-graph-continue-on-failure', true);
@@ -98559,7 +98556,6 @@ var DependencyGraphOption;
     DependencyGraphOption["GenerateAndSubmit"] = "generate-and-submit";
     DependencyGraphOption["GenerateAndUpload"] = "generate-and-upload";
     DependencyGraphOption["DownloadAndSubmit"] = "download-and-submit";
-    DependencyGraphOption["Clear"] = "clear";
 })(DependencyGraphOption || (exports.DependencyGraphOption = DependencyGraphOption = {}));
 class CacheConfig {
     isCacheDisabled() {
@@ -98633,9 +98629,6 @@ class SummaryConfig {
         if (!process.env[summary_1.SUMMARY_ENV_VAR]) {
             return false;
         }
-        if (!this.isJobSummaryEnabled()) {
-            return false;
-        }
         return this.shouldAddJobSummary(this.getJobSummaryOption(), hasFailure);
     }
     shouldAddPRComment(hasFailure) {
@@ -98650,9 +98643,6 @@ class SummaryConfig {
             case JobSummaryOption.OnFailure:
                 return hasFailure;
         }
-    }
-    isJobSummaryEnabled() {
-        return getBooleanInput('generate-job-summary', true);
     }
     getJobSummaryOption() {
         return this.parseJobSummaryOption('add-job-summary');
@@ -98685,10 +98675,10 @@ class BuildScanConfig {
         return getBooleanInput('build-scan-publish') && this.verifyTermsOfUseAgreement();
     }
     getBuildScanTermsOfUseUrl() {
-        return this.getTermsOfUseProp('build-scan-terms-of-use-url', 'build-scan-terms-of-service-url');
+        return core.getInput('build-scan-terms-of-use-url');
     }
     getBuildScanTermsOfUseAgree() {
-        return this.getTermsOfUseProp('build-scan-terms-of-use-agree', 'build-scan-terms-of-service-agree');
+        return core.getInput('build-scan-terms-of-use-agree');
     }
     getDevelocityAccessKey() {
         return (core.getInput('develocity-access-key') ||
@@ -98738,18 +98728,6 @@ class BuildScanConfig {
         }
         return true;
     }
-    getTermsOfUseProp(newPropName, oldPropName) {
-        const newProp = core.getInput(newPropName);
-        if (newProp !== '') {
-            return newProp;
-        }
-        const oldProp = core.getInput(oldPropName);
-        if (oldProp !== '') {
-            deprecator.recordDeprecation('The `build-scan-terms-of-service` input parameters have been renamed');
-            return oldProp;
-        }
-        return core.getInput(oldPropName);
-    }
 }
 exports.BuildScanConfig = BuildScanConfig;
 BuildScanConfig.DevelocityAccessKeyEnvVar = 'DEVELOCITY_ACCESS_KEY';
@@ -98766,18 +98744,17 @@ class GradleExecutionConfig {
             : path_1.default.resolve(baseDirectory, buildRootDirectoryInput);
         return resolvedBuildRootDirectory;
     }
-    getArguments() {
-        const input = core.getInput('arguments');
-        if (input.length !== 0) {
-            deprecator.recordDeprecation('Using the action to execute Gradle via the `arguments` parameter is deprecated');
-        }
-        return (0, string_argv_1.parseArgsStringToArgv)(input);
-    }
     getDependencyResolutionTask() {
         return core.getInput('dependency-resolution-task') || ':ForceDependencyResolutionPlugin_resolveAllDependencies';
     }
     getAdditionalArguments() {
         return core.getInput('additional-arguments');
+    }
+    verifyNoArguments() {
+        const input = core.getInput('arguments');
+        if (input.length !== 0) {
+            deprecator.failOnUseOfRemovedFeature(`The 'arguments' parameter is no longer supported for ${getActionId()}`, 'Using the action to execute Gradle via the `arguments` parameter is deprecated');
+        }
     }
 }
 exports.GradleExecutionConfig = GradleExecutionConfig;
@@ -98929,7 +98906,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getDeprecations = exports.recordDeprecation = exports.Deprecation = void 0;
+exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getDeprecations = exports.failOnUseOfRemovedFeature = exports.recordDeprecation = exports.Deprecation = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const configuration_1 = __nccwpck_require__(5778);
 const DEPRECATION_UPGRADE_PAGE = 'https://github.com/gradle/actions/blob/main/docs/deprecation-upgrade-guide.md';
@@ -98953,6 +98930,11 @@ function recordDeprecation(message) {
     }
 }
 exports.recordDeprecation = recordDeprecation;
+function failOnUseOfRemovedFeature(removalMessage, deprecationMessage = removalMessage) {
+    const deprecation = new Deprecation(deprecationMessage);
+    core.error(`${removalMessage}. See ${deprecation.getDocumentationLink()}`);
+}
+exports.failOnUseOfRemovedFeature = failOnUseOfRemovedFeature;
 function getDeprecations() {
     return recordedDeprecations;
 }
@@ -100534,59 +100516,6 @@ module.exports = require("worker_threads");
 
 "use strict";
 module.exports = require("zlib");
-
-/***/ }),
-
-/***/ 9663:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-exports.__esModule = true;
-exports.parseArgsStringToArgv = void 0;
-function parseArgsStringToArgv(value, env, file) {
-    // ([^\s'"]([^\s'"]*(['"])([^\3]*?)\3)+[^\s'"]*) Matches nested quotes until the first space outside of quotes
-    // [^\s'"]+ or Match if not a space ' or "
-    // (['"])([^\5]*?)\5 or Match "quoted text" without quotes
-    // `\3` and `\5` are a backreference to the quote style (' or ") captured
-    var myRegexp = /([^\s'"]([^\s'"]*(['"])([^\3]*?)\3)+[^\s'"]*)|[^\s'"]+|(['"])([^\5]*?)\5/gi;
-    var myString = value;
-    var myArray = [];
-    if (env) {
-        myArray.push(env);
-    }
-    if (file) {
-        myArray.push(file);
-    }
-    var match;
-    do {
-        // Each call to exec returns the next regex match as an array
-        match = myRegexp.exec(myString);
-        if (match !== null) {
-            // Index 1 in the array is the captured group if it exists
-            // Index 0 is the matched text, which we use if no captured group exists
-            myArray.push(firstString(match[1], match[6], match[0]));
-        }
-    } while (match !== null);
-    return myArray;
-}
-exports["default"] = parseArgsStringToArgv;
-exports.parseArgsStringToArgv = parseArgsStringToArgv;
-// Accepts any number of arguments, and returns the first one that is a string
-// (even an empty string)
-function firstString() {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
-    for (var i = 0; i < args.length; i++) {
-        var arg = args[i];
-        if (typeof arg === "string") {
-            return arg;
-        }
-    }
-}
-
 
 /***/ }),
 
