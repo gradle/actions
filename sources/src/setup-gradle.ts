@@ -84,6 +84,7 @@ async function determineGradleUserHome(): Promise<string> {
     // Use the default Gradle User Home if it already exists
     if (fs.existsSync(defaultGradleUserHome)) {
         core.info(`Gradle User Home already exists at ${defaultGradleUserHome}`)
+        core.exportVariable('GRADLE_USER_HOME', defaultGradleUserHome)
         return defaultGradleUserHome
     }
 
@@ -95,6 +96,7 @@ async function determineGradleUserHome(): Promise<string> {
         return fasterGradleUserHome
     }
 
+    core.exportVariable('GRADLE_USER_HOME', defaultGradleUserHome)
     return defaultGradleUserHome
 }
 

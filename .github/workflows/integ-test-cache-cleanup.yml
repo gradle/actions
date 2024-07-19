@@ -79,20 +79,20 @@ jobs:
         cache-read-only: true
     - name: Report Gradle User Home
       run: |
-        du -hc ~/.gradle/caches/modules-2
-        du -hc ~/.gradle/wrapper/dists
+        du -hc $GRADLE_USER_HOME/caches/modules-2
+        du -hc $GRADLE_USER_HOME/wrapper/dists
     - name: Verify cleaned cache
       shell: bash
       run: |
-        if [ ! -e ~/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.1.1 ]; then
+        if [ ! -e $GRADLE_USER_HOME/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.1.1 ]; then
           echo "::error ::Should find commons-math3 3.1.1 in cache"
           exit 1
         fi
-        if [ -e ~/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.1 ]; then
+        if [ -e $GRADLE_USER_HOME/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.1 ]; then
           echo "::error ::Should NOT find commons-math3 3.1 in cache"
           exit 1
         fi
-        if [ ! -e ~/.gradle/wrapper/dists/gradle-8.0.2-bin ]; then
+        if [ ! -e $GRADLE_USER_HOME/wrapper/dists/gradle-8.0.2-bin ]; then
           echo "::error ::Should find gradle-8.0.2 in wrapper/dists"
           exit 1
         fi
