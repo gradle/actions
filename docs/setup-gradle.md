@@ -172,7 +172,7 @@ cache-cleanup: 'on-success' # Valid values are 'never' (default), 'on-success' a
 
 ### Overwriting an existing Gradle User Home
 
-When the action detects that the Gradle User Home caches directory already exists (`~/.gradle/caches`), then by default it will not overwrite the existing content of this directory.
+When the action detects that the Gradle User Home caches directory already exists (`$GRADLE_USER_HOME/caches`), then by default it will not overwrite the existing content of this directory.
 This can occur when a prior action initializes this directory, or when using a self-hosted runner that retains this directory between uses.
 
 In this case, the Job Summary will display a message like:
