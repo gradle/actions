@@ -279,9 +279,8 @@ jobs:
       uses: ./dependency-submission
       with:
         dependency-graph: generate-and-submit
+        dependency-graph-report-dir: '${{ github.workspace }}/custom/report-dir'
         build-root-directory: .github/workflow-samples/groovy-dsl
-      env: 
-        DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
     - name: Check generated dependency graphs
       shell: bash
       run: |
@@ -310,9 +309,8 @@ jobs:
       uses: ./dependency-submission
       with:
         dependency-graph: generate-and-upload
+        dependency-graph-report-dir: '${{ github.workspace }}/custom/report-dir'
         build-root-directory: .github/workflow-samples/groovy-dsl
-      env: 
-        DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
 
   custom-report-dir-download-and-submit:
     needs: custom-report-dir-upload
@@ -327,10 +325,10 @@ jobs:
       uses: ./dependency-submission
       with:
         dependency-graph: download-and-submit
+        dependency-graph-report-dir: '${{ github.workspace }}/custom/report-dir'
         build-root-directory: .github/workflow-samples/groovy-dsl
       env: 
-        DEPENDENCY_GRAPH_REPORT_DIR: '${{ github.workspace }}/custom/report-dir'
-        DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: custom-report-dir-upload
+        DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: custom-report-dir-upload # For testing, to avoid downloading artifacts from other worklfows
 
     - name: Check downloaded dependency graph
       shell: bash

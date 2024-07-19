@@ -43,7 +43,8 @@ export class DependencyGraphConfig {
     }
 
     getReportDirectory(): string {
-        return path.resolve(getWorkspaceDirectory(), 'dependency-graph-reports')
+        const param = core.getInput('dependency-graph-report-dir')
+        return path.resolve(getWorkspaceDirectory(), param)
     }
 
     getDownloadArtifactName(): string | undefined {

@@ -102,6 +102,13 @@ In some cases, the default action configuration will not be sufficient, and addi
 
         # Do not attempt to submit the dependency-graph. Save it as a workflow artifact.
         dependency-graph: generate-and-upload
+
+        # Specify the location where dependency graph files will be generated.
+        dependency-graph-report-dir: custom-report-dir
+
+        # By default, failure to generate a dependency graph will cause the workflow to fail
+        dependency-graph-continue-on-failure: true
+
 ```
 
 See the [Action Metadata file](../dependency-submission/action.yml) for a more detailed description of each input parameter.
