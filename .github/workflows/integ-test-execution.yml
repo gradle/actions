@@ -24,9 +24,6 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
-        include:
-          - os: windows-latest
-            script-suffix: '.bat'
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources

@@ -1,9 +1,11 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import which from 'which'
 import * as httpm from '@actions/http-client'
 import * as core from '@actions/core'
 import * as cache from '@actions/cache'
+import * as exec from '@actions/exec'
 import * as toolCache from '@actions/tool-cache'
 
 import * as gradlew from './gradlew'
@@ -95,6 +97,12 @@ async function findGradleVersionDeclaration(version: string): Promise<GradleVers
 
 async function installGradleVersion(versionInfo: GradleVersionInfo): Promise<string> {
     return core.group(`Provision Gradle ${versionInfo.version}`, async () => {
+        const preInstalledGradle = await findGradleVersionOnPath(versionInfo)
+        if (preInstalledGradle !== undefined) {
+            core.info(`Gradle version ${versionInfo.version} is already available on PATH. Not installing.`)
+            return preInstalledGradle
+        }
+
         return locateGradleAndDownloadIfRequired(versionInfo)
     })
 }
@@ -183,4 +191,16 @@ async function httpGetString(url: string): Promise<string> {
 interface GradleVersionInfo {
     version: string
     downloadUrl: string
+}
+
+async function findGradleVersionOnPath(versionInfo: GradleVersionInfo): Promise<string | undefined> {
+    const gradleExecutable = await which('gradle', {nothrow: true})
+    if (gradleExecutable) {
+        const output = await exec.getExecOutput(gradleExecutable, ['-v'], {silent: true})
+        if (output.stdout.includes(`Gradle ${versionInfo.version}`)) {
+            return gradleExecutable
+        }
+    }
+
+    return undefined
 }
