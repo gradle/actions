@@ -99789,6 +99789,7 @@ async function determineGradleUserHome() {
     const defaultGradleUserHome = path.resolve(await determineUserHome(), '.gradle');
     if (fs.existsSync(defaultGradleUserHome)) {
         core.info(`Gradle User Home already exists at ${defaultGradleUserHome}`);
+        core.exportVariable('GRADLE_USER_HOME', defaultGradleUserHome);
         return defaultGradleUserHome;
     }
     if (os.platform() === 'win32' && defaultGradleUserHome.startsWith('C:\\') && fs.existsSync('D:\\a\\')) {
@@ -99797,6 +99798,7 @@ async function determineGradleUserHome() {
         core.exportVariable('GRADLE_USER_HOME', fasterGradleUserHome);
         return fasterGradleUserHome;
     }
+    core.exportVariable('GRADLE_USER_HOME', defaultGradleUserHome);
     return defaultGradleUserHome;
 }
 async function determineUserHome() {
