@@ -828,3 +828,21 @@ To publish to https://scans.gradle.com, you must specify in your workflow that y
     - name: Run a Gradle build - a build scan will be published automatically
       run: ./gradlew build
 ```
+
+# Dependency verification
+
+Develocity injection, Build Scan publishing and Dependency Graph generation all work by applying external plugins to your build.
+If you project has [dependency verification enabled](https://docs.gradle.org/current/userguide/dependency_verification.html#sec:signature-verification), 
+then you'll need to update your verification metadata to trust these plugins.
+
+Each of the plugins is signed by Gradle, and you can simply add the following snippet to your `dependency-verificaton.xml` file:
+
+```xml
+<trusted-keys>
+   <trusted-key id="7B79ADD11F8A779FE90FD3D0893A028475557671">
+      <trusting group="com.gradle"/>
+      <trusting group="org.gradle"/>
+   </trusted-key>
+</trusted-keys>
+```
+
