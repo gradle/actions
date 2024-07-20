@@ -43,11 +43,28 @@ export class DependencyGraphConfig {
     }
 
     getReportDirectory(): string {
-        return path.resolve(getWorkspaceDirectory(), 'dependency-graph-reports')
+        const param = core.getInput('dependency-graph-report-dir')
+        return path.resolve(getWorkspaceDirectory(), param)
     }
 
     getDownloadArtifactName(): string | undefined {
         return process.env['DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME']
+    }
+
+    getExcludeProjects(): string | undefined {
+        return getOptionalInput('dependency-graph-exclude-projects')
+    }
+
+    getIncludeProjects(): string | undefined {
+        return getOptionalInput('dependency-graph-include-projects')
+    }
+
+    getExcludeConfigurations(): string | undefined {
+        return getOptionalInput('dependency-graph-exclude-configurations')
+    }
+
+    getIncludeConfigurations(): string | undefined {
+        return getOptionalInput('dependency-graph-include-configurations')
     }
 
     static constructJobCorrelator(workflow: string, jobId: string, matrixJson: string): string {
@@ -369,6 +386,14 @@ export function parseNumericInput(paramName: string, paramValue: string, paramDe
         throw TypeError(`The value '${paramValue}' is not a valid numeric value for '${paramName}'.`)
     }
     return numericValue
+}
+
+function getOptionalInput(paramName: string): string | undefined {
+    const paramValue = core.getInput(paramName)
+    if (paramValue.length > 0) {
+        return paramValue
+    }
+    return undefined
 }
 
 function getBooleanInput(paramName: string, paramDefault = false): boolean {
