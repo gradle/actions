@@ -89987,10 +89987,23 @@ class DependencyGraphConfig {
         return DependencyGraphConfig.constructJobCorrelator(github.context.workflow, github.context.job, getJobMatrix());
     }
     getReportDirectory() {
-        return path_1.default.resolve(getWorkspaceDirectory(), 'dependency-graph-reports');
+        const param = core.getInput('dependency-graph-report-dir');
+        return path_1.default.resolve(getWorkspaceDirectory(), param);
     }
     getDownloadArtifactName() {
         return process.env['DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME'];
+    }
+    getExcludeProjects() {
+        return getOptionalInput('dependency-graph-exclude-projects');
+    }
+    getIncludeProjects() {
+        return getOptionalInput('dependency-graph-include-projects');
+    }
+    getExcludeConfigurations() {
+        return getOptionalInput('dependency-graph-exclude-configurations');
+    }
+    getIncludeConfigurations() {
+        return getOptionalInput('dependency-graph-include-configurations');
     }
     static constructJobCorrelator(workflow, jobId, matrixJson) {
         const matrixString = this.describeMatrix(matrixJson);
@@ -90257,6 +90270,13 @@ function parseNumericInput(paramName, paramValue, paramDefault) {
     return numericValue;
 }
 exports.parseNumericInput = parseNumericInput;
+function getOptionalInput(paramName) {
+    const paramValue = core.getInput(paramName);
+    if (paramValue.length > 0) {
+        return paramValue;
+    }
+    return undefined;
+}
 function getBooleanInput(paramName, paramDefault = false) {
     const paramValue = core.getInput(paramName);
     switch (paramValue.toLowerCase().trim()) {
