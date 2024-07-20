@@ -97297,7 +97297,8 @@ function getCacheKeyBase(cacheName, cacheProtocolVersion) {
 exports.getCacheKeyBase = getCacheKeyBase;
 function getCacheKeyEnvironment() {
     const runnerOs = process.env['RUNNER_OS'] || '';
-    return process.env[CACHE_KEY_OS_VAR] || runnerOs;
+    const runnerArch = process.env['RUNNER_ARCH'] || '';
+    return process.env[CACHE_KEY_OS_VAR] || `${runnerOs}-${runnerArch}`;
 }
 function getCacheKeyJob() {
     return process.env[CACHE_KEY_JOB_VAR] || github.context.job;
