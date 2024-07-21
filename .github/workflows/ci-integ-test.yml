@@ -66,7 +66,7 @@ jobs:
     uses: ./.github/workflows/integ-test-cache-cleanup.yml
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{github.run_number}}-' # Requires a fresh cache entry each run
+      cache-key-prefix: '${{ needs.determine-suite.outputs.suite}}-${{github.run_number}}-' # Requires a fresh cache entry each run
       skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
 
   caching-config:
