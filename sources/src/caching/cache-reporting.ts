@@ -1,26 +1,26 @@
 import * as cache from '@actions/cache'
 
-export const DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`
+export const DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`
 
-export const DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`
+export const DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`
 
-export const DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#disabling-caching) via action confiugration. Gradle User Home was not restored from or saved to the cache.`
+export const DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching) via action confiugration. Gradle User Home was not restored from or saved to the cache.`
 
-export const DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`
+export const DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`
 
-export const EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`
+export const EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`
 
-export const CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) is always disabled when cache is read-only or disabled.`
+export const CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup) is always disabled when cache is read-only or disabled.`
 
-export const DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was enabled. Stale files in Gradle User Home were purged before saving to the cache.`
+export const DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup) was enabled. Stale files in Gradle User Home were purged before saving to the cache.`
 
-export const DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was disabled via action parameter. No cleanup of Gradle User Home was performed.`
+export const DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup) was disabled via action parameter. No cleanup of Gradle User Home was performed.`
 
 export const CLEANUP_DISABLED_DUE_TO_FAILURE =
-    '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). Use `cache-cleanup: always` to override this behavior.'
+    '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup). Use `cache-cleanup: always` to override this behavior.'
 
 export const CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT =
-    '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). This is expected.'
+    '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup). This is expected.'
 
 /**
  * Collects information on what entries were saved and restored during the action.

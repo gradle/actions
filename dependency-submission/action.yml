@@ -63,12 +63,11 @@ inputs:
       By default, no cleanup is performed. It can be configured to run every time, or only when all Gradle builds succeed for the Job. 
       Valid values are 'never', 'on-success' and 'always'.
     required: false
-    default: 'never'
+    default: 'on-success'
 
   gradle-home-cache-cleanup:
     description: When 'true', the action will attempt to remove any stale/unused entries from the Gradle User Home prior to saving to the GitHub Actions cache.
     required: false
-    default: false
     deprecation-message: This input has been superceded by the 'cache-cleanup' input parameter.
 
   gradle-home-cache-includes:

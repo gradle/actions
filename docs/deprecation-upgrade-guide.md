@@ -148,3 +148,15 @@ These deprecated build-scan parameters are scheduled to be removed in `setup-gra
 Gradle Enterprise has been renamed to Develocity starting from Gradle plugin 3.17 and Develocity server 2024.1.
 In v4 release of the action, it will require setting the access key with the `develocity-access-key` input and Develocity 2024.1 at least to generate short-lived tokens.
 If those requirements are not met, the `GRADLE_ENTERPRISE_ACCESS_KEY` env var will be cleared out and build scan publication or other authenticated Develocity operations won't be possible.
+
+## The `gradle-home-cache-cleanup` input parameter has been replaced by `cache-cleanup`
+
+In versions of the action prior to `v4`, the boolean `gradle-home-cache-cleanup` parameter allows users to opt-in 
+to cache cleanup, removing unused files in Gradle User Home prior to saving to the cache.
+
+With `v4`, cache-cleanup is enabled by default, and controlled by the `cache-cleanup` input parameter.
+
+To remove this deprecation:
+- If you are using `gradle-home-cache-cleanup: true` in your workflow, you can remove this option as this is now enabled by default.
+- If you want cache-cleanup to run even when a Gradle build fails, then add the `cache-cleanup: always` input.
+- If cache-cleanup is causing problems with your workflow, you can disable it with `cache-cleanup: never`.
