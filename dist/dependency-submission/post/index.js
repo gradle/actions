@@ -97350,16 +97350,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateCachingReport = exports.CacheEntryListener = exports.CacheListener = exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = exports.CLEANUP_DISABLED_DUE_TO_FAILURE = exports.DEFAULT_CLEANUP_DISABLED_REASON = exports.DEFAULT_CLEANUP_ENABLED_REASON = exports.CLEANUP_DISABLED_READONLY = exports.EXISTING_GRADLE_HOME = exports.DEFAULT_WRITEONLY_REASON = exports.DEFAULT_DISABLED_REASON = exports.DEFAULT_READONLY_REASON = exports.DEFAULT_CACHE_ENABLED_REASON = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
-exports.DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`;
-exports.DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`;
-exports.DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#disabling-caching) via action confiugration. Gradle User Home was not restored from or saved to the cache.`;
-exports.DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`;
-exports.EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`;
-exports.CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) is always disabled when cache is read-only or disabled.`;
-exports.DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was enabled. Stale files in Gradle User Home were purged before saving to the cache.`;
-exports.DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup) was disabled via action parameter. No cleanup of Gradle User Home was performed.`;
-exports.CLEANUP_DISABLED_DUE_TO_FAILURE = '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). Use `cache-cleanup: always` to override this behavior.';
-exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/v3/docs/setup-gradle.md#enabling-cache-cleanup). This is expected.';
+exports.DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`;
+exports.DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`;
+exports.DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching) via action confiugration. Gradle User Home was not restored from or saved to the cache.`;
+exports.DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`;
+exports.EXISTING_GRADLE_HOME = `[Cache was disabled to avoid overwriting a pre-existing Gradle User Home](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#overwriting-an-existing-gradle-user-home). Gradle User Home was not restored from or saved to the cache.`;
+exports.CLEANUP_DISABLED_READONLY = `[Cache cleanup](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup) is always disabled when cache is read-only or disabled.`;
+exports.DEFAULT_CLEANUP_ENABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup) was enabled. Stale files in Gradle User Home were purged before saving to the cache.`;
+exports.DEFAULT_CLEANUP_DISABLED_REASON = `[Cache cleanup](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup) was disabled via action parameter. No cleanup of Gradle User Home was performed.`;
+exports.CLEANUP_DISABLED_DUE_TO_FAILURE = '[Cache cleanup was disabled due to build failure](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup). Use `cache-cleanup: always` to override this behavior.';
+exports.CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT = '[Cache cleanup was disabled due to configuration-cache reuse](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#configuring-cache-cleanup). This is expected.';
 class CacheListener {
     constructor() {
         this.cacheEntries = [];
@@ -98608,6 +98608,11 @@ class CacheConfig {
         return false;
     }
     getCacheCleanupOption() {
+        const legacyVal = getOptionalBooleanInput('gradle-home-cache-cleanup');
+        if (legacyVal !== undefined) {
+            deprecator.recordDeprecation('The `gradle-home-cache-cleanup` input parameter has been replaced by `cache-cleanup`');
+            return legacyVal ? CacheCleanupOption.Always : CacheCleanupOption.Never;
+        }
         const val = core.getInput('cache-cleanup');
         switch (val.toLowerCase().trim()) {
             case 'always':
@@ -98615,9 +98620,7 @@ class CacheConfig {
             case 'on-success':
                 return CacheCleanupOption.OnSuccess;
             case 'never':
-                return getBooleanInput('gradle-home-cache-cleanup')
-                    ? CacheCleanupOption.Always
-                    : CacheCleanupOption.Never;
+                return CacheCleanupOption.Never;
         }
         throw TypeError(`The value '${val}' is not valid for cache-cleanup. Valid values are: [never, always, on-success].`);
     }

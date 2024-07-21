@@ -90071,6 +90071,11 @@ class CacheConfig {
         return false;
     }
     getCacheCleanupOption() {
+        const legacyVal = getOptionalBooleanInput('gradle-home-cache-cleanup');
+        if (legacyVal !== undefined) {
+            deprecator.recordDeprecation('The `gradle-home-cache-cleanup` input parameter has been replaced by `cache-cleanup`');
+            return legacyVal ? CacheCleanupOption.Always : CacheCleanupOption.Never;
+        }
         const val = core.getInput('cache-cleanup');
         switch (val.toLowerCase().trim()) {
             case 'always':
@@ -90078,9 +90083,7 @@ class CacheConfig {
             case 'on-success':
                 return CacheCleanupOption.OnSuccess;
             case 'never':
-                return getBooleanInput('gradle-home-cache-cleanup')
-                    ? CacheCleanupOption.Always
-                    : CacheCleanupOption.Never;
+                return CacheCleanupOption.Never;
         }
         throw TypeError(`The value '${val}' is not valid for cache-cleanup. Valid values are: [never, always, on-success].`);
     }
