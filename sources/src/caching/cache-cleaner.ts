@@ -1,7 +1,9 @@
 import * as core from '@actions/core'
+import * as exec from '@actions/exec'
+
 import fs from 'fs'
 import path from 'path'
-import {provisionAndMaybeExecute} from '../execution/gradle'
+import * as provisioner from '../execution/provision'
 
 export class CacheCleaner {
     private readonly gradleUserHome: string
@@ -24,9 +26,8 @@ export class CacheCleaner {
         await this.forceCleanupFilesOlderThan(cleanTimestamp)
     }
 
+    // Visible for testing
     async forceCleanupFilesOlderThan(cleanTimestamp: string): Promise<void> {
-        core.info(`Cleaning up caches before ${cleanTimestamp}`)
-
         // Run a dummy Gradle build to trigger cache cleanup
         const cleanupProjectDir = path.resolve(this.tmpDir, 'dummy-cleanup-project')
         fs.mkdirSync(cleanupProjectDir, {recursive: true})
@@ -54,7 +55,16 @@ export class CacheCleaner {
         )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
 
-        await provisionAndMaybeExecute('current', cleanupProjectDir, [
+        const executable = await provisioner.provisionGradle('current')
+
+        await core.group('Executing Gradle to clean up caches', async () => {
+            core.info(`Cleaning up caches last used before ${cleanTimestamp}`)
+            await this.executeCleanupBuild(executable!, cleanupProjectDir)
+        })
+    }
+
+    private async executeCleanupBuild(executable: string, cleanupProjectDir: string): Promise<void> {
+        const args = [
             '-g',
             this.gradleUserHome,
             '-I',
@@ -65,6 +75,13 @@ export class CacheCleaner {
             '--build-cache',
             '-DGITHUB_DEPENDENCY_GRAPH_ENABLED=false',
             'noop'
-        ])
+        ]
+
+        const result = await exec.getExecOutput(executable, args, {
+            cwd: cleanupProjectDir,
+            silent: true
+        })
+
+        core.info(result.stdout)
     }
 }
