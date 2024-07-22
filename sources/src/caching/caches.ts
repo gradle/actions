@@ -92,7 +92,9 @@ export async function save(
         return
     }
 
-    await daemonController.stopAllDaemons()
+    await core.group('Stopping Gradle daemons', async () => {
+        await daemonController.stopAllDaemons()
+    })
 
     if (cacheConfig.isCacheCleanupEnabled()) {
         if (buildResults.anyConfigCacheHit()) {
@@ -113,7 +115,6 @@ export async function save(
 }
 
 async function performCacheCleanup(gradleUserHome: string): Promise<void> {
-    core.info('Forcing cache cleanup.')
     const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
     try {
         await cacheCleaner.forceCleanup()
