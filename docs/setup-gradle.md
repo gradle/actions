@@ -158,7 +158,6 @@ cache-write-only: true
 The Gradle User Home directory tends to grow over time. When you switch to a new Gradle wrapper version 
 or upgrade a dependency version the old files are not automatically and immediately removed. 
 While this can make sense in a local environment, in a GitHub Actions environment
-While this can make sense in a local environment, in a GitHub Actions environment
 it can lead to ever-larger Gradle User Home cache entries being saved and restored.
 
 To avoid this situation, the `setup-gradle` and `dependency-submission` actions will perform "cache-cleanup", 
