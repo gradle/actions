@@ -90332,11 +90332,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getDeprecations = exports.failOnUseOfRemovedFeature = exports.recordDeprecation = exports.Deprecation = void 0;
+exports.restoreDeprecationState = exports.saveDeprecationState = exports.emitDeprecationWarnings = exports.getErrors = exports.getDeprecations = exports.failOnUseOfRemovedFeature = exports.recordDeprecation = exports.Deprecation = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const configuration_1 = __nccwpck_require__(5778);
 const DEPRECATION_UPGRADE_PAGE = 'https://github.com/gradle/actions/blob/main/docs/deprecation-upgrade-guide.md';
 const recordedDeprecations = [];
+const recordedErrors = [];
 class Deprecation {
     constructor(message) {
         this.message = message;
@@ -90358,13 +90359,19 @@ function recordDeprecation(message) {
 exports.recordDeprecation = recordDeprecation;
 function failOnUseOfRemovedFeature(removalMessage, deprecationMessage = removalMessage) {
     const deprecation = new Deprecation(deprecationMessage);
-    core.error(`${removalMessage}. See ${deprecation.getDocumentationLink()}`);
+    const errorMessage = `${removalMessage}. See ${deprecation.getDocumentationLink()}`;
+    recordedErrors.push(errorMessage);
+    core.setFailed(errorMessage);
 }
 exports.failOnUseOfRemovedFeature = failOnUseOfRemovedFeature;
 function getDeprecations() {
     return recordedDeprecations;
 }
 exports.getDeprecations = getDeprecations;
+function getErrors() {
+    return recordedErrors;
+}
+exports.getErrors = getErrors;
 function emitDeprecationWarnings(hasJobSummary = true) {
     if (recordedDeprecations.length > 0) {
         core.warning(`This job uses deprecated functionality from the '${(0, configuration_1.getActionId)()}' action. Consult the ${hasJobSummary ? 'Job Summary' : 'logs'} for more details.`);
@@ -90375,17 +90382,21 @@ function emitDeprecationWarnings(hasJobSummary = true) {
 }
 exports.emitDeprecationWarnings = emitDeprecationWarnings;
 function saveDeprecationState() {
-    core.saveState('deprecations', JSON.stringify(recordedDeprecations));
+    core.saveState('deprecation-collector_deprecations', JSON.stringify(recordedDeprecations));
+    core.saveState('deprecation-collector_errors', JSON.stringify(recordedErrors));
 }
 exports.saveDeprecationState = saveDeprecationState;
 function restoreDeprecationState() {
-    const stringRep = core.getState('deprecations');
-    if (stringRep === '') {
-        return;
+    const savedDeprecations = core.getState('deprecation-collector_deprecations');
+    if (savedDeprecations) {
+        JSON.parse(savedDeprecations).forEach((obj) => {
+            recordedDeprecations.push(new Deprecation(obj.message));
+        });
     }
-    JSON.parse(stringRep).forEach((obj) => {
-        recordedDeprecations.push(new Deprecation(obj.message));
-    });
+    const savedErrors = core.getState('deprecation-collector_errors');
+    if (savedErrors) {
+        recordedErrors.push(...JSON.parse(savedErrors));
+    }
 }
 exports.restoreDeprecationState = restoreDeprecationState;
 
