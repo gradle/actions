@@ -4,13 +4,20 @@ import {RequestError} from '@octokit/request-error'
 
 import {BuildResults, BuildResult} from './build-results'
 import {SummaryConfig, getActionId, getGithubToken} from './configuration'
-import {Deprecation, getDeprecations} from './deprecation-collector'
+import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
 
 export async function generateJobSummary(
     buildResults: BuildResults,
     cachingReport: string,
     config: SummaryConfig
 ): Promise<void> {
+    const errors = renderErrors()
+    if (errors) {
+        core.summary.addRaw(errors)
+        await core.summary.write()
+        return
+    }
+
     const summaryTable = renderSummaryTable(buildResults.results)
 
     const hasFailure = buildResults.anyFailed()
@@ -80,6 +87,14 @@ Note that this permission is never available for a workflow triggered from a rep
 
 export function renderSummaryTable(results: BuildResult[]): string {
     return `${renderDeprecations()}\n${renderBuildResults(results)}`
+}
+
+function renderErrors(): string | undefined {
+    const errors = getErrors()
+    if (errors.length === 0) {
+        return undefined
+    }
+    return errors.map(error => `<b>:x: ${error}</b>`).join('\n')
 }
 
 function renderDeprecations(): string {

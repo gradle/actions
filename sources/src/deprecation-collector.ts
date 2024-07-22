@@ -3,6 +3,7 @@ import {getActionId} from './configuration'
 
 const DEPRECATION_UPGRADE_PAGE = 'https://github.com/gradle/actions/blob/main/docs/deprecation-upgrade-guide.md'
 const recordedDeprecations: Deprecation[] = []
+const recordedErrors: string[] = []
 
 export class Deprecation {
     constructor(readonly message: string) {}
@@ -24,11 +25,17 @@ export function recordDeprecation(message: string): void {
 
 export function failOnUseOfRemovedFeature(removalMessage: string, deprecationMessage: string = removalMessage): void {
     const deprecation = new Deprecation(deprecationMessage)
-    core.setFailed(`${removalMessage}. See ${deprecation.getDocumentationLink()}`)
+    const errorMessage = `${removalMessage}. See ${deprecation.getDocumentationLink()}`
+    recordedErrors.push(errorMessage)
+    core.setFailed(errorMessage)
 }
 
 export function getDeprecations(): Deprecation[] {
     return recordedDeprecations
+}
+
+export function getErrors(): string[] {
+    return recordedErrors
 }
 
 export function emitDeprecationWarnings(hasJobSummary = true): void {
@@ -43,17 +50,21 @@ export function emitDeprecationWarnings(hasJobSummary = true): void {
 }
 
 export function saveDeprecationState(): void {
-    core.saveState('deprecations', JSON.stringify(recordedDeprecations))
+    core.saveState('deprecation-collector_deprecations', JSON.stringify(recordedDeprecations))
+    core.saveState('deprecation-collector_errors', JSON.stringify(recordedErrors))
 }
 
 export function restoreDeprecationState(): void {
-    const stringRep = core.getState('deprecations')
-    if (stringRep === '') {
-        return
+    const savedDeprecations = core.getState('deprecation-collector_deprecations')
+    if (savedDeprecations) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        JSON.parse(savedDeprecations).forEach((obj: any) => {
+            recordedDeprecations.push(new Deprecation(obj.message))
+        })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    JSON.parse(stringRep).forEach((obj: any) => {
-        recordedDeprecations.push(new Deprecation(obj.message))
-    })
+    const savedErrors = core.getState('deprecation-collector_errors')
+    if (savedErrors) {
+        recordedErrors.push(...JSON.parse(savedErrors))
+    }
 }
