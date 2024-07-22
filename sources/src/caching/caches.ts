@@ -113,11 +113,12 @@ export async function save(
 }
 
 async function performCacheCleanup(gradleUserHome: string): Promise<void> {
-    core.info('Forcing cache cleanup.')
-    const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
-    try {
-        await cacheCleaner.forceCleanup()
-    } catch (e) {
-        core.warning(`Cache cleanup failed. Will continue. ${String(e)}`)
-    }
+    core.group('Performing cache cleanup', async () => {
+        const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
+        try {
+            await cacheCleaner.forceCleanup()
+        } catch (e) {
+            core.warning(`Cache cleanup failed. Will continue. ${String(e)}`)
+        }
+    })
 }
