@@ -733,7 +733,7 @@ Here's a minimal example:
       run: ./gradlew build
 ```
 
-This configuration will automatically apply `v3.17.5` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
+This configuration will automatically apply `v3.17.6` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
 
 This example assumes that the `develocity.your-server.com` server allows anonymous publishing of build scans.
 In the likely scenario that your Develocity server requires authentication, you will also need to pass a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable) taken from a secret:
@@ -805,7 +805,7 @@ Here's an example using the env vars:
       env:
         DEVELOCITY_INJECTION_ENABLED: true
         DEVELOCITY_URL: https://develocity.your-server.com
-        DEVELOCITY_PLUGIN_VERSION: 3.17.5
+        DEVELOCITY_PLUGIN_VERSION: 3.17.6
 ```
 
 ## Publishing to scans.gradle.com
