@@ -98957,7 +98957,7 @@ function recordDeprecation(message) {
 exports.recordDeprecation = recordDeprecation;
 function failOnUseOfRemovedFeature(removalMessage, deprecationMessage = removalMessage) {
     const deprecation = new Deprecation(deprecationMessage);
-    const errorMessage = `${removalMessage}. See ${deprecation.getDocumentationLink()}`;
+    const errorMessage = `${removalMessage}.\nSee ${deprecation.getDocumentationLink()}`;
     recordedErrors.push(errorMessage);
     core.setFailed(errorMessage);
 }

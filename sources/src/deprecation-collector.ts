@@ -25,7 +25,7 @@ export function recordDeprecation(message: string): void {
 
 export function failOnUseOfRemovedFeature(removalMessage: string, deprecationMessage: string = removalMessage): void {
     const deprecation = new Deprecation(deprecationMessage)
-    const errorMessage = `${removalMessage}. See ${deprecation.getDocumentationLink()}`
+    const errorMessage = `${removalMessage}.\nSee ${deprecation.getDocumentationLink()}`
     recordedErrors.push(errorMessage)
     core.setFailed(errorMessage)
 }
