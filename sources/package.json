@@ -42,6 +42,7 @@
     "@actions/tool-cache": "2.0.1",
     "@octokit/rest": "20.1.0",
     "@octokit/webhooks-types": "7.5.0",
+    "cheerio": "^1.0.0-rc.12",
     "semver": "7.6.0",
     "string-argv": "0.3.2",
     "typed-rest-client": "1.8.11",
