@@ -97175,9 +97175,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CacheCleaner = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const exec = __importStar(__nccwpck_require__(1514));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
-const gradle_1 = __nccwpck_require__(4475);
+const provisioner = __importStar(__nccwpck_require__(4042));
 class CacheCleaner {
     constructor(gradleUserHome, tmpDir) {
         this.gradleUserHome = gradleUserHome;
@@ -97193,7 +97194,6 @@ class CacheCleaner {
         await this.forceCleanupFilesOlderThan(cleanTimestamp);
     }
     async forceCleanupFilesOlderThan(cleanTimestamp) {
-        core.info(`Cleaning up caches before ${cleanTimestamp}`);
         const cleanupProjectDir = path_1.default.resolve(this.tmpDir, 'dummy-cleanup-project');
         fs_1.default.mkdirSync(cleanupProjectDir, { recursive: true });
         fs_1.default.writeFileSync(path_1.default.resolve(cleanupProjectDir, 'settings.gradle'), 'rootProject.name = "dummy-cleanup-project"');
@@ -97213,7 +97213,14 @@ class CacheCleaner {
             }
             `);
         fs_1.default.writeFileSync(path_1.default.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}');
-        await (0, gradle_1.provisionAndMaybeExecute)('current', cleanupProjectDir, [
+        const executable = await provisioner.provisionGradle('current');
+        await core.group('Executing Gradle to clean up caches', async () => {
+            core.info(`Cleaning up caches last used before ${cleanTimestamp}`);
+            await this.executeCleanupBuild(executable, cleanupProjectDir);
+        });
+    }
+    async executeCleanupBuild(executable, cleanupProjectDir) {
+        const args = [
             '-g',
             this.gradleUserHome,
             '-I',
@@ -97224,7 +97231,12 @@ class CacheCleaner {
             '--build-cache',
             '-DGITHUB_DEPENDENCY_GRAPH_ENABLED=false',
             'noop'
-        ]);
+        ];
+        const result = await exec.getExecOutput(executable, args, {
+            cwd: cleanupProjectDir,
+            silent: true
+        });
+        core.info(result.stdout);
     }
 }
 exports.CacheCleaner = CacheCleaner;
@@ -97813,7 +97825,9 @@ async function save(userHome, gradleUserHome, cacheListener, daemonController, b
         cacheListener.setReadOnly();
         return;
     }
-    await daemonController.stopAllDaemons();
+    await core.group('Stopping Gradle daemons', async () => {
+        await daemonController.stopAllDaemons();
+    });
     if (cacheConfig.isCacheCleanupEnabled()) {
         if (buildResults.anyConfigCacheHit()) {
             core.info('Not performing cache-cleanup due to config-cache reuse');
@@ -97834,7 +97848,6 @@ async function save(userHome, gradleUserHome, cacheListener, daemonController, b
 }
 exports.save = save;
 async function performCacheCleanup(gradleUserHome) {
-    core.info('Forcing cache cleanup.');
     const cacheCleaner = new cache_cleaner_1.CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']);
     try {
         await cacheCleaner.forceCleanup();
@@ -98879,7 +98892,6 @@ class DaemonController {
         this.gradleHomes = buildResults.uniqueGradleHomes();
     }
     async stopAllDaemons() {
-        core.info('Stopping all Gradle daemons before saving Gradle User Home state');
         const executions = [];
         const args = ['--stop'];
         for (const gradleHome of this.gradleHomes) {
@@ -99320,61 +99332,6 @@ function handlePostActionError(error) {
     }
 }
 exports.handlePostActionError = handlePostActionError;
-
-
-/***/ }),
-
-/***/ 4475:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.provisionAndMaybeExecute = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const exec = __importStar(__nccwpck_require__(1514));
-const provisioner = __importStar(__nccwpck_require__(4042));
-const gradlew = __importStar(__nccwpck_require__(6807));
-async function provisionAndMaybeExecute(gradleVersion, buildRootDirectory, args) {
-    const executable = await provisioner.provisionGradle(gradleVersion);
-    if (args.length > 0) {
-        await executeGradleBuild(executable, buildRootDirectory, args);
-    }
-}
-exports.provisionAndMaybeExecute = provisionAndMaybeExecute;
-async function executeGradleBuild(executable, root, args) {
-    const toExecute = executable ?? gradlew.gradleWrapperScript(root);
-    const status = await exec.exec(toExecute, args, {
-        cwd: root,
-        ignoreReturnCode: true
-    });
-    if (status !== 0) {
-        core.setFailed(`Gradle build failed: see console output for details`);
-    }
-}
 
 
 /***/ }),
