@@ -33,7 +33,7 @@ export async function validateWrappers(
     } else {
         core.info(result.toDisplayString())
         throw new JobFailure(
-            `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`
+            `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#validation-failures\n${result.toDisplayString()}`
         )
     }
 
