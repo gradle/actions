@@ -17,15 +17,18 @@ import {
     WrapperValidationConfig,
     getWorkspaceDirectory
 } from './configuration'
-import {findInvalidWrapperJars} from './wrapper-validation/validate'
-import {JobFailure} from './errors'
+import * as wrapperValidator from './wrapper-validation/wrapper-validator'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
 const CACHE_LISTENER = 'CACHE_LISTENER'
 
-export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScanConfig): Promise<boolean> {
+export async function setup(
+    cacheConfig: CacheConfig,
+    buildScanConfig: BuildScanConfig,
+    wrapperValidationConfig: WrapperValidationConfig
+): Promise<boolean> {
     const userHome = await determineUserHome()
     const gradleUserHome = await determineGradleUserHome()
 
@@ -42,6 +45,8 @@ export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScan
     // Save the User Home and Gradle User Home for use in the post-action step.
     core.saveState(USER_HOME, userHome)
     core.saveState(GRADLE_USER_HOME, gradleUserHome)
+
+    await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory())
 
     const cacheListener = new CacheListener()
     await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig)
@@ -121,24 +126,4 @@ async function determineUserHome(): Promise<string> {
     const userHome = found[1]
     core.debug(`Determined user.home from java -version output: '${userHome}'`)
     return userHome
-}
-
-export async function validateWrappers(
-    config: WrapperValidationConfig,
-    rootDir = getWorkspaceDirectory()
-): Promise<void> {
-    if (!config.doValidateWrappers()) {
-        return // Wrapper validation is disabled
-    }
-
-    const allowedChecksums = process.env['ALLOWED_GRADLE_WRAPPER_CHECKSUMS']?.split(',') || []
-    const result = await findInvalidWrapperJars(rootDir, 0, config.allowSnapshotWrappers(), allowedChecksums)
-    if (result.isValid()) {
-        core.info(result.toDisplayString())
-    } else {
-        core.info(result.toDisplayString())
-        throw new JobFailure(
-            `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`
-        )
-    }
 }

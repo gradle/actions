@@ -26,10 +26,8 @@ export async function run(): Promise<void> {
 
         setActionId('gradle/actions/setup-gradle')
 
-        await setupGradle.validateWrappers(new WrapperValidationConfig())
-
         // Configure Gradle environment (Gradle User Home)
-        await setupGradle.setup(new CacheConfig(), new BuildScanConfig())
+        await setupGradle.setup(new CacheConfig(), new BuildScanConfig(), new WrapperValidationConfig())
 
         // Configure the dependency graph submission
         await dependencyGraph.setup(new DependencyGraphConfig())
