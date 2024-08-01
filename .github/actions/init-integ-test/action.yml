@@ -9,6 +9,11 @@ runs:
         distribution: 'temurin'
         java-version: 11
 
+    - name: Configure environment
+      shell: bash
+      run: |
+        echo "ALLOWED_GRADLE_WRAPPER_CHECKSUMS=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" >> "$GITHUB_ENV"
+
     # Downloads a 'dist' directory artifact that was uploaded in an earlier 'build-dist' step
     - name: Download dist
       if: ${{ env.SKIP_DIST != 'true' && !env.ACT }}

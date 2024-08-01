@@ -10,7 +10,13 @@ import * as buildScan from './develocity/build-scan'
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
-import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './configuration'
+import {
+    BuildScanConfig,
+    CacheConfig,
+    SummaryConfig,
+    WrapperValidationConfig,
+    getWorkspaceDirectory
+} from './configuration'
 import {findInvalidWrapperJars} from './wrapper-validation/validate'
 import {JobFailure} from './errors'
 
@@ -117,9 +123,16 @@ async function determineUserHome(): Promise<string> {
     return userHome
 }
 
-export async function checkNoInvalidWrapperJars(rootDir = getWorkspaceDirectory()): Promise<void> {
+export async function validateWrappers(
+    config: WrapperValidationConfig,
+    rootDir = getWorkspaceDirectory()
+): Promise<void> {
+    if (!config.doValidateWrappers()) {
+        return // Wrapper validation is disabled
+    }
+
     const allowedChecksums = process.env['ALLOWED_GRADLE_WRAPPER_CHECKSUMS']?.split(',') || []
-    const result = await findInvalidWrapperJars(rootDir, 1, false, allowedChecksums)
+    const result = await findInvalidWrapperJars(rootDir, 0, config.allowSnapshotWrappers(), allowedChecksums)
     if (result.isValid()) {
         core.info(result.toDisplayString())
     } else {

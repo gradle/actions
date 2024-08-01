@@ -357,8 +357,14 @@ export class GradleExecutionConfig {
     }
 }
 
-export function doValidateWrappers(): boolean {
-    return getBooleanInput('validate-wrappers')
+export class WrapperValidationConfig {
+    doValidateWrappers(): boolean {
+        return getBooleanInput('validate-wrappers')
+    }
+
+    allowSnapshotWrappers(): boolean {
+        return getBooleanInput('allow-snapshot-wrappers')
+    }
 }
 
 // Internal parameters

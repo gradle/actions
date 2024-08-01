@@ -55,15 +55,15 @@ export async function fetchUnknownChecksums(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (entry: any) => entry.wrapperChecksumUrl as string
     )
-    console.log(`Fetching checksums for ${checksumUrls.length} versions`)
     if (allowSnapshots) {
         await addDistributionSnapshotChecksums(checksumUrls)
     }
-    console.log(`Fetching checksums for ${checksumUrls.length} versions after snapshot check`)
-    const checksums = await Promise.all(checksumUrls.map(async (url: string) => {
-        // console.log(`Fetching checksum from ${url}`)
-        return httpGetText(url)
-    }))
+    const checksums = await Promise.all(
+        checksumUrls.map(async (url: string) => {
+            // console.log(`Fetching checksum from ${url}`)
+            return httpGetText(url)
+        })
+    )
     return new Set(checksums)
 }
 
@@ -83,10 +83,10 @@ export async function addDistributionSnapshotChecksums(checksumUrls: string[]): 
 
     // // Extract all wrapper checksum from the index page. These end in -wrapper.jar.sha256
     // // Load the HTML into cheerio
-    const $ = cheerio.load(indexPage);
+    const $ = cheerio.load(indexPage)
 
     // // Find all links ending with '-wrapper.jar.sha256'
-    const wrapperChecksumLinks = $('a[href$="-wrapper.jar.sha256"]');
+    const wrapperChecksumLinks = $('a[href$="-wrapper.jar.sha256"]')
 
     // build the absolute URL for each wrapper checksum
     wrapperChecksumLinks.each((index, element) => {
