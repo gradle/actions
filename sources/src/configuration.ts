@@ -8,6 +8,8 @@ import path from 'path'
 
 const ACTION_ID_VAR = 'GRADLE_ACTION_ID'
 
+export const ACTION_METADATA_DIR = '.setup-gradle'
+
 export class DependencyGraphConfig {
     getDependencyGraphOption(): DependencyGraphOption {
         const val = core.getInput('dependency-graph')

@@ -4,12 +4,11 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import * as semver from 'semver'
 
-import {META_FILE_DIR} from './gradle-user-home-cache'
 import {CacheEntryListener, CacheListener} from './cache-reporting'
 import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCache, tryDelete} from './cache-utils'
 
 import {BuildResult, loadBuildResults} from '../build-results'
-import {CacheConfig} from '../configuration'
+import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
 import {getCacheKeyBase} from './cache-key'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
@@ -298,7 +297,7 @@ abstract class AbstractEntryExtractor {
     }
 
     private getCacheMetadataFile(): string {
-        const actionMetadataDirectory = path.resolve(this.gradleUserHome, META_FILE_DIR)
+        const actionMetadataDirectory = path.resolve(this.gradleUserHome, ACTION_METADATA_DIR)
         fs.mkdirSync(actionMetadataDirectory, {recursive: true})
 
         return path.resolve(actionMetadataDirectory, `${this.extractorName}-entry-metadata.json`)

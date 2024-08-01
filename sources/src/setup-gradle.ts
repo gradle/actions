@@ -46,12 +46,12 @@ export async function setup(
     core.saveState(USER_HOME, userHome)
     core.saveState(GRADLE_USER_HOME, gradleUserHome)
 
-    await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory())
-
     const cacheListener = new CacheListener()
     await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig)
 
     core.saveState(CACHE_LISTENER, cacheListener.stringify())
+
+    await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory(), gradleUserHome)
 
     await buildScan.setup(buildScanConfig)
 
