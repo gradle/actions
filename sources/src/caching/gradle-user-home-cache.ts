@@ -7,13 +7,11 @@ import fs from 'fs'
 import {generateCacheKey} from './cache-key'
 import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
-import {CacheConfig} from '../configuration'
+import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
 import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
 import {getPredefinedToolchains, mergeToolchainContent, readResourceFileAsString} from './gradle-user-home-utils'
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
-
-export const META_FILE_DIR = '.setup-gradle'
 
 export class GradleUserHomeCache {
     private readonly cacheName = 'home'
@@ -172,7 +170,7 @@ export class GradleUserHomeCache {
      */
     protected getCachePath(): string[] {
         const rawPaths: string[] = this.cacheConfig.getCacheIncludes()
-        rawPaths.push(META_FILE_DIR)
+        rawPaths.push(ACTION_METADATA_DIR)
         const resolvedPaths = rawPaths.map(x => this.resolveCachePath(x))
         cacheDebug(`Using cache paths: ${resolvedPaths}`)
         return resolvedPaths
@@ -188,7 +186,7 @@ export class GradleUserHomeCache {
 
     private initializeGradleUserHome(): void {
         // Create a directory for storing action metadata
-        const actionCacheDir = path.resolve(this.gradleUserHome, META_FILE_DIR)
+        const actionCacheDir = path.resolve(this.gradleUserHome, ACTION_METADATA_DIR)
         fs.mkdirSync(actionCacheDir, {recursive: true})
 
         this.copyInitScripts()

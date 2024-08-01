@@ -29,8 +29,8 @@ jobs:
     - name: Run wrapper-validation-action
       id: setup-gradle
       uses: ./setup-gradle
-      with:
-        validate-wrappers: true
+      env:
+        ALLOWED_GRADLE_WRAPPER_CHECKSUMS: ''
       continue-on-error: true
 
     - name: Check failure

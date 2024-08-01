@@ -190,8 +190,15 @@ inputs:
   # Wrapper validation configuration
   validate-wrappers:
     description: |
-      When 'true', the action will perform the 'wrapper-validation' action automatically.
+      When 'true' (the default) the action will automatically validate all wrapper jars found in the repository.
       If the wrapper checksums are not valid, the action will fail.
+    required: false
+    default: true
+
+  allow-snapshot-wrappers:
+    description: |
+      When 'true', wrapper validation will include the checksums of snapshot wrapper jars. 
+      Use this if you are running with nightly or snapshot versions of the Gradle wrapper.
     required: false
     default: false
 

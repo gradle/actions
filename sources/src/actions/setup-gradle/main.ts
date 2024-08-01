@@ -6,7 +6,7 @@ import {
     CacheConfig,
     DependencyGraphConfig,
     GradleExecutionConfig,
-    doValidateWrappers,
+    WrapperValidationConfig,
     getActionId,
     setActionId
 } from '../../configuration'
@@ -26,13 +26,8 @@ export async function run(): Promise<void> {
 
         setActionId('gradle/actions/setup-gradle')
 
-        // Check for invalid wrapper JARs if requested
-        if (doValidateWrappers()) {
-            await setupGradle.checkNoInvalidWrapperJars()
-        }
-
         // Configure Gradle environment (Gradle User Home)
-        await setupGradle.setup(new CacheConfig(), new BuildScanConfig())
+        await setupGradle.setup(new CacheConfig(), new BuildScanConfig(), new WrapperValidationConfig())
 
         // Configure the dependency graph submission
         await dependencyGraph.setup(new DependencyGraphConfig())

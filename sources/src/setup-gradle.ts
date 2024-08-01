@@ -10,16 +10,25 @@ import * as buildScan from './develocity/build-scan'
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {CacheListener, generateCachingReport} from './caching/cache-reporting'
 import {DaemonController} from './daemon-controller'
-import {BuildScanConfig, CacheConfig, SummaryConfig, getWorkspaceDirectory} from './configuration'
-import {findInvalidWrapperJars} from './wrapper-validation/validate'
-import {JobFailure} from './errors'
+import {
+    BuildScanConfig,
+    CacheConfig,
+    SummaryConfig,
+    WrapperValidationConfig,
+    getWorkspaceDirectory
+} from './configuration'
+import * as wrapperValidator from './wrapper-validation/wrapper-validator'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const USER_HOME = 'USER_HOME'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
 const CACHE_LISTENER = 'CACHE_LISTENER'
 
-export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScanConfig): Promise<boolean> {
+export async function setup(
+    cacheConfig: CacheConfig,
+    buildScanConfig: BuildScanConfig,
+    wrapperValidationConfig: WrapperValidationConfig
+): Promise<boolean> {
     const userHome = await determineUserHome()
     const gradleUserHome = await determineGradleUserHome()
 
@@ -41,6 +50,8 @@ export async function setup(cacheConfig: CacheConfig, buildScanConfig: BuildScan
     await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig)
 
     core.saveState(CACHE_LISTENER, cacheListener.stringify())
+
+    await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory(), gradleUserHome)
 
     await buildScan.setup(buildScanConfig)
 
@@ -115,17 +126,4 @@ async function determineUserHome(): Promise<string> {
     const userHome = found[1]
     core.debug(`Determined user.home from java -version output: '${userHome}'`)
     return userHome
-}
-
-export async function checkNoInvalidWrapperJars(rootDir = getWorkspaceDirectory()): Promise<void> {
-    const allowedChecksums = process.env['ALLOWED_GRADLE_WRAPPER_CHECKSUMS']?.split(',') || []
-    const result = await findInvalidWrapperJars(rootDir, 1, false, allowedChecksums)
-    if (result.isValid()) {
-        core.info(result.toDisplayString())
-    } else {
-        core.info(result.toDisplayString())
-        throw new JobFailure(
-            `Gradle Wrapper Validation Failed!\n  See https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md#reporting-failures\n${result.toDisplayString()}`
-        )
-    }
 }

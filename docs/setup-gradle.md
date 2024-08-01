@@ -515,14 +515,30 @@ Since Gradle applies init scripts in alphabetical order, one way to ensure this 
 
 ## Gradle Wrapper validation
 
-Instead of using the [wrapper-validation action](./wrapper-validation.md) separately, you can enable
-wrapper validation directly in your Setup Gradle step.
+By default, this action will perform the same wrapper validation as is performed by the dedicated 
+[wrapper-validation action](./wrapper-validation.md). 
+This means that invalid wrapper jars will be automatically detected when using `setup-gradle`. 
+
+If you do not want wrapper-validation to occur automatically, you can disable it:
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        validate-wrappers: false
+```
+
+If your repository uses snapshot versions of the Gradle wrapper, such as nightly builds, then you'll need to 
+explicitly allow snapshot wrappers in wrapper validation.
+These are not allowed by default.
+
 
 ```yaml
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         validate-wrappers: true
+        allow-snapshot-wrappers: true
 ```
 
 If you need more advanced configuration, then you're advised to continue using a separate workflow step

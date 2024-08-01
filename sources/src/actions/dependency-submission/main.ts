@@ -10,7 +10,8 @@ import {
     DependencyGraphConfig,
     DependencyGraphOption,
     GradleExecutionConfig,
-    setActionId
+    setActionId,
+    WrapperValidationConfig
 } from '../../configuration'
 import {saveDeprecationState} from '../../deprecation-collector'
 import {handleMainActionError} from '../../errors'
@@ -23,7 +24,7 @@ export async function run(): Promise<void> {
         setActionId('gradle/actions/dependency-submission')
 
         // Configure Gradle environment (Gradle User Home)
-        await setupGradle.setup(new CacheConfig(), new BuildScanConfig())
+        await setupGradle.setup(new CacheConfig(), new BuildScanConfig(), new WrapperValidationConfig())
 
         // Capture the enabled state of dependency-graph
         const originallyEnabled = process.env['GITHUB_DEPENDENCY_GRAPH_ENABLED']

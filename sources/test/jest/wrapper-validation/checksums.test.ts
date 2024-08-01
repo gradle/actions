@@ -32,6 +32,22 @@ test('fetches wrapper jars checksums', async () => {
   ).toBe(true)
 })
 
+test('fetches wrapper jar checksums for snapshots', async () => {
+  const nonSnapshotChecksums = await checksums.fetchUnknownChecksums(false, new checksums.WrapperChecksums)
+  const validChecksums = await checksums.fetchUnknownChecksums(true, new checksums.WrapperChecksums)
+
+  // Expect that at least one snapshot checksum is different from the non-snapshot checksums
+  expect(validChecksums.size).toBeGreaterThan(nonSnapshotChecksums.size)
+})
+
+test('fetches all wrapper checksum URLS for snapshots', async () => {
+  const checksumUrls: string[] = []
+  await checksums.addDistributionSnapshotChecksums(checksumUrls)
+
+  expect(checksumUrls.length).toBeGreaterThan(100) // May only be a few unique checksums
+  console.log(checksumUrls)
+})
+
 describe('retry', () => {
   afterEach(() => {
     nock.cleanAll()
