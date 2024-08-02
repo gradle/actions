@@ -5,7 +5,6 @@ import {resolve} from 'path'
 
 export async function findInvalidWrapperJars(
     gitRepoRoot: string,
-    minWrapperCount: number,
     allowSnapshots: boolean,
     allowedChecksums: string[],
     previouslyValidatedChecksums: string[] = [],
@@ -13,11 +12,6 @@ export async function findInvalidWrapperJars(
 ): Promise<ValidationResult> {
     const wrapperJars = await find.findWrapperJars(gitRepoRoot)
     const result = new ValidationResult([], [])
-    if (wrapperJars.length < minWrapperCount) {
-        result.errors.push(
-            `Expected to find at least ${minWrapperCount} Gradle Wrapper JARs but got only ${wrapperJars.length}`
-        )
-    }
     if (wrapperJars.length > 0) {
         const notYetValidatedWrappers = []
         for (const wrapperJar of wrapperJars) {
@@ -54,7 +48,6 @@ export class ValidationResult {
     valid: WrapperJar[]
     invalid: WrapperJar[]
     fetchedChecksums = false
-    errors: string[] = []
 
     constructor(valid: WrapperJar[], invalid: WrapperJar[]) {
         this.valid = valid
@@ -62,7 +55,7 @@ export class ValidationResult {
     }
 
     isValid(): boolean {
-        return this.invalid.length === 0 && this.errors.length === 0
+        return this.invalid.length === 0
     }
 
     toDisplayString(): string {
@@ -71,10 +64,6 @@ export class ValidationResult {
             displayString += `✗ Found unknown Gradle Wrapper JAR files:\n${ValidationResult.toDisplayList(
                 this.invalid
             )}`
-        }
-        if (this.errors.length > 0) {
-            if (displayString.length > 0) displayString += '\n'
-            displayString += `✗ Other validation errors:\n  ${this.errors.join(`\n  `)}`
         }
         if (this.valid.length > 0) {
             if (displayString.length > 0) displayString += '\n'
