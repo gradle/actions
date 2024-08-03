@@ -5,6 +5,7 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       skip-dist:
         type: boolean
         default: false
@@ -14,7 +15,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-custom-gradle-home-${{ inputs.cache-key-prefix }}
 
 jobs:
-  seed-build:
+  restore-custom-gradle-home-seed-build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -35,8 +36,8 @@ jobs:
       run: ./gradlew test --info
 
   # Test that the gradle-user-home cache will cache dependencies, by running build with --offline
-  dependencies-cache:
-    needs: seed-build
+  restore-custom-gradle-home-dependencies-cache:
+    needs: restore-custom-gradle-home-seed-build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -57,8 +58,8 @@ jobs:
       run: ./gradlew test --offline --info
 
   # Test that the gradle-user-home cache will cache and restore local build-cache
-  build-cache:
-    needs: seed-build
+  restore-custom-gradle-home-build-cache:
+    needs: restore-custom-gradle-home-seed-build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources

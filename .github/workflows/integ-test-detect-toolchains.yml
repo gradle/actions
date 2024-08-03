@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -18,7 +19,7 @@ env:
 
 jobs:
   # Test that pre-installed runner JDKs are detected
-  pre-installed-toolchains:
+  detect-toolchains-pre-installed-jdks:
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +49,7 @@ jobs:
         grep -q 'Eclipse Temurin JDK 21' output.txt || (echo "::error::Did not detect preinstalled JDK 21" && exit 1)
 
   # Test that JDKs provisioned by setup-java are detected
-  setup-java-installed-toolchain:
+  detect-toolchains-setup-java-jdks:
     strategy:
       fail-fast: false
       matrix:

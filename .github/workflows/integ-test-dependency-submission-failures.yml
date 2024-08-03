@@ -5,6 +5,7 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
         default: '["ubuntu-latest"]'
@@ -18,7 +19,7 @@ env:
   GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
 jobs:
-  failing-build:
+  dependency-submission-failures-failing-build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -47,7 +48,7 @@ jobs:
             exit 1
         fi
 
-  unsupported-gradle-version:
+  dependency-submission-failures-unsupported-gradle-version:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -76,7 +77,7 @@ jobs:
             exit 1
         fi
 
-  insufficient-permissions:
+  dependency-submission-failures-insufficient-permissions:
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -21,7 +22,7 @@ env:
   GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
 jobs:
-  groovy-generate-and-upload:
+  dependency-submission-groovy-generate-and-upload:
     strategy:
       fail-fast: false
       matrix:
@@ -42,8 +43,8 @@ jobs:
       env: 
         GRADLE_BUILD_ACTION_CACHE_KEY_JOB: groovy-dependency-submission
 
-  groovy-restore-cache:
-    needs: [groovy-generate-and-upload]
+  dependency-submission-groovy-restore-cache:
+    needs: [dependency-submission-groovy-generate-and-upload]
     strategy:
       fail-fast: false
       matrix:
@@ -63,8 +64,8 @@ jobs:
       env: 
         GRADLE_BUILD_ACTION_CACHE_KEY_JOB: groovy-dependency-submission
 
-  groovy-download-and-submit:
-    needs: [groovy-generate-and-upload]
+  dependency-submission-groovy-download-and-submit:
+    needs: [dependency-submission-groovy-generate-and-upload]
     strategy:
       fail-fast: false
       matrix:
@@ -83,7 +84,7 @@ jobs:
       env:
         DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: groovy-generate-and-upload-${{ matrix.os }}
 
-  kotlin-generate-and-submit:
+  dependency-submission-kotlin-generate-and-submit:
     strategy:
       fail-fast: false
       matrix:
@@ -100,7 +101,7 @@ jobs:
       with:
         build-root-directory: .github/workflow-samples/kotlin-dsl
 
-  multiple-builds:
+  dependency-submission-multiple-builds:
     strategy:
       fail-fast: false
       matrix:
@@ -145,7 +146,7 @@ jobs:
             exit 1
         fi
 
-  multiple-builds-upload:
+  dependency-submission-multiple-builds-upload:
     strategy:
       fail-fast: false
       matrix:
@@ -168,7 +169,7 @@ jobs:
         dependency-graph: generate-and-upload
         build-root-directory: .github/workflow-samples/groovy-dsl
 
-  config-cache:
+  dependency-submission-config-cache:
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
@@ -203,7 +204,7 @@ jobs:
             exit 1
         fi
 
-  gradle-versions:
+  dependency-submission-gradle-versions:
     strategy:
       fail-fast: false
       matrix:
@@ -227,7 +228,7 @@ jobs:
         gradle-version: ${{ matrix.gradle }}
         build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
 
-  with-setup-gradle:
+  dependency-submission-with-setup-gradle:
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
@@ -262,7 +263,7 @@ jobs:
             exit 1
         fi
 
-  with-includes-and-excludes:
+  dependency-submission-with-includes-and-excludes:
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
@@ -296,7 +297,7 @@ jobs:
         fi
 
 
-  custom-report-dir-submit:
+  dependency-submission-custom-report-dir-submit:
     strategy:
       fail-fast: false
       matrix:
@@ -330,7 +331,7 @@ jobs:
           exit 1
         fi
 
-  custom-report-dir-upload:
+  dependency-submission-custom-report-dir-upload:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -347,7 +348,7 @@ jobs:
         build-root-directory: .github/workflow-samples/groovy-dsl
 
   custom-report-dir-download-and-submit:
-    needs: custom-report-dir-upload
+    needs: [dependency-submission-custom-report-dir-upload]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources

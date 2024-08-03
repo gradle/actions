@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -21,7 +22,7 @@ env:
   GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
 jobs:
-  groovy-upload:
+  dependency-graph-groovy-upload:
     strategy:
       fail-fast: false
       matrix:
@@ -41,8 +42,8 @@ jobs:
       run: ./gradlew build
       working-directory: .github/workflow-samples/groovy-dsl
 
-  groovy-submit:
-    needs: [groovy-upload]
+  dependency-graph-groovy-submit:
+    needs: [dependency-graph-groovy-upload]
     runs-on: "ubuntu-latest"
     steps:
     - name: Checkout sources
@@ -57,7 +58,7 @@ jobs:
       env:
         DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: groovy-upload
 
-  kotlin-generate-and-submit:
+  dependency-graph-kotlin-generate-and-submit:
     strategy:
       fail-fast: false
       matrix:
@@ -77,7 +78,7 @@ jobs:
       run: ./gradlew build
       working-directory: .github/workflow-samples/kotlin-dsl
 
-  multiple-builds:
+  dependency-graph-multiple-builds:
     strategy:
       fail-fast: false
       matrix:
@@ -122,7 +123,7 @@ jobs:
             exit 1
         fi
         
-  config-cache:
+  dependency-graph-config-cache:
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources

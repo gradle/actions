@@ -5,7 +5,7 @@ on:
     inputs:
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -14,7 +14,7 @@ env:
   SKIP_DIST: ${{ inputs.skip-dist }}
 
 jobs:
-  test-setup-gradle-validation:
+  wrapper-validation-setup-gradle:
     strategy:
       fail-fast: false
       matrix:
@@ -40,7 +40,7 @@ jobs:
           exit 1
         fi
 
-  test-validation-success:
+  wrapper-validation-success:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -68,7 +68,7 @@ jobs:
           exit 1
         fi
 
-  test-validation-error:
+  wrapper-validation-error:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -100,7 +100,7 @@ jobs:
           exit 1
         fi
 
-  test-validation-minimum-wrapper-count:
+  wrapper-validation-minimum-wrapper-count:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -129,7 +129,7 @@ jobs:
           exit 1
         fi
 
-  test-validation-zero-wrappers:
+  wrapper-validation-zero-wrappers:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources

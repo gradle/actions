@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -17,7 +18,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-java-toolchain-${{ inputs.cache-key-prefix }}
 
 jobs:
-  seed-build:
+  restore-java-toolchain-seed-build:
     strategy:
       fail-fast: false
       matrix:
@@ -38,8 +39,8 @@ jobs:
       run: ./gradlew test --info
 
   # Test that the gradle-user-home cache will cache the toolchain, by running build with --offline
-  toolchain-cache:
-    needs: seed-build
+  restore-java-toolchain-verify-build:
+    needs: restore-java-toolchain-seed-build
     strategy:
       fail-fast: false
       matrix:

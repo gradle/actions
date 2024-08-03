@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -17,7 +18,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: sample-gradle-plugin-${{ inputs.cache-key-prefix }}
 
 jobs:
-  seed-build:
+  sample-gradle-plugin-seed-build:
     strategy:
       fail-fast: false
       matrix:
@@ -37,8 +38,8 @@ jobs:
       working-directory: .github/workflow-samples/gradle-plugin
       run: ./gradlew build
 
-  verify-build:
-    needs: seed-build
+  sample-gradle-plugin-verify-build:
+    needs: sample-gradle-plugin-seed-build
     strategy:
       fail-fast: false
       matrix:
