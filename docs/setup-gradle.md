@@ -45,7 +45,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Execute Gradle build
       run: ./gradlew build
@@ -58,7 +58,7 @@ Downloaded Gradle versions are stored in the GitHub Actions cache, to avoid havi
 
 ```yaml
  - name: Setup Gradle 8.5
-   uses: gradle/actions/setup-gradle@v3
+   uses: gradle/actions/setup-gradle@v4
    with:
      gradle-version: 8.5
   - name: Build with Gradle 8.5
@@ -96,7 +96,7 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - uses: gradle/actions/setup-gradle@v3
+    - uses: gradle/actions/setup-gradle@v4
       id: setup-gradle
       with:
         gradle-version: release-candidate
@@ -213,7 +213,7 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - uses: gradle/actions/setup-gradle@v3
+    - uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: 8.6
         cache-encryption-key: ${{ secrets.GradleEncryptionKey }}
@@ -455,7 +455,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         add-job-summary-as-pr-comment: on-failure # Valid values are 'never' (default), 'always', and 'on-failure'
 
@@ -492,13 +492,13 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Run build with Gradle wrapper
       run: ./gradlew build --scan
 
     - name: Upload build reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: build-reports
@@ -523,7 +523,7 @@ If you do not want wrapper-validation to occur automatically, you can disable it
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         validate-wrappers: false
 ```
@@ -535,7 +535,7 @@ These are not allowed by default.
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         validate-wrappers: true
         allow-snapshot-wrappers: true
@@ -600,7 +600,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         dependency-graph: generate-and-submit
     - name: Run the usual CI build (dependency-graph will be generated and submitted post-job)
@@ -627,7 +627,7 @@ graph cannot be generated or submitted. You can enable this behavior with the `d
 
 ```yaml
 # Ensure that the workflow Job will fail if the dependency graph cannot be submitted
-- uses: gradle/actions/setup-gradle@v3
+- uses: gradle/actions/setup-gradle@v4
   with:
     dependency-graph: generate-and-submit
     dependency-graph-continue-on-failure: false
@@ -652,7 +652,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         dependency-graph: generate-and-submit
     - name: Run a build, resolving the 'dependency-graph' plugin from the plugin portal proxy
@@ -682,7 +682,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         dependency-graph: generate-and-submit
     - name: Build the app, generating a graph of dependencies required
@@ -718,7 +718,7 @@ To reduce storage costs for these artifacts, you can set the `artifact-retention
 
 ```yaml
     - name: Generate dependency graph, but only retain artifact for one day
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         dependency-graph: generate
         artifact-retention-days: 1
@@ -739,7 +739,7 @@ Here's a minimal example:
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         develocity-injection-enabled: true
         develocity-url: https://develocity.your-server.com
@@ -756,7 +756,7 @@ In the likely scenario that your Develocity server requires authentication, you 
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
 
@@ -814,7 +814,7 @@ Here's an example using the env vars:
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Run a Gradle build with Develocity injection enabled with environment variables
       run: ./gradlew build
@@ -833,7 +833,7 @@ To publish to https://scans.gradle.com, you must specify in your workflow that y
 
 ```yaml
     - name: Setup Gradle to publish build scans
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         build-scan-publish: true
         build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"

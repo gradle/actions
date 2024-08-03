@@ -43,7 +43,7 @@ jobs:
         java-version: 17
 
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
 ```
 
 ### Gradle execution
@@ -68,7 +68,7 @@ Three input parameters are required, one to enable publishing and two more to ac
 
 ```yaml
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
       with:
         build-scan-publish: true
         build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
@@ -83,7 +83,7 @@ In some cases, the default action configuration will not be sufficient, and addi
 
 ```yaml
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
       with:
         # Use a particular Gradle version instead of the configured wrapper.
         gradle-version: 8.6
@@ -273,7 +273,7 @@ For example, if you want to exclude dependencies resolved by the `buildSrc` proj
 
 ```yaml
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
       with:
         # Exclude all dependencies that originate solely in the 'buildSrc' project
         dependency-graph-exclude-projets: ':buildSrc'
@@ -317,10 +317,10 @@ jobs:
         java-version: 17
 
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
 
     - name: Perform dependency review
-      uses: actions/dependency-review-action@v3
+      uses: actions/dependency-review-action@v4
 ```
 
 ## Usage with pull requests from public forked repositories
@@ -353,7 +353,7 @@ jobs:
         java-version: 17
 
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
       with:
         dependency-graph: generate-and-upload
 ```
@@ -376,7 +376,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download and submit dependency graph
-      uses: gradle/actions/dependency-submission@v3
+      uses: gradle/actions/dependency-submission@v4
       with:
         dependency-graph: download-and-submit # Download saved dependency-graph and submit
 ```
@@ -403,7 +403,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 'Dependency Review'
-      uses: actions/dependency-review-action@v3
+      uses: actions/dependency-review-action@v4
       with:
         retry-on-snapshot-warnings: true
         retry-on-snapshot-warnings-timeout: 600
