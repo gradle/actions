@@ -34,6 +34,7 @@ jobs:
       continue-on-error: true
 
     - name: Check failure
+      shell: bash
       run: |
         if [ "${{ steps.setup-gradle.outcome}}" != "failure" ] ; then
           echo "Expected validation to fail, but it didn't"
@@ -62,6 +63,7 @@ jobs:
         # below to not accidentally inject code into shell script or break its syntax
         FAILED_WRAPPERS: ${{ steps.action-test.outputs.failed-wrapper }}
         FAILED_WRAPPERS_MATCHES: ${{ steps.action-test.outputs.failed-wrapper == '' }}
+      shell: bash
       run: |
         if [ "$FAILED_WRAPPERS_MATCHES" != "true" ] ; then
           echo "'outputs.failed-wrapper' has unexpected content: $FAILED_WRAPPERS"
@@ -89,6 +91,7 @@ jobs:
         VALIDATION_FAILED: ${{ steps.action-test.outcome == 'failure' }}
         FAILED_WRAPPERS: ${{ steps.action-test.outputs.failed-wrapper }}
         FAILED_WRAPPERS_MATCHES: ${{ steps.action-test.outputs.failed-wrapper == 'sources/test/jest/wrapper-validation/data/invalid/gradle-wrapper.jar|sources/test/jest/wrapper-validation/data/invalid/gradlе-wrapper.jar' }}
+      shell: bash
       run: |
         if [ "$VALIDATION_FAILED" != "true" ] ; then
           echo "Expected validation to fail, but it didn't"
@@ -123,6 +126,7 @@ jobs:
         # Evaluate workflow expressions here as env variable values instead of inside shell script
         # below to not accidentally inject code into shell script or break its syntax
         VALIDATION_FAILED: ${{ steps.action-test.outcome == 'failure' }}
+      shell: bash
       run: |
         if [ "$VALIDATION_FAILED" != "true" ] ; then
           echo "Expected validation to fail, but it didn't"
@@ -153,6 +157,7 @@ jobs:
         # Evaluate workflow expressions here as env variable values instead of inside shell script
         # below to not accidentally inject code into shell script or break its syntax
         VALIDATION_FAILED: ${{ steps.action-test.outcome == 'failure' }}
+      shell: bash
       run: |
         if [ "$VALIDATION_FAILED" != "true" ] ; then
           echo "Expected validation to fail, but it didn't"

@@ -8,42 +8,18 @@ on:
     - 'main'
     - 'release/**'
     - 'dev/**' # Allow running tests on dev branches without a PR
+    paths-ignore:
+    - 'dist/**'
+
+permissions:
+  contents: write
 
 concurrency:
-  group: integ-tests-${{ github.ref }}
+  group: integ-test-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  determine-suite:
-    runs-on: ubuntu-latest
-    outputs:
-      runner-os: ${{ steps.determine-suite.outputs.suite == 'quick' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]' }}
-      suite: ${{ steps.determine-suite.outputs.suite }}
-    steps:
-    - name: Determine suite to run
-      id: determine-suite
-      run: |
-        # Always run quick suite if we are not in the core `gradle/actions` repository
-        # This reduces the load for developers working on 'main' on forks
-        if [ "${{ github.repository }}" != "gradle/actions" ]; then
-          echo "Not in core repository: suite=quick"
-          echo "suite=quick" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        # Run full suite for push trigger with "[bot] Update dist directory" commit message
-        if [ "${{ github.event.head_commit.message }}" == "[bot] Update dist directory" ]; then
-          echo "Bot commit to main branch: suite=full"
-          echo "suite=full" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        # Run quick suite for everything else
-        echo "Everything else: suite=quick"
-        echo "suite=quick" >> "$GITHUB_OUTPUT"
-
   build-distribution:
-    needs: [determine-suite]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -52,125 +28,16 @@ jobs:
       if: ${{ needs.determine-suite.outputs.suite != 'full' }}
       uses: ./.github/actions/build-dist
 
-  build-scan-publish:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-build-scan-publish.yml
+  caching-integ-tests:
+    needs: build-distribution
+    uses: ./.github/workflows/suite-integ-test-caching.yml
     with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+      skip-dist: false
+    secrets: inherit
 
-  cache-cleanup:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-cache-cleanup.yml
+  other-integ-tests:
+    needs: build-distribution
+    uses: ./.github/workflows/suite-integ-test-other.yml
     with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  caching-config:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-caching-config.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  dependency-graph:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-graph.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  dependency-submission:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-submission.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  dependency-submission-failures:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  develocity-injection:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-inject-develocity.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-    secrets:
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
-
-  provision-gradle-versions:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-configuration-cache:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-    secrets:
-      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-  restore-containerized-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-custom-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-gradle-home.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-java-toolchain:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  sample-kotlin-dsl:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  sample-gradle-plugin:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  toolchain-detection:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-detect-toolchains.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  wrapper-validation:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-wrapper-validation.yml
-    with:
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+      skip-dist: false
+    secrets: inherit
