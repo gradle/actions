@@ -1,4 +1,4 @@
-name: CI-integ-test
+name: suite-integ-test-caching
 
 on:
   workflow_call:

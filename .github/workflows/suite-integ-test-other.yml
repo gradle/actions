@@ -1,4 +1,4 @@
-name: CI-integ-test
+name: suite-integ-test-other
 
 on:
   workflow_call:
