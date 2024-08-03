@@ -1,0 +1,29 @@
+name: CI-integ-test-full
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+    - 'dist/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integ-test-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  caching-integ-tests:
+    uses: ./.github/workflows/suite-integ-test-caching.yml
+    with:
+      runner-os: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      skip-dist: true
+    secrets: inherit
+
+  other-integ-tests:
+    uses: ./.github/workflows/suite-integ-test-other.yml
+    with:
+      runner-os: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      skip-dist: true
+    secrets: inherit

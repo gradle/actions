@@ -1,0 +1,82 @@
+name: CI-integ-test
+
+on:
+  workflow_call:
+    inputs:
+      runner-os:
+        type: string
+        default: '["ubuntu-latest"]'
+      skip-dist:
+        type: boolean
+        default: false
+
+jobs:
+  build-scan-publish:
+    uses: ./.github/workflows/integ-test-build-scan-publish.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  dependency-graph:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-graph.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  dependency-submission:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-submission.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  dependency-submission-failures:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  develocity-injection:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-inject-develocity.yml
+    with:
+      skip-dist: ${{ inputs.skip-dist }}
+    secrets:
+      DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
+
+  provision-gradle-versions:
+    uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  sample-kotlin-dsl:
+    uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  sample-gradle-plugin:
+    uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  toolchain-detection:
+    uses: ./.github/workflows/integ-test-detect-toolchains.yml
+    with:
+      skip-dist: ${{ inputs.skip-dist }}
+
+  wrapper-validation:
+    uses: ./.github/workflows/integ-test-wrapper-validation.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
