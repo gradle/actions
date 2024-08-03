@@ -5,19 +5,21 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
 
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
-  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: cache-cleanup-${{ inputs.cache-key-prefix }}
+  # Requires a fresh cache entry each run
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: cache-cleanup-${{ inputs.cache-key-prefix }}-${{github.run_number}}
 
 jobs:
-  full-build:
+  cache-cleanup-full-build:
     strategy:
       fail-fast: false
       matrix:
@@ -38,8 +40,8 @@ jobs:
       run: ./gradlew --no-daemon --build-cache -Dcommons_math3_version="3.1" build
 
   # Second build will use the cache from the first build, but cleanup should remove unused artifacts
-  assemble-build:
-    needs: full-build
+  cache-cleanup-assemble-build:
+    needs: cache-cleanup-full-build
     strategy:
       fail-fast: false
       matrix:
@@ -60,8 +62,8 @@ jobs:
       working-directory: sources/test/jest/resources/cache-cleanup
       run: ./gradlew --no-daemon --build-cache -Dcommons_math3_version="3.1.1" build
 
-  check-clean-cache:
-    needs: assemble-build
+  cache-cleanup-check-clean-cache:
+    needs: cache-cleanup-assemble-build
     strategy:
       fail-fast: false
       matrix:

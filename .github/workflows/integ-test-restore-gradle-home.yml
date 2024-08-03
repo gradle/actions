@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -18,7 +19,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-gradle-home
 
 jobs:
-  seed-build:
+  restore-gradle-home-seed-build:
     strategy:
       fail-fast: false
       matrix:
@@ -39,8 +40,8 @@ jobs:
       run: ./gradlew test
 
   # Test that the gradle-user-home cache will cache dependencies, by running build with --offline
-  dependencies-cache:
-    needs: seed-build
+  restore-gradle-home-dependencies-cache:
+    needs: restore-gradle-home-seed-build
     strategy:
       fail-fast: false
       matrix:
@@ -61,8 +62,8 @@ jobs:
       run: ./gradlew test --offline
 
   # Test that the gradle-user-home cache will cache and restore local build-cache
-  build-cache:
-    needs: seed-build
+  restore-gradle-home-build-cache:
+    needs: restore-gradle-home-seed-build
     strategy:
       fail-fast: false
       matrix:
@@ -83,8 +84,8 @@ jobs:
       run: ./gradlew test -DverifyCachedBuild=true
 
   # Check that the build can run when Gradle User Home is not fully restored
-  no-extracted-cache-entries-restored:
-    needs: seed-build
+  restore-gradle-home-no-extracted-cache-entries-restored:
+    needs: restore-gradle-home-seed-build
     strategy:
       fail-fast: false
       matrix:
@@ -107,8 +108,8 @@ jobs:
       run: ./gradlew test
 
   # Test that a pre-existing gradle-user-home can be overwritten by the restored cache
-  pre-existing-gradle-home:
-    needs: seed-build
+  restore-gradle-home-pre-existing-gradle-home:
+    needs: restore-gradle-home-seed-build
     strategy:
       fail-fast: false
       matrix:

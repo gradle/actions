@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -17,7 +18,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: caching-config-${{ inputs.cache-key-prefix }}
 
 jobs:
-  seed-build:
+  caching-config-seed-build:
     strategy:
       fail-fast: false
       matrix:
@@ -46,8 +47,8 @@ jobs:
       run: ./gradlew test
 
   # Test that the gradle-user-home cache will cache dependencies, by running build with --offline
-  verify-build:
-    needs: seed-build
+  caching-config-verify-build:
+    needs: caching-config-seed-build
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +76,7 @@ jobs:
       run: ./gradlew test --offline
 
   # Test that build scans are captured when caching is explicitly disabled
-  cache-disabled:
+  caching-config-cache-disabled:
     strategy:
       fail-fast: false
       matrix:
@@ -103,7 +104,7 @@ jobs:
           core.setFailed('No Build Scan detected')
 
   # Test that build scans are captured when caching is disabled because Gradle User Home already exists
-  cache-disabled-pre-existing-gradle-home:
+  caching-config-cache-disabled-pre-existing-gradle-home:
     runs-on: ubuntu-latest # This test only runs on Ubuntu
     steps:
     - name: Checkout sources
@@ -127,9 +128,9 @@ jobs:
           core.setFailed('No Build Scan detected')
 
   # Test seed the cache with cache-write-only and verify with cache-read-only
-  seed-build-write-only:
+  caching-config-seed-write-only:
     env:
-      GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}-write-only-
+      GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: caching-config-write-only-${{ inputs.cache-key-prefix }}
     strategy:
       fail-fast: false
       matrix:
@@ -149,10 +150,10 @@ jobs:
       working-directory: .github/workflow-samples/groovy-dsl
       run: ./gradlew test
 
-  verify-write-only-build:
+  caching-config-verify-write-only:
     env:
-      GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}-write-only-
-    needs: seed-build-write-only
+      GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: caching-config-write-only-${{ inputs.cache-key-prefix }}
+    needs: caching-config-seed-write-only
     strategy:
       fail-fast: false
       matrix:

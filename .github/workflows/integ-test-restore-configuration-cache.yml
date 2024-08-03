@@ -5,9 +5,10 @@ on:
     inputs:
       cache-key-prefix:
         type: string
+        default: '0'
       runner-os:
         type: string
-        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+        default: '["ubuntu-latest"]'
       skip-dist:
         type: boolean
         default: false
@@ -20,7 +21,7 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-configuration-cache-${{ inputs.cache-key-prefix }}
 
 jobs:
-  seed-build-groovy:
+  restore-cc-seed-build-groovy:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
     strategy:
@@ -50,11 +51,11 @@ jobs:
       working-directory: .github/workflow-samples/groovy-dsl
       run: gradle test --configuration-cache
 
-  verify-build-groovy:
+  restore-cc-verify-build-groovy:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_1
-    needs: seed-build-groovy
+    needs: restore-cc-seed-build-groovy
     strategy:
       fail-fast: false
       matrix:
@@ -91,11 +92,11 @@ jobs:
         fi
 
   # Ensure that cache-cleanup doesn't remove all necessary files
-  verify-no-cache-cleanup-groovy:
+  restore-cc-verify-no-cache-cleanup-groovy:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_2
-    needs: verify-build-groovy
+    needs: restore-cc-verify-build-groovy
     strategy:
       fail-fast: false
       matrix:
@@ -131,11 +132,11 @@ jobs:
         fi
 
   # Check that the build can run when no extracted cache entries are restored
-  gradle-user-home-not-fully-restored:
+  restore-cc-gradle-user-home-not-fully-restored:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_x
-    needs: seed-build-groovy
+    needs: restore-cc-seed-build-groovy
     strategy:
       fail-fast: false
       matrix:
@@ -164,7 +165,7 @@ jobs:
       working-directory: .github/workflow-samples/groovy-dsl
       run: gradle test --configuration-cache
 
-  seed-build-kotlin:
+  restore-cc-seed-build-kotlin:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin
     strategy:
@@ -194,11 +195,11 @@ jobs:
       working-directory: .github/workflow-samples/kotlin-dsl
       run: gradle help --configuration-cache
 
-  modify-build-kotlin:
+  restore-cc-modify-build-kotlin:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_1
-    needs: seed-build-kotlin
+    needs: restore-cc-seed-build-kotlin
     strategy:
       fail-fast: false
       matrix:
@@ -226,11 +227,11 @@ jobs:
       run: gradle test --configuration-cache
 
   # Test restore configuration-cache from the third build invocation
-  verify-build-kotlin:
+  restore-cc-verify-build-kotlin:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_2
-    needs: modify-build-kotlin
+    needs: restore-cc-modify-build-kotlin
     strategy:
       fail-fast: false
       matrix:
