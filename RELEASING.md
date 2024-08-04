@@ -5,52 +5,22 @@
 - Check that https://github.com/gradle/actions/actions is green for all workflows for the main branch.
   - This should include any workflows triggered by `[bot] Update dist directory`
 - Decide on the version number to use for the release. The action releases should follow semantic versioning.
-  - By default, a patch release is assumed (eg. `3.0.0` → `3.0.1`)
-  - If new features have been added, bump the minor version (eg `3.1.1` → `3.2.0`)
-  - If a new major release is required, bump the major version (eg `3.1.1` → `4.0.0`)
+  - By default, a patch release is assumed (eg. `4.0.0` → `4.0.1`)
+  - If new features have been added, bump the minor version (eg `4.1.1` → `4.2.0`)
+  - If a new major release is required, bump the major version (eg `4.1.1` → `5.0.0`)
   - Note: The gradle actions follow the GitHub Actions convention of including a .0 patch number for the first release of a minor version, unlike the Gradle convention which omits the trailing .0.
 
 ## Release gradle/actions
-- Create a tag for the release. The tag should have the format `v3.1.0`
-  - From CLI: `git tag v3.1.0 && git push --tags`
+- Create a tag for the release. The tag should have the format `v4.1.0`
+  - From CLI: `git tag v4.1.0 && git push --tags`
 - Go to https://github.com/gradle/actions/releases and "Draft new release"
   - Use the newly created tag and copy the tag name exactly as the release title.
   - Craft release notes content based on issues closed, PRs merged and commits
   - Include a Full changelog link in the format https://github.com/gradle/actions/compare/v2.12.0...v3.0.0
 - Publish the release.
-- Force push the `v3` tag (or current major version) to point to the new release. It is conventional for users to bind to a major release version using this tag.
-  - From CLI: `git tag -f -a -m "v3.0.0" v3 v3.0.0 && git push -f --tags`
+- Force push the `v4` tag (or current major version) to point to the new release. It is conventional for users to bind to a major release version using this tag.
+  - From CLI: `git tag -f -a -m "v4.0.0" v4 v4.0.0 && git push -f --tags`
   - Note that we set the commit message for the tag to the newly released version.
-
-## Release gradle/gradle-build-action
-
-During the 3.x release series, we will continue to publish parallel releases of `gradle/gradle-build-action`. These releases will simply delegate to `gradle/actions/setup-gradle` with the same version.
-
-- Update the [gradle-build-action action.yml](https://github.com/gradle/gradle-build-action/blob/main/action.yml#L162) file to point to the newly released version of `gradle/actions/setup-gradle`.
-- Ensure that any parameters that have been added to the setup-gradle action are added to the gradle-build-action definition, and that these are passed on to setup-gradle.
-- Create and push a tag for the release.
-  - From CLI: `git tag v3.1.0 && git push --tags`
-- Go to https://github.com/gradle/gradle-build-action/releases and "Draft new release"
-  - Use the newly created tag and copy the tag name exactly as the release title.
-  - In the release notes, point users to the gradle/actions release. Include a header informing users to switch to `gradle/actions/setup-gradle`.
-- Publish the release.
-- Force push the `v3` tag (or current major version) to point to the new release.
-  - From CLI: `git tag -f -a -m "v3.0.0" v3 v3.0.0 && git push -f --tags`
-
-## Release gradle/wrapper-validation-action
-
-During the 3.x release series, we will continue to publish parallel releases of `gradle/wrapper-validation-action`. These releases will simply delegate to `gradle/actions/wrapper-validation` with the same version.
-
-- Update the [wrapper-validation-action action.yml](https://github.com/gradle/wrapper-validation-action/blob/main/action.yml#L162) file to point to the newly released version of `gradle/actions/wrapper-validation`.
-- Ensure that any parameters that have been added to the `wrapper-validation` action (if any) are added to the action definition, and that these are passed on to setup-gradle.
-- Create and push a tag for the release.
-  - From CLI: `git tag v3.1.0 && git push --tags`
-- Go to https://github.com/gradle/wrapper-validation-action/releases and "Draft new release"
-  - Use the newly created tag and copy the tag name exactly as the release title.
-  - In the release notes, point users to the gradle/actions release. Include a header informing users to switch to `gradle/actions/wrapper-validation`.
-- Publish the release.
-- Force push the `v3` tag (or current major version) to point to the new release.
-  - From CLI: `git tag -f -a -m "v3.0.0" v3 v3.0.0 && git push -f --tags`
 
 ## Post release steps
 
