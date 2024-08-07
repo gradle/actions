@@ -20,6 +20,7 @@ env:
 jobs:
   restore-java-toolchain-seed-build:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -42,6 +43,7 @@ jobs:
   restore-java-toolchain-verify-build:
     needs: restore-java-toolchain-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}

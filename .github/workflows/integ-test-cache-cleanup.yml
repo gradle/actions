@@ -21,6 +21,7 @@ env:
 jobs:
   cache-cleanup-full-build:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -43,6 +44,7 @@ jobs:
   cache-cleanup-assemble-build:
     needs: cache-cleanup-full-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -65,6 +67,7 @@ jobs:
   cache-cleanup-check-clean-cache:
     needs: cache-cleanup-assemble-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
