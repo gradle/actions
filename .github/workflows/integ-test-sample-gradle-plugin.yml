@@ -20,6 +20,7 @@ env:
 jobs:
   sample-gradle-plugin-seed-build:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -41,6 +42,7 @@ jobs:
   sample-gradle-plugin-verify-build:
     needs: sample-gradle-plugin-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}

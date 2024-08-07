@@ -21,6 +21,7 @@ env:
 jobs:
   restore-gradle-home-seed-build:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -43,6 +44,7 @@ jobs:
   restore-gradle-home-dependencies-cache:
     needs: restore-gradle-home-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -65,6 +67,7 @@ jobs:
   restore-gradle-home-build-cache:
     needs: restore-gradle-home-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -87,6 +90,7 @@ jobs:
   restore-gradle-home-no-extracted-cache-entries-restored:
     needs: restore-gradle-home-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -111,6 +115,7 @@ jobs:
   restore-gradle-home-pre-existing-gradle-home:
     needs: restore-gradle-home-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}

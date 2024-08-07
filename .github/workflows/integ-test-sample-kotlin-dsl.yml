@@ -20,6 +20,7 @@ env:
 jobs:
   sample-kotlin-dsl-seed-build:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -41,6 +42,7 @@ jobs:
   sample-kotlin-dsl-verify-build:
     needs: sample-kotlin-dsl-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
