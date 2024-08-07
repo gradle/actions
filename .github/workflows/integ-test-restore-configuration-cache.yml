@@ -25,6 +25,7 @@ jobs:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-groovy
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -57,6 +58,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_1
     needs: restore-cc-seed-build-groovy
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -98,6 +100,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_2
     needs: restore-cc-verify-build-groovy
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -138,6 +141,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_x
     needs: restore-cc-seed-build-groovy
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -169,6 +173,7 @@ jobs:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-cc-kotlin
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -201,6 +206,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_1
     needs: restore-cc-seed-build-kotlin
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -233,6 +239,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_2
     needs: restore-cc-modify-build-kotlin
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}

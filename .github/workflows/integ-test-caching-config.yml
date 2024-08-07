@@ -20,6 +20,7 @@ env:
 jobs:
   caching-config-seed-build:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -50,6 +51,7 @@ jobs:
   caching-config-verify-build:
     needs: caching-config-seed-build
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -78,6 +80,7 @@ jobs:
   # Test that build scans are captured when caching is explicitly disabled
   caching-config-cache-disabled:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -132,6 +135,7 @@ jobs:
     env:
       GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: caching-config-write-only-${{ inputs.cache-key-prefix }}
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -155,6 +159,7 @@ jobs:
       GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: caching-config-write-only-${{ inputs.cache-key-prefix }}
     needs: caching-config-seed-write-only
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}

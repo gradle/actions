@@ -24,6 +24,7 @@ env:
 jobs:
   dependency-submission-groovy-generate-and-upload:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -46,6 +47,7 @@ jobs:
   dependency-submission-groovy-restore-cache:
     needs: [dependency-submission-groovy-generate-and-upload]
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -67,6 +69,7 @@ jobs:
   dependency-submission-groovy-download-and-submit:
     needs: [dependency-submission-groovy-generate-and-upload]
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -86,6 +89,7 @@ jobs:
 
   dependency-submission-kotlin-generate-and-submit:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -103,6 +107,7 @@ jobs:
 
   dependency-submission-multiple-builds:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -148,6 +153,7 @@ jobs:
 
   dependency-submission-multiple-builds-upload:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
@@ -299,6 +305,7 @@ jobs:
 
   dependency-submission-custom-report-dir-submit:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}

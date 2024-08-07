@@ -23,6 +23,7 @@ jobs:
   # Each build verifies that it is executed with the expected Gradle version.
   provision-gradle:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
