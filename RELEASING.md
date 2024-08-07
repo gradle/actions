@@ -25,8 +25,7 @@
 ## Post release steps
 
 Submit PRs to update the GitHub starter workflow. Starter workflows contain content that should reference the Git hash of the current gradle/actions release:
-https://github.com/actions/starter-workflows has [gradle](https://github.com/actions/starter-workflows/blob/main/ci/gradle.yml) and [gradle-publish](https://github.com/actions/starter-workflows/blob/main/ci/gradle-publish.yml): see [the v2.1.4 update PR](https://github.com/actions/starter-workflows/pull/1489) for an example.
+https://github.com/actions/starter-workflows has [gradle](https://github.com/actions/starter-workflows/blob/main/ci/gradle.yml) and [gradle-publish](https://github.com/actions/starter-workflows/blob/main/ci/gradle-publish.yml): see [the v4.0.0 update PR](https://github.com/actions/starter-workflows/pull/2468) for an example.
 
 Submit PRs to update the GitHub documentation. The documentation contains content that should reference the Git hash of the current gradle/actions release:
-https://github.com/github/docs has [building-and-testing-java-with-gradle](https://github.com/github/docs/blob/main/content/actions/automating-builds-and-tests/building-and-testing-java-with-gradle.md) and [publishing-java-packages-with-gradle](https://github.com/github/docs/blob/main/content/actions/publishing-packages/publishing-java-packages-with-gradle.md) : see [the v2.1.4 update PR](https://github.com/github/docs/pull/16392) for an example.
-
+https://github.com/github/docs has [building-and-testing-java-with-gradle](https://github.com/github/docs/blob/main/content/actions/automating-builds-and-tests/building-and-testing-java-with-gradle.md) and [publishing-java-packages-with-gradle](https://github.com/github/docs/blob/main/content/actions/publishing-packages/publishing-java-packages-with-gradle.md) : see [the v4.0.0 update PR](https://github.com/github/docs/pull/34239) for an example.
