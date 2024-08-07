@@ -47,40 +47,40 @@ updates:
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "gradle"
     directory: ".github/workflow-samples/groovy-dsl"
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "gradle"
     directory: ".github/workflow-samples/java-toolchain"
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "gradle"
     directory: ".github/workflow-samples/kotlin-dsl"
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "gradle"
     directory: ".github/workflow-samples/no-wrapper"
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "gradle"
     directory: ".github/workflow-samples/no-wrapper-gradle-5"
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "gradle"
     directory: "sources/test/init-scripts"
     registries:
       - gradle-plugin-portal
     schedule:
-      interval: "daily"
+      interval: "weekly"
