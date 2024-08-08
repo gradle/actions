@@ -43,7 +43,7 @@ export async function generateJobSummary(
 async function addPRComment(jobSummary: string): Promise<void> {
     const context = github.context
     if (context.payload.pull_request == null) {
-        core.info('No pull_request trigger: not adding PR comment')
+        core.info('No pull_request trigger detected: not adding PR comment')
         return
     }
 
