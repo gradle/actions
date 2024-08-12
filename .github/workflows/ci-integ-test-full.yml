@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: integ-test-${{ github.ref }}
+  group: integ-test
   cancel-in-progress: false
 
 jobs:
