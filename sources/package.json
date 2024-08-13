@@ -42,7 +42,7 @@
     "@actions/tool-cache": "2.0.1",
     "@octokit/rest": "21.0.1",
     "@octokit/webhooks-types": "7.5.1",
-    "cheerio": "^1.0.0-rc.12",
+    "cheerio": "^1.0.0",
     "semver": "7.6.3",
     "string-argv": "0.3.2",
     "typed-rest-client": "2.0.2",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "20.14.14",
+    "@types/node": "20.14.15",
     "@types/unzipper": "0.10.10",
     "@types/which": "3.0.4",
     "@typescript-eslint/parser": "7.18.0",
