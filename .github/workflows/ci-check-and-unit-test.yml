@@ -30,6 +30,14 @@ jobs:
         npm run check
         npm run compile
       working-directory: sources
+
+    - name: Configure Gradle version for unit tests
+      uses: gradle/actions/setup-gradle@v4 # Use a released version to avoid breakages
+      with:
+        gradle-version: "8.9"
+      env:
+        ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
+
     - name: Run unit tests
       run: |
         npm test
