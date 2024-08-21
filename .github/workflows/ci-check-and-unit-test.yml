@@ -38,6 +38,9 @@ jobs:
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
 
+    - name: Check Gradle version on path
+      run: gradle --version
+
     - name: Run unit tests
       run: |
         npm test
