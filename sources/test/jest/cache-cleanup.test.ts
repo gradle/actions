@@ -79,6 +79,10 @@ test('will cleanup unused gradle versions', async () => {
 })
 
 async function runGradleBuild(projectRoot: string, args: string, version: string = '3.1'): Promise<void> {
+    // Print the PATH environment variable to console
+    const path = process.env.PATH || '';
+    console.log(`PATH: ${path}`);
+
     const status31 = await exec.exec(`gradle -g HOME --no-daemon --build-cache -Dcommons_math3_version="${version}" ${args}`, [], {
         cwd: projectRoot
     })
