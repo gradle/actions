@@ -197,7 +197,7 @@ async function findGradleVersionOnPath(versionInfo: GradleVersionInfo): Promise<
     const gradleExecutable = await which('gradle', {nothrow: true})
     if (gradleExecutable) {
         const output = await exec.getExecOutput(gradleExecutable, ['-v'], {silent: true})
-        if (output.stdout.includes(`Gradle ${versionInfo.version}`)) {
+        if (output.stdout.includes(`\nGradle ${versionInfo.version}\n`)) {
             return gradleExecutable
         }
     }
