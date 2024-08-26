@@ -724,14 +724,90 @@ To reduce storage costs for these artifacts, you can set the `artifact-retention
         artifact-retention-days: 1
 ```
 
-# Develocity plugin injection
+# Develocity Build Scan® integration
 
-The `setup-gradle` action provides support for injecting and configuring the Develocity Gradle plugin into any Gradle build, without any modification to the project sources.
-This is achieved via an init-script installed into Gradle User Home, which is enabled and parameterized via environment variables.
+Publishing a Develocity Build Scan can be very helpful for Gradle builds run on GitHub Actions. Each Build Scan provides a
+detailed report of the execution of the build, including which tasks were executed and the results of any test execution.
+
+The `setup-gradle` plugin provides a number of features to enable and enhance publishing Build Scans® to a Develocity instance.
+
+## Publishing to scans.gradle.com
+
+If you don't have a a private Develocity instance, you can easily publish Build Scans to the 
+free, public Develocity instance (https://scans.gradle.com).
+
+To publish to https://scans.gradle.com, you must specify in your workflow that you accept the [Gradle Terms of Use](https://gradle.com/help/legal-terms-of-use).
+
+```yaml
+    - name: Setup Gradle to publish build scans
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        build-scan-publish: true
+        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+        build-scan-terms-of-use-agree: "yes"
+
+    - name: Run a Gradle build - a build scan will be published automatically
+      run: ./gradlew build
+```
+
+## Managing Develocity access keys
+
+Develocity access keys are long-lived, creating risks if they are leaked. To mitigate this risk this, 
+the `setup-gradle` action can automatically attempt to obtain a short-lived access token to authenticate with Develocity. 
+The short-lived access token will then be used wherever a Develocity access key is required.
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }} # Long-lived access key, visiblility is restricted to this step.
+
+    # Subsequent steps will automatically use a short-lived access token to authenticate with Develocity
+    - name: Run a Gradle build that is configured to publish to Develocity.
+      run: ./gradlew build
+```
+
+### Develocity access key supplied as environment variable
+
+The preferred mechanism is to supply the long-lived Develocity access key directly to `setup-gradle` via 
+the `develocity-access-key` input variable. However, the action will also detect an access key configured as an environment variable,
+such as `DEVELOCITY_ACCESS_KEY` or `GRADLE_ENTERPRISE_ACCESS_KEY`. In this case, the environment variable value will be replaced by 
+a short-lived access token, thus hiding the long-lived access key from subsequent steps.
+
+```yaml
+env:
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
+
+jobs:
+  build-with-gradle:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    # The build will automatically use a short-lived access token to authenticate with Develocity
+    - name: Run a Gradle build that is configured to publish to Develocity.
+      run: ./gradlew build
+```
+
+### Failure to obtain a short-lived access token
+
+If a short-lived token cannot be retrieved (for example, if the Develocity server version is lower than `2024.1`):
+ - If the access key is provided via `develocity-access-key`, then no access token is set and authentication with Develocity will not succeed.
+ - If the access key is provided via an environment variable, a warning will be logged and the environment variable will be left as-is. 
+   This can result in long-lived access keys being unintentionally exposed to other workflow steps.
+For more information on short-lived tokens, see [Develocity API documentation](https://docs.gradle.com/develocity/api-manual/#short_lived_access_tokens).
+
+## Develocity plugin injection
+
+The `setup-gradle` action provides support for transparently injecting and configuring the Develocity Gradle plugin into any Gradle build, 
+without any modification to the project sources. This allows Build Scans to be published for a repository without any changes to the project sources.
+
+Develocity injection is achieved via an init-script installed into Gradle User Home, which is enabled and parameterized via environment variables.
 
 The same auto-injection behavior is available for the Common Custom User Data Gradle plugin, which enriches any build scans published with additional useful information.
 
-## Enabling Develocity injection
+### Enabling Develocity injection
 
 To enable Develocity injection for your build, you must provide the required configuration via inputs.
 
@@ -770,14 +846,7 @@ In the likely scenario that your Develocity server requires authentication, you 
 
 This access key will be used during the action execution to get a short-lived token and set it to the DEVELOCITY_ACCESS_KEY environment variable.
 
-### Short-lived access tokens
-Develocity access keys are long-lived, creating risks if they are leaked. To avoid this, users can use short-lived access tokens to authenticate with Develocity. Access tokens can be used wherever an access key would be used. Access tokens are only valid for the Develocity instance that created them.
-If a short-lived token fails to be retrieved (for example, if the Develocity server version is lower than `2024.1`):
- - if a `GRADLE_ENTERPRISE_ACCESS_KEY` env var has been set, we're falling back to it with a deprecation warning
- - otherwise no access key env var will be set. In that case Develocity authenticated operations like build cache read/write and build scan publication will fail without failing the build.
-For more information on short-lived tokens, see [Develocity API documentation](https://docs.gradle.com/develocity/api-manual/#short_lived_access_tokens).
-
-## Configuring Develocity injection
+### Configuring Develocity injection
 
 The `init-script` supports several additional configuration parameters that you may find useful. All configuration options (required and optional) are detailed below:
 
@@ -821,26 +890,9 @@ Here's an example using the env vars:
       env:
         DEVELOCITY_INJECTION_ENABLED: true
         DEVELOCITY_URL: https://develocity.your-server.com
-        DEVELOCITY_PLUGIN_VERSION: 3.18
-```
-
-## Publishing to scans.gradle.com
-
-Develocity injection is designed to enable the publishing of build scans to a Develocity instance,
-but is also useful for publishing to the public Build Scans instance (https://scans.gradle.com).
-
-To publish to https://scans.gradle.com, you must specify in your workflow that you accept the [Gradle Terms of Use](https://gradle.com/help/legal-terms-of-use).
-
-```yaml
-    - name: Setup Gradle to publish build scans
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        build-scan-publish: true
-        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
-        build-scan-terms-of-use-agree: "yes"
-
-    - name: Run a Gradle build - a build scan will be published automatically
-      run: ./gradlew build
+        DEVELOCITY_ENFORCE_URL: true
+        DEVELOCITY_PLUGIN_VERSION: "3.18"
+        DEVELOCITY_CCUD_PLUGIN_VERSION: "2.0.2"
 ```
 
 # Dependency verification
