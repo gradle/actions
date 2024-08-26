@@ -57,11 +57,11 @@ The `setup-gradle` action can download and install a specified Gradle version, a
 Downloaded Gradle versions are stored in the GitHub Actions cache, to avoid having to download them again later.
 
 ```yaml
- - name: Setup Gradle 8.5
+ - name: Setup Gradle 8.10
    uses: gradle/actions/setup-gradle@v4
    with:
-     gradle-version: 8.5
-  - name: Build with Gradle 8.5
+     gradle-version: "8.10" # Quotes required to prevent YAML converting to number
+  - name: Build with Gradle 8.10
     run: gradle build
 ```
 
