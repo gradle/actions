@@ -94,3 +94,20 @@ jobs:
     - name: Run build
       working-directory: .github/workflow-samples/groovy-dsl
       run: ./gradlew assemble
+
+  cache-read-only:
+    needs: build-distribution
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-read-only: true
+    - name: Build kotlin-dsl project
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew assemble
