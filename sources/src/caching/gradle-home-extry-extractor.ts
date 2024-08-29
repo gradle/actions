@@ -2,7 +2,6 @@ import path from 'path'
 import fs from 'fs'
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
-import * as semver from 'semver'
 
 import {CacheEntryListener, CacheListener} from './cache-reporting'
 import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCache, tryDelete} from './cache-utils'
@@ -10,6 +9,7 @@ import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCa
 import {BuildResult, loadBuildResults} from '../build-results'
 import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
 import {getCacheKeyBase} from './cache-key'
+import { versionIsAtLeast } from '../execution/gradle'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
 const CACHE_PROTOCOL_VERSION = 'v1'
@@ -434,8 +434,7 @@ export class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
             // If any associated build result used Gradle < 8.6, then mark it as not cacheable
             if (
                 pathResults.find(result => {
-                    const gradleVersion = semver.coerce(result.gradleVersion)
-                    return gradleVersion && semver.lt(gradleVersion, '8.6.0')
+                    return !versionIsAtLeast(result.gradleVersion, '8.6.0')
                 })
             ) {
                 core.info(
