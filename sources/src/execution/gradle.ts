@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 
+import which from 'which'
 import * as semver from 'semver'
-
 import * as provisioner from './provision'
 import * as gradlew from './gradlew'
 
@@ -47,4 +47,28 @@ export function versionIsAtLeast(actualVersion: string, requiredVersion: string)
     } else {
         return semver.gte(actualSemver, comparisonSemver)
     }
+}
+
+export async function findGradleVersionOnPath(): Promise<GradleExecutable | undefined> {
+    const gradleExecutable = await which('gradle', {nothrow: true})
+    if (gradleExecutable) {
+        const output = await exec.getExecOutput(gradleExecutable, ['-v'], {silent: true})
+        const version = parseGradleVersionFromOutput(output.stdout)
+        return version ? new GradleExecutable(version, gradleExecutable) : undefined
+    }
+
+    return undefined
+}
+
+export function parseGradleVersionFromOutput(output: string): string | undefined {
+    const regex = /Gradle (\d+\.\d+(\.\d+)?(-.*)?)/
+    const versionString = output.match(regex)?.[1]
+    return versionString
+}
+
+class GradleExecutable {
+    constructor(
+        readonly version: string,
+        readonly executable: string
+    ) {}
 }

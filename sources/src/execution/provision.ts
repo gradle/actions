@@ -1,13 +1,12 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import which from 'which'
 import * as httpm from '@actions/http-client'
 import * as core from '@actions/core'
 import * as cache from '@actions/cache'
-import * as exec from '@actions/exec'
 import * as toolCache from '@actions/tool-cache'
 
+import {findGradleVersionOnPath, versionIsAtLeast} from './gradle'
 import * as gradlew from './gradlew'
 import {handleCacheFailure} from '../caching/cache-utils'
 import {CacheConfig} from '../configuration'
@@ -24,6 +23,16 @@ export async function provisionGradle(gradleVersion: string): Promise<string | u
     }
 
     return undefined
+}
+
+/**
+ * Ensure that the Gradle version on PATH is no older than the specified version.
+ * If the version on PATH is older, install the specified version and add it to the PATH.
+ * @return Installed Gradle executable or undefined if no version configured.
+ */
+export async function provisionGradleAtLeast(gradleVersion: string): Promise<string> {
+    const installedVersion = await installGradleVersionAtLeast(await gradleRelease(gradleVersion))
+    return addToPath(installedVersion)
 }
 
 async function addToPath(executable: string): Promise<string> {
@@ -51,7 +60,7 @@ async function resolveGradleVersion(version: string): Promise<GradleVersionInfo>
         case 'release-nightly':
             return gradleReleaseNightly()
         default:
-            return gradle(version)
+            return gradleRelease(version)
     }
 }
 
@@ -76,7 +85,7 @@ async function gradleReleaseNightly(): Promise<GradleVersionInfo> {
     return await gradleVersionDeclaration(`${gradleVersionsBaseUrl}/release-nightly`)
 }
 
-async function gradle(version: string): Promise<GradleVersionInfo> {
+async function gradleRelease(version: string): Promise<GradleVersionInfo> {
     const versionInfo = await findGradleVersionDeclaration(version)
     if (!versionInfo) {
         throw new Error(`Gradle version ${version} does not exists`)
@@ -97,10 +106,24 @@ async function findGradleVersionDeclaration(version: string): Promise<GradleVers
 
 async function installGradleVersion(versionInfo: GradleVersionInfo): Promise<string> {
     return core.group(`Provision Gradle ${versionInfo.version}`, async () => {
-        const preInstalledGradle = await findGradleVersionOnPath(versionInfo)
-        if (preInstalledGradle !== undefined) {
+        const gradleOnPath = await findGradleVersionOnPath()
+        if (gradleOnPath?.version === versionInfo.version) {
             core.info(`Gradle version ${versionInfo.version} is already available on PATH. Not installing.`)
-            return preInstalledGradle
+            return gradleOnPath.executable
+        }
+
+        return locateGradleAndDownloadIfRequired(versionInfo)
+    })
+}
+
+async function installGradleVersionAtLeast(versionInfo: GradleVersionInfo): Promise<string> {
+    return core.group(`Provision Gradle >= ${versionInfo.version}`, async () => {
+        const gradleOnPath = await findGradleVersionOnPath()
+        if (gradleOnPath && versionIsAtLeast(gradleOnPath.version, versionInfo.version)) {
+            core.info(
+                `Gradle version ${gradleOnPath.version} is available on PATH and >= ${versionInfo.version}. Not installing.`
+            )
+            return gradleOnPath.executable
         }
 
         return locateGradleAndDownloadIfRequired(versionInfo)
@@ -191,16 +214,4 @@ async function httpGetString(url: string): Promise<string> {
 interface GradleVersionInfo {
     version: string
     downloadUrl: string
-}
-
-async function findGradleVersionOnPath(versionInfo: GradleVersionInfo): Promise<string | undefined> {
-    const gradleExecutable = await which('gradle', {nothrow: true})
-    if (gradleExecutable) {
-        const output = await exec.getExecOutput(gradleExecutable, ['-v'], {silent: true})
-        if (output.stdout.includes(`\nGradle ${versionInfo.version}\n`)) {
-            return gradleExecutable
-        }
-    }
-
-    return undefined
 }

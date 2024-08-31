@@ -55,11 +55,12 @@ export class CacheCleaner {
         )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
 
-        const executable = await provisioner.provisionGradle('current')
+        // Gradle >= 8.9 required for cache cleanup
+        const executable = await provisioner.provisionGradleAtLeast('8.9')
 
         await core.group('Executing Gradle to clean up caches', async () => {
             core.info(`Cleaning up caches last used before ${cleanTimestamp}`)
-            await this.executeCleanupBuild(executable!, cleanupProjectDir)
+            await this.executeCleanupBuild(executable, cleanupProjectDir)
         })
     }
 

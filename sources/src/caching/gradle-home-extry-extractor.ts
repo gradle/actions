@@ -9,7 +9,7 @@ import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCa
 import {BuildResult, loadBuildResults} from '../build-results'
 import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
 import {getCacheKeyBase} from './cache-key'
-import { versionIsAtLeast } from '../execution/gradle'
+import {versionIsAtLeast} from '../execution/gradle'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
 const CACHE_PROTOCOL_VERSION = 'v1'
