@@ -72,7 +72,7 @@ class ShortLivedTokenClient {
     retryInterval = 1000
 
     async fetchToken(serverUrl: string, accessKey: HostnameAccessKey, expiry: string): Promise<HostnameAccessKey> {
-        const queryParams = expiry ? `?expiresInHours${expiry}` : ''
+        const queryParams = expiry ? `?expiresInHours=${expiry}` : ''
         const sanitizedServerUrl = !serverUrl.endsWith('/') ? `${serverUrl}/` : serverUrl
         const headers = {
             'Content-Type': 'application/json',

@@ -114,4 +114,14 @@ describe('short lived tokens', () => {
             .resolves
             .toBeNull()
     })
+
+    it('get short lived token with custom expiry', async () => {
+        nock('https://dev')
+            .post('/api/auth/token?expiresInHours=4')
+            .reply(200, 'token')
+        expect.assertions(1)
+        await expect(getToken('dev=key1', '4'))
+            .resolves
+            .toEqual({"keys": [{"hostname": "dev", "key": "token"}]})
+    })
 })
