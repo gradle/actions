@@ -60,7 +60,8 @@ export class GradleUserHomeCache {
     restoreKeys:[${cacheKey.restoreKeys}]`
         )
 
-        const cacheResult = await restoreCache(this.getCachePath(), cacheKey.key, cacheKey.restoreKeys, entryListener)
+        const cachePath = this.getCachePath()
+        const cacheResult = await restoreCache(cachePath, cacheKey.key, cacheKey.restoreKeys, entryListener)
         if (!cacheResult) {
             core.info(`${this.cacheDescription} cache not found. Will initialize empty.`)
             return
@@ -68,7 +69,9 @@ export class GradleUserHomeCache {
 
         core.saveState(RESTORED_CACHE_KEY_KEY, cacheResult.key)
 
-        core.info(`Restored ${this.cacheDescription} from cache key: ${cacheResult.key}`)
+        core.info(
+            `Restored ${this.cacheDescription} with key ${cacheResult.key} to ${cachePath.join()} in ${entryListener.restoredTime}ms`
+        )
 
         try {
             await this.afterRestore(listener)
@@ -120,9 +123,11 @@ export class GradleUserHomeCache {
             return
         }
 
-        core.info(`Caching ${this.cacheDescription} with cache key: ${cacheKey}`)
         const cachePath = this.getCachePath()
         await saveCache(cachePath, cacheKey, gradleHomeEntryListener)
+        core.info(
+            `Saved ${this.cacheDescription} with key ${cacheKey} from ${cachePath.join()} in ${gradleHomeEntryListener.savedTime}ms`
+        )
 
         return
     }

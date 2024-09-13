@@ -1,3 +1,4 @@
+import exp from 'constants'
 import {CacheEntryListener, CacheListener} from '../../src/caching/cache-reporting'
 
 describe('caching report', () => {
@@ -5,7 +6,7 @@ describe('caching report', () => {
         it('with one requested entry report', async () => {
             const report = new CacheListener()
             report.entry('foo').markRequested('1', ['2'])
-            report.entry('bar').markRequested('3').markRestored('4', 500)
+            report.entry('bar').markRequested('3').markRestored('4', 500, 1000)
             expect(report.fullyRestored).toBe(false)
         })
     })
@@ -22,13 +23,13 @@ describe('caching report', () => {
         })
         it('with restored entry report', async () => {
             const report = new CacheListener()
-            report.entry('bar').markRequested('3').markRestored('4', 300)
+            report.entry('bar').markRequested('3').markRestored('4', 300, 1000)
             expect(report.fullyRestored).toBe(true)
         })
         it('with multiple restored entry reportss', async () => {
             const report = new CacheListener()
-            report.entry('foo').markRestored('4', 3300)
-            report.entry('bar').markRequested('3').markRestored('4', 333)
+            report.entry('foo').markRestored('4', 3300, 111)
+            report.entry('bar').markRequested('3').markRestored('4', 333, 1000)
             expect(report.fullyRestored).toBe(true)
         })
     })
@@ -64,7 +65,7 @@ describe('caching report', () => {
             const report = new CacheListener()
             const entryReport = report.entry('foo')
             entryReport.markRequested('1', ['2', '3'])
-            entryReport.markSaved('4', 100)
+            entryReport.markSaved('4', 100, 1000)
 
             const stringRep = report.stringify()
             const reportClone: CacheListener = CacheListener.rehydrate(stringRep)
@@ -73,6 +74,8 @@ describe('caching report', () => {
             expect(entryClone.requestedKey).toBe('1')
             expect(entryClone.requestedRestoreKeys).toEqual(['2', '3'])
             expect(entryClone.savedKey).toBe('4')
+            expect(entryClone.savedSize).toBe(100)
+            expect(entryClone.savedTime).toBe(1000)
         })
         it('with live entry report', async () => {
             const report = new CacheListener()
@@ -85,7 +88,7 @@ describe('caching report', () => {
 
             // Check type and call method on rehydrated entry report
             expect(entryClone).toBeInstanceOf(CacheEntryListener)
-            entryClone.markSaved('4', 100)
+            entryClone.markSaved('4', 100, 1000)
 
             expect(entryClone.requestedKey).toBe('1')
             expect(entryClone.requestedRestoreKeys).toEqual(['2', '3'])

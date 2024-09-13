@@ -110,10 +110,12 @@ export class CacheEntryListener {
     requestedRestoreKeys: string[] | undefined
     restoredKey: string | undefined
     restoredSize: number | undefined
+    restoredTime: number | undefined
     notRestored: string | undefined
 
     savedKey: string | undefined
     savedSize: number | undefined
+    savedTime: number | undefined
     notSaved: string | undefined
 
     constructor(entryName: string) {
@@ -130,9 +132,10 @@ export class CacheEntryListener {
         return this
     }
 
-    markRestored(key: string, size: number | undefined): CacheEntryListener {
+    markRestored(key: string, size: number | undefined, time: number): CacheEntryListener {
         this.restoredKey = key
         this.restoredSize = size
+        this.restoredTime = time
         return this
     }
 
@@ -141,9 +144,10 @@ export class CacheEntryListener {
         return this
     }
 
-    markSaved(key: string, size: number | undefined): CacheEntryListener {
+    markSaved(key: string, size: number | undefined, time: number): CacheEntryListener {
         this.savedKey = key
         this.savedSize = size
+        this.savedTime = time
         return this
     }
 
@@ -182,14 +186,16 @@ ${renderEntryTable(entries)}
 function renderEntryTable(entries: CacheEntryListener[]): string {
     return `
 <table>
-    <tr><td></td><th>Count</th><th>Total Size (Mb)</th></tr>
+    <tr><td></td><th>Count</th><th>Total Size (Mb)</th><th>Total Time (ms)</tr>
     <tr><td>Entries Restored</td>
         <td>${getCount(entries, e => e.restoredSize)}</td>
         <td>${getSize(entries, e => e.restoredSize)}</td>
+        <td>${getTime(entries, e => e.restoredTime)}</td>
     </tr>
     <tr><td>Entries Saved</td>
         <td>${getCount(entries, e => e.savedSize)}</td>
         <td>${getSize(entries, e => e.savedSize)}</td>
+        <td>${getTime(entries, e => e.savedTime)}</td>
     </tr>
 </table>
     `
@@ -202,9 +208,11 @@ function renderEntryDetails(listener: CacheListener): string {
     Requested Key : ${entry.requestedKey ?? ''}
     Restored  Key : ${entry.restoredKey ?? ''}
               Size: ${formatSize(entry.restoredSize)}
+              Time: ${formatTime(entry.restoredTime)}
               ${getRestoredMessage(entry, listener.cacheWriteOnly)}
     Saved     Key : ${entry.savedKey ?? ''}
               Size: ${formatSize(entry.savedSize)}
+              Time: ${formatTime(entry.savedTime)}
               ${getSavedMessage(entry, listener.cacheReadOnly)}
 `
         )
@@ -264,9 +272,23 @@ function getSize(
     return Math.round(bytes / (1024 * 1024))
 }
 
+function getTime(
+    cacheEntries: CacheEntryListener[],
+    predicate: (value: CacheEntryListener) => number | undefined
+): number {
+    return cacheEntries.map(e => predicate(e) ?? 0).reduce((p, v) => p + v, 0)
+}
+
 function formatSize(bytes: number | undefined): string {
     if (bytes === undefined || bytes === 0) {
         return ''
     }
     return `${Math.round(bytes / (1024 * 1024))} MB (${bytes} B)`
+}
+
+function formatTime(ms: number | undefined): string {
+    if (ms === undefined || ms === 0) {
+        return ''
+    }
+    return `${ms} ms`
 }
