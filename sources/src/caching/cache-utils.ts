@@ -38,13 +38,14 @@ export async function restoreCache(
 ): Promise<cache.CacheEntry | undefined> {
     listener.markRequested(cacheKey, cacheRestoreKeys)
     try {
+        const startTime = Date.now()
         // Only override the read timeout if the SEGMENT_DOWNLOAD_TIMEOUT_MINS env var has NOT been set
         const cacheRestoreOptions = process.env[SEGMENT_DOWNLOAD_TIMEOUT_VAR]
             ? {}
             : {segmentTimeoutInMs: SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT}
         const restoredEntry = await cache.restoreCache(cachePath, cacheKey, cacheRestoreKeys, cacheRestoreOptions)
         if (restoredEntry !== undefined) {
-            listener.markRestored(restoredEntry.key, restoredEntry.size)
+            listener.markRestored(restoredEntry.key, restoredEntry.size, Date.now() - startTime)
         }
         return restoredEntry
     } catch (error) {
@@ -56,8 +57,9 @@ export async function restoreCache(
 
 export async function saveCache(cachePath: string[], cacheKey: string, listener: CacheEntryListener): Promise<void> {
     try {
+        const startTime = Date.now()
         const savedEntry = await cache.saveCache(cachePath, cacheKey)
-        listener.markSaved(savedEntry.key, savedEntry.size)
+        listener.markSaved(savedEntry.key, savedEntry.size, Date.now() - startTime)
     } catch (error) {
         if (error instanceof cache.ReserveCacheError) {
             listener.markAlreadyExists(cacheKey)
