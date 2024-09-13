@@ -69,10 +69,6 @@ export class GradleUserHomeCache {
 
         core.saveState(RESTORED_CACHE_KEY_KEY, cacheResult.key)
 
-        core.info(
-            `Restored ${this.cacheDescription} with key ${cacheResult.key} to ${cachePath.join()} in ${entryListener.restoredTime}ms`
-        )
-
         try {
             await this.afterRestore(listener)
         } catch (error) {
@@ -125,10 +121,6 @@ export class GradleUserHomeCache {
 
         const cachePath = this.getCachePath()
         await saveCache(cachePath, cacheKey, gradleHomeEntryListener)
-        core.info(
-            `Saved ${this.cacheDescription} with key ${cacheKey} from ${cachePath.join()} in ${gradleHomeEntryListener.savedTime}ms`
-        )
-
         return
     }
 

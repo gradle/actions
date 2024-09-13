@@ -45,7 +45,9 @@ export async function restoreCache(
             : {segmentTimeoutInMs: SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT}
         const restoredEntry = await cache.restoreCache(cachePath, cacheKey, cacheRestoreKeys, cacheRestoreOptions)
         if (restoredEntry !== undefined) {
-            listener.markRestored(restoredEntry.key, restoredEntry.size, Date.now() - startTime)
+            const restoreTime = Date.now() - startTime
+            listener.markRestored(restoredEntry.key, restoredEntry.size, restoreTime)
+            core.info(`Restored cache entry with key ${cacheKey} to ${cachePath.join()} in ${restoreTime}ms`)
         }
         return restoredEntry
     } catch (error) {
@@ -59,7 +61,9 @@ export async function saveCache(cachePath: string[], cacheKey: string, listener:
     try {
         const startTime = Date.now()
         const savedEntry = await cache.saveCache(cachePath, cacheKey)
-        listener.markSaved(savedEntry.key, savedEntry.size, Date.now() - startTime)
+        const saveTime = Date.now() - startTime
+        listener.markSaved(savedEntry.key, savedEntry.size, saveTime)
+        core.info(`Saved cache entry with key ${cacheKey} from ${cachePath.join()} in ${saveTime}ms`)
     } catch (error) {
         if (error instanceof cache.ReserveCacheError) {
             listener.markAlreadyExists(cacheKey)
