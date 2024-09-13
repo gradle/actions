@@ -1,5 +1,7 @@
 # GitHub Actions for Gradle builds
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/gradle/actions/badge)](https://scorecard.dev/viewer/?uri=github.com/gradle/actions)
+
 This repository contains a set of GitHub Actions that are useful for building Gradle projects on GitHub.
 
 ## The `setup-gradle` action
