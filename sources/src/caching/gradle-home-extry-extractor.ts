@@ -134,7 +134,7 @@ abstract class AbstractEntryExtractor {
     ): Promise<ExtractedCacheEntry> {
         const restoredEntry = await restoreCache([pattern], cacheKey, [], listener)
         if (restoredEntry) {
-            core.info(`Restored ${artifactType} with key ${cacheKey} to ${pattern}`)
+            core.info(`Restored ${artifactType} with key ${cacheKey} to ${pattern} in ${listener.restoredTime}ms`)
             return new ExtractedCacheEntry(artifactType, pattern, cacheKey)
         } else {
             core.info(`Did not restore ${artifactType} with key ${cacheKey} to ${pattern}`)
@@ -232,8 +232,8 @@ abstract class AbstractEntryExtractor {
             cacheDebug(`No change to previously restored ${artifactType}. Not saving.`)
             entryListener.markNotSaved('contents unchanged')
         } else {
-            core.info(`Caching ${artifactType} with path '${pattern}' and cache key: ${cacheKey}`)
             await saveCache([pattern], cacheKey, entryListener)
+            core.info(`Saved ${artifactType} with key ${cacheKey} from ${pattern} in ${entryListener.savedTime}ms`)
         }
 
         for (const file of matchingFiles) {
