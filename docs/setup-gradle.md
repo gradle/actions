@@ -753,7 +753,8 @@ To publish to https://scans.gradle.com, you must specify in your workflow that y
 ## Managing Develocity access keys
 
 Develocity access keys are long-lived, creating risks if they are leaked. To mitigate this risk this, 
-the `setup-gradle` action can automatically attempt to obtain a short-lived access token to authenticate with Develocity. 
+the `setup-gradle` action can automatically attempt to obtain a [short-lived access token](https://docs.gradle.com/develocity/gradle-plugin/current/#short_lived_access_tokens)
+to use when authenticating with Develocity. 
 The short-lived access token will then be used wherever a Develocity access key is required.
 
 ```yaml
@@ -765,6 +766,21 @@ The short-lived access token will then be used wherever a Develocity access key 
     # Subsequent steps will automatically use a short-lived access token to authenticate with Develocity
     - name: Run a Gradle build that is configured to publish to Develocity.
       run: ./gradlew build
+```
+
+### Increasing the expiry time for Develocity access tokens
+
+By default, a short-lived Develocity access token will be valid for 2 hours from the time it is generated. If your workflows take longer than
+2 hours to complete, you may see failure to publish Build Scans due to access token expiry.
+
+To avoid this, use the `develocity-token-expiry` parameter to specify a different token expiry in hours.
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
+        develocity-token-expiry: 8 # The number of hours that the access token should remain valid (max 24).
 ```
 
 ### Develocity access key supplied as environment variable
