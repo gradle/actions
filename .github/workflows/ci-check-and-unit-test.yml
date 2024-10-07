@@ -23,6 +23,12 @@ jobs:
         node-version: 20
         cache: npm
         cache-dependency-path: sources/package-lock.json
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4 # Use a released version to avoid breakages
+      env:
+        ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
+      with:
+        gradle-version: "8.10.2"
 
     - name: Check formatting and compile
       run: |
