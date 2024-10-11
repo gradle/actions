@@ -18,9 +18,14 @@ async function recursivelyListFiles(baseDir: string): Promise<string[]> {
     const childrenPaths = await Promise.all(
         childrenNames.map(async childName => {
             const childPath = path.resolve(baseDir, childName)
-            return fs.lstatSync(childPath).isDirectory()
-                ? recursivelyListFiles(childPath)
-                : new Promise(resolve => resolve([childPath]))
+            const stat = fs.lstatSync(childPath, {throwIfNoEntry: false})
+            if (stat === undefined) {
+                return []
+            } else if (stat.isDirectory()) {
+                return recursivelyListFiles(childPath)
+            } else {
+                return new Promise(resolve => resolve([childPath]))
+            }
         })
     )
     return Array.prototype.concat(...childrenPaths)
