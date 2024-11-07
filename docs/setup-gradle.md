@@ -502,7 +502,7 @@ jobs:
       if: always()
       with:
         name: build-reports
-        path: build/reports/
+        path: **/build/reports/
 ```
 
 ### Use of custom init-scripts in Gradle User Home
