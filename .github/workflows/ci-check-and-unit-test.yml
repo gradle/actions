@@ -28,7 +28,7 @@ jobs:
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
       with:
-        gradle-version: "8.10.2"
+        gradle-version: "8.11"
 
     - name: Check formatting and compile
       run: |

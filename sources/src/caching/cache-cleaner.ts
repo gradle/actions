@@ -44,19 +44,20 @@ export class CacheCleaner {
                 settings.caches {
                     cleanup = Cleanup.ALWAYS
             
-                    releasedWrappers.removeUnusedEntriesOlderThan.set(cleanupTime)
-                    snapshotWrappers.removeUnusedEntriesOlderThan.set(cleanupTime)
-                    downloadedResources.removeUnusedEntriesOlderThan.set(cleanupTime)
-                    createdResources.removeUnusedEntriesOlderThan.set(cleanupTime)
-                    buildCache.removeUnusedEntriesOlderThan.set(cleanupTime)
+                    releasedWrappers.setRemoveUnusedEntriesOlderThan(cleanupTime)
+                    snapshotWrappers.setRemoveUnusedEntriesOlderThan(cleanupTime)
+                    downloadedResources.setRemoveUnusedEntriesOlderThan(cleanupTime)
+                    createdResources.setRemoveUnusedEntriesOlderThan(cleanupTime)
+                    buildCache.setRemoveUnusedEntriesOlderThan(cleanupTime)
                 }
             }
             `
         )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
 
-        // Gradle >= 8.9 required for cache cleanup
-        const executable = await provisioner.provisionGradleAtLeast('8.9')
+        // Gradle >= 8.11 required for cache cleanup
+        // TODO: This is ineffective: we should be using the newest version of Gradle that ran a build, or a newer version if it's available on PATH.
+        const executable = await provisioner.provisionGradleAtLeast('8.11')
 
         await core.group('Executing Gradle to clean up caches', async () => {
             core.info(`Cleaning up caches last used before ${cleanTimestamp}`)
@@ -78,11 +79,8 @@ export class CacheCleaner {
             'noop'
         ]
 
-        const result = await exec.getExecOutput(executable, args, {
-            cwd: cleanupProjectDir,
-            silent: true
+        await exec.exec(executable, args, {
+            cwd: cleanupProjectDir
         })
-
-        core.info(result.stdout)
     }
 }
