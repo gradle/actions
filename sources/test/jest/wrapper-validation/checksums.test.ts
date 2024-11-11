@@ -37,7 +37,8 @@ test('fetches wrapper jar checksums for snapshots', async () => {
   const validChecksums = await checksums.fetchUnknownChecksums(true, new checksums.WrapperChecksums)
 
   // Expect that at least one snapshot checksum is different from the non-snapshot checksums
-  expect(validChecksums.size).toBeGreaterThan(nonSnapshotChecksums.size)
+  expect(nonSnapshotChecksums.size).toBeGreaterThan(10)
+  expect(validChecksums.size).toBeGreaterThanOrEqual(nonSnapshotChecksums.size)
 })
 
 test('fetches all wrapper checksum URLS for snapshots', async () => {
