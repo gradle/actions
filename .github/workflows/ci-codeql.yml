@@ -6,13 +6,9 @@ on:
     - 'main'
     - 'release/**'
     - 'dev/**' # Allow running Code QL on dev branches without a PR
-    paths-ignore:
-    - 'dist/**'
   pull_request:
     branches:
     - 'main'
-    paths-ignore:
-    - 'dist/**'
   schedule:
     - cron: '25 23 * * 2'
 
