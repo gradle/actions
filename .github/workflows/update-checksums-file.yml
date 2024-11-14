@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install typed-rest-client@1.8.11 --no-save
+          npm clean-install typed-rest-client@1.8.11 --no-save
         working-directory: sources
 
       - name: Update checksums file
