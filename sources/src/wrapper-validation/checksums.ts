@@ -38,7 +38,7 @@ export const KNOWN_CHECKSUMS = loadKnownChecksums()
 export async function fetchUnknownChecksums(
     allowSnapshots: boolean,
     knownChecksums: WrapperChecksums
-): Promise<Set<string>> {
+): Promise<WrapperChecksums> {
     const all = await httpGetJsonArray('https://services.gradle.org/versions/all')
     const withChecksum = all.filter(
         entry => typeof entry === 'object' && entry != null && entry.hasOwnProperty('wrapperChecksumUrl')
@@ -51,20 +51,21 @@ export async function fetchUnknownChecksums(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (entry: any) => !knownChecksums.versions.has(entry.version)
     )
-    const checksumUrls = notKnown.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (entry: any) => entry.wrapperChecksumUrl as string
-    )
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const checksumUrls = notKnown.map((entry: any) => [entry.version, entry.wrapperChecksumUrl] as [string, string])
     if (allowSnapshots) {
-        await addDistributionSnapshotChecksums(checksumUrls)
+        await addDistributionSnapshotChecksumUrls(checksumUrls)
     }
-    const checksums = await Promise.all(
-        checksumUrls.map(async (url: string) => {
-            // console.log(`Fetching checksum from ${url}`)
-            return httpGetText(url)
+
+    const wrapperChecksums = new WrapperChecksums()
+    await Promise.all(
+        checksumUrls.map(async ([version, url]) => {
+            const checksum = await httpGetText(url)
+            wrapperChecksums.add(version, checksum)
         })
     )
-    return new Set(checksums)
+    return wrapperChecksums
 }
 
 async function httpGetJsonArray(url: string): Promise<unknown[]> {
@@ -76,21 +77,20 @@ async function httpGetText(url: string): Promise<string> {
     return await response.readBody()
 }
 
-// Public for testing
-export async function addDistributionSnapshotChecksums(checksumUrls: string[]): Promise<void> {
-    // Load the index page of the distribution snapshot repository
+async function addDistributionSnapshotChecksumUrls(checksumUrls: [string, string][]): Promise<void> {
+    // Load the index page of the distribution snapshot repository into cheerio
     const indexPage = await httpGetText('https://services.gradle.org/distributions-snapshots/')
-
-    // // Extract all wrapper checksum from the index page. These end in -wrapper.jar.sha256
-    // // Load the HTML into cheerio
     const $ = cheerio.load(indexPage)
 
     // // Find all links ending with '-wrapper.jar.sha256'
     const wrapperChecksumLinks = $('a[href$="-wrapper.jar.sha256"]')
-
-    // build the absolute URL for each wrapper checksum
     wrapperChecksumLinks.each((index, element) => {
-        const url = $(element).attr('href')
-        checksumUrls.push(`https://services.gradle.org${url}`)
+        const url = $(element).attr('href')!
+
+        // Extract the version from the url
+        const version = url.match(/\/distributions-snapshots\/gradle-(.*?)-wrapper\.jar\.sha256/)?.[1]
+        if (version) {
+            checksumUrls.push([version, `https://services.gradle.org${url}`])
+        }
     })
 }
