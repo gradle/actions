@@ -7,11 +7,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   update-checksums:
+    permissions:
+      contents: write
+      pull-requests: write
     name: Update checksums
     runs-on: ubuntu-latest
 

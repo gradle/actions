@@ -13,16 +13,18 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
-
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-submission-${{ inputs.cache-key-prefix }}
   GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
+permissions:
+  contents: read
+
 jobs:
   dependency-submission-groovy-generate-and-upload:
+    permissions:
+      contents: write
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -45,6 +47,8 @@ jobs:
         GRADLE_BUILD_ACTION_CACHE_KEY_JOB: groovy-dependency-submission
 
   dependency-submission-groovy-restore-cache:
+    permissions:
+      contents: write
     needs: [dependency-submission-groovy-generate-and-upload]
     strategy:
       max-parallel: 1
@@ -67,6 +71,8 @@ jobs:
         GRADLE_BUILD_ACTION_CACHE_KEY_JOB: groovy-dependency-submission
 
   dependency-submission-groovy-download-and-submit:
+    permissions:
+      contents: write
     needs: [dependency-submission-groovy-generate-and-upload]
     strategy:
       max-parallel: 1
@@ -88,6 +94,8 @@ jobs:
         DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: groovy-generate-and-upload-${{ matrix.os }}
 
   dependency-submission-kotlin-generate-and-submit:
+    permissions:
+      contents: write
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -106,6 +114,8 @@ jobs:
         build-root-directory: .github/workflow-samples/kotlin-dsl
 
   dependency-submission-multiple-builds:
+    permissions:
+      contents: write
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -152,6 +162,8 @@ jobs:
         fi
 
   dependency-submission-multiple-builds-upload:
+    permissions:
+      contents: write
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -176,6 +188,8 @@ jobs:
         build-root-directory: .github/workflow-samples/groovy-dsl
 
   dependency-submission-config-cache:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
@@ -211,6 +225,8 @@ jobs:
         fi
 
   dependency-submission-gradle-versions:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -235,6 +251,8 @@ jobs:
         build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
 
   dependency-submission-with-setup-gradle:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
@@ -270,6 +288,8 @@ jobs:
         fi
 
   dependency-submission-with-includes-and-excludes:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
@@ -304,6 +324,8 @@ jobs:
 
 
   dependency-submission-custom-report-dir-submit:
+    permissions:
+      contents: write
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -339,6 +361,8 @@ jobs:
         fi
 
   dependency-submission-custom-report-dir-upload:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -355,6 +379,8 @@ jobs:
         build-root-directory: .github/workflow-samples/groovy-dsl
 
   custom-report-dir-download-and-submit:
+    permissions:
+      contents: write
     needs: [dependency-submission-custom-report-dir-upload]
     runs-on: ubuntu-latest
     steps:

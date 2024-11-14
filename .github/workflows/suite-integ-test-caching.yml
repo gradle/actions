@@ -10,6 +10,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   cache-cleanup:
     uses: ./.github/workflows/integ-test-cache-cleanup.yml

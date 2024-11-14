@@ -18,6 +18,9 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-submission-failures-${{ inputs.cache-key-prefix }}
   GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
 
+permissions:
+  contents: read
+
 jobs:
   dependency-submission-failures-failing-build:
     runs-on: ubuntu-latest

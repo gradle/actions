@@ -13,6 +13,9 @@ on:
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
 
+permissions:
+  contents: read
+
 jobs:
   wrapper-validation-setup-gradle:
     strategy:

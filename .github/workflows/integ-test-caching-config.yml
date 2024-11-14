@@ -17,6 +17,9 @@ env:
   SKIP_DIST: ${{ inputs.skip-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: caching-config-${{ inputs.cache-key-prefix }}
 
+permissions:
+  contents: read
+
 jobs:
   caching-config-seed-build:
     strategy:

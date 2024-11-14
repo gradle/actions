@@ -17,6 +17,9 @@ env:
   SKIP_DIST: ${{ inputs.skip-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: detect-java-toolchain-${{ inputs.cache-key-prefix }}
 
+permissions:
+  contents: read
+
 jobs:
   # Test that pre-installed runner JDKs are detected
   detect-toolchains-pre-installed-jdks:

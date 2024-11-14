@@ -6,12 +6,12 @@ on:
     paths:
     - 'dist/**'
 
-permissions:
-  contents: write
-
 concurrency:
   group: integ-test
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   caching-integ-tests:
@@ -25,6 +25,8 @@ jobs:
     secrets: inherit
 
   other-integ-tests:
+    permissions:
+      contents: write
     uses: ./.github/workflows/suite-integ-test-other.yml
     concurrency:
       group: CI-integ-test-full

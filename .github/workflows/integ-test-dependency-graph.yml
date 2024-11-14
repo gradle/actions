@@ -13,13 +13,13 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
-
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: dependency-graph-${{ inputs.cache-key-prefix }}
   GITHUB_DEPENDENCY_GRAPH_REF: 'refs/tags/v0.0.1' # Use a different ref to avoid updating the real dependency graph for the repository
+
+permissions:
+  contents: read
 
 jobs:
   dependency-graph-groovy-upload:
@@ -39,6 +39,8 @@ jobs:
       working-directory: .github/workflow-samples/groovy-dsl
 
   dependency-graph-groovy-submit:
+    permissions:
+      contents: write
     needs: [dependency-graph-groovy-upload]
     runs-on: "ubuntu-latest"
     steps:
@@ -55,6 +57,8 @@ jobs:
         DEPENDENCY_GRAPH_DOWNLOAD_ARTIFACT_NAME: groovy-upload
 
   dependency-graph-kotlin-generate-and-submit:
+    permissions:
+      contents: write
     runs-on: "ubuntu-latest"
     steps:
     - name: Checkout sources
@@ -71,6 +75,8 @@ jobs:
       working-directory: .github/workflow-samples/kotlin-dsl
 
   dependency-graph-multiple-builds:
+    permissions:
+      contents: write
     runs-on: "ubuntu-latest"
     steps:
     - name: Checkout sources
@@ -112,6 +118,8 @@ jobs:
         fi
         
   dependency-graph-config-cache:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest # Test is not compatible with Windows
     steps:
     - name: Checkout sources
