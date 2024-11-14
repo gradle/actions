@@ -39,7 +39,7 @@ jobs:
 
       # If there are no changes, this action will not create a pull request
       - name: Create or update pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v7.0.5
         with:
           branch: bot/wrapper-checksums-update
           commit-message: Update known wrapper checksums
