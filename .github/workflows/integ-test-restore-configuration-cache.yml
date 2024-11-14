@@ -45,7 +45,6 @@ jobs:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         cache-write-only: true # Ensure we start with a clean cache entry
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Groovy build with configuration-cache enabled
       working-directory: .github/workflow-samples/groovy-dsl
       run: gradle test --configuration-cache
@@ -73,7 +72,6 @@ jobs:
         cache-read-only: false
         cache-cleanup: on-success
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Groovy build with configuration-cache enabled
       id: execute
       working-directory: .github/workflow-samples/groovy-dsl
@@ -109,7 +107,6 @@ jobs:
       with:
         cache-read-only: true
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Groovy build with configuration-cache enabled
       id: execute
       working-directory: .github/workflow-samples/groovy-dsl
@@ -147,7 +144,6 @@ jobs:
       with:
         cache-read-only: true
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Check execute Gradle build with configuration cache enabled (but not restored)
       working-directory: .github/workflow-samples/groovy-dsl
       run: gradle test --configuration-cache
@@ -173,7 +169,6 @@ jobs:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         cache-write-only: true # Ensure we start with a clean cache entry
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Execute 'help' with configuration-cache enabled
       working-directory: .github/workflow-samples/kotlin-dsl
       run: gradle help --configuration-cache
@@ -200,7 +195,6 @@ jobs:
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Execute 'test' with configuration-cache enabled
       working-directory: .github/workflow-samples/kotlin-dsl
       run: gradle test --configuration-cache
@@ -228,7 +222,6 @@ jobs:
       with:
         cache-read-only: true
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-        gradle-version: 8.6
     - name: Execute 'test' again with configuration-cache enabled
       id: execute
       working-directory: .github/workflow-samples/kotlin-dsl

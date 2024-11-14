@@ -101,7 +101,7 @@ The exact syntax depends on whether or not your project is configured with the [
 - name: Setup Gradle for a non-wrapper project
   uses: gradle/actions/setup-gradle@v4
   with:
-    gradle-version: "8.10"
+    gradle-version: "8.11"
 
 - name: Assemble the project
   run: gradle assemble
