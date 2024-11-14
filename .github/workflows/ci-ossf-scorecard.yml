@@ -1,4 +1,4 @@
-name: Scorecard supply-chain security
+name: CI-ossf-scorecard
 on:
   schedule:
     - cron: '0 5 * * 1'
