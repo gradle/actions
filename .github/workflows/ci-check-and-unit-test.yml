@@ -33,7 +33,7 @@ jobs:
 
     - name: Check formatting and compile
       run: |
-        npm install
+        npm clean-install
         npm run check
         npm run compile
       working-directory: sources
