@@ -29,7 +29,8 @@ jobs:
         distribution: temurin
         java-version: 11
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4 # Use a released version to avoid breakages
+      # Use a released version to avoid breakages
+      uses: gradle/actions/setup-gradle@473878a77f1b98e2b5ac4af93489d1656a80a5ed # v4.2.0
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
     - name: Run integration tests
