@@ -11,7 +11,7 @@ jobs:
   validation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: gradle/actions/wrapper-validation@v4
         with:
           allow-checksums: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
