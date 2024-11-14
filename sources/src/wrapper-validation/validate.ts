@@ -33,7 +33,7 @@ export async function findInvalidWrapperJars(
             const fetchedValidChecksums = await checksums.fetchUnknownChecksums(allowSnapshots, knownValidChecksums)
 
             for (const wrapperJar of notYetValidatedWrappers) {
-                if (!fetchedValidChecksums.has(wrapperJar.checksum)) {
+                if (!fetchedValidChecksums.checksums.has(wrapperJar.checksum)) {
                     result.invalid.push(wrapperJar)
                 } else {
                     result.valid.push(wrapperJar)

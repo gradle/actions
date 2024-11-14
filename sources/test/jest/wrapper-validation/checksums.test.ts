@@ -4,6 +4,22 @@ import {afterEach, describe, expect, test, jest} from '@jest/globals'
 
 jest.setTimeout(30000)
 
+const CHECKSUM_8_1 = 'ed2c26eba7cfb93cc2b7785d05e534f07b5b48b5e7fc941921cd098628abca58'
+
+function knownChecksumsWithout8_1(): checksums.WrapperChecksums {
+  const knownChecksums = new checksums.WrapperChecksums()
+  // iterate over all known checksums and add them to the knownChecksums object
+  for (const [checksum, versions] of checksums.KNOWN_CHECKSUMS.checksums) {
+    if (checksum !== CHECKSUM_8_1) {
+      for (const version of versions) {
+        knownChecksums.add(version, checksum)
+      }
+    }
+  }
+  return knownChecksums
+}
+
+
 test('has loaded hardcoded wrapper jars checksums', async () => {
   // Sanity check that generated checksums file is not empty and was properly imported
   expect(checksums.KNOWN_CHECKSUMS.checksums.size).toBeGreaterThan(10)
@@ -20,33 +36,23 @@ test('has loaded hardcoded wrapper jars checksums', async () => {
   ).toEqual(new Set(['6.0-rc-1', '6.0-rc-2', '6.0-rc-3', '6.0', '6.0.1']))
 })
 
-test('fetches wrapper jars checksums', async () => {
-  const validChecksums = await checksums.fetchUnknownChecksums(false, new checksums.WrapperChecksums)
-  expect(validChecksums.size).toBeGreaterThan(10)
-  // Verify that checksum of arbitrary version is contained
-  expect(
-    validChecksums.has(
-      // Checksum for version 6.0
-      '28b330c20a9a73881dfe9702df78d4d78bf72368e8906c70080ab6932462fe9e'
-    )
-  ).toBe(true)
+test('fetches wrapper jar checksums that are missing from hardcoded set', async () => {
+  const unknownChecksums = await checksums.fetchUnknownChecksums(false, knownChecksumsWithout8_1())
+
+  expect(unknownChecksums.checksums.size).toEqual(1)
+  expect(unknownChecksums.checksums.has(CHECKSUM_8_1)).toBe(true)
+  expect(unknownChecksums.checksums.get(CHECKSUM_8_1)).toEqual(new Set(['8.1-rc-1', '8.1-rc-2', '8.1-rc-3', '8.1-rc-4', '8.1', '8.1.1']))
 })
 
 test('fetches wrapper jar checksums for snapshots', async () => {
-  const nonSnapshotChecksums = await checksums.fetchUnknownChecksums(false, new checksums.WrapperChecksums)
-  const validChecksums = await checksums.fetchUnknownChecksums(true, new checksums.WrapperChecksums)
+  const knownChecksums = knownChecksumsWithout8_1()
+  const nonSnapshotChecksums = await checksums.fetchUnknownChecksums(false, knownChecksums)
+  const allValidChecksums = await checksums.fetchUnknownChecksums(true, knownChecksums)
 
-  // Expect that at least one snapshot checksum is different from the non-snapshot checksums
-  expect(nonSnapshotChecksums.size).toBeGreaterThan(10)
-  expect(validChecksums.size).toBeGreaterThanOrEqual(nonSnapshotChecksums.size)
-})
-
-test('fetches all wrapper checksum URLS for snapshots', async () => {
-  const checksumUrls: string[] = []
-  await checksums.addDistributionSnapshotChecksums(checksumUrls)
-
-  expect(checksumUrls.length).toBeGreaterThan(100) // May only be a few unique checksums
-  console.log(checksumUrls)
+  // Should always be many more snapshot versions
+  expect(allValidChecksums.versions.size - nonSnapshotChecksums.versions.size).toBeGreaterThan(20)
+  // May not be any unique snapshot checksums
+  expect(allValidChecksums.checksums.size).toBeGreaterThanOrEqual(nonSnapshotChecksums.checksums.size)
 })
 
 describe('retry', () => {
@@ -65,7 +71,7 @@ describe('retry', () => {
         })
 
       const validChecksums = await checksums.fetchUnknownChecksums(false, new checksums.WrapperChecksums)
-      expect(validChecksums.size).toBeGreaterThan(10)
+      expect(validChecksums.checksums.size).toBeGreaterThan(10)
       nock.isDone()
     })
   })
