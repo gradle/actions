@@ -34,11 +34,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: temurin
-        java-version: 11
     - name: Setup Gradle
       id: setup-gradle
       uses: ./setup-gradle

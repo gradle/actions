@@ -39,11 +39,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -72,11 +67,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -114,11 +104,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -155,11 +140,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle with no extracted cache entries restored
       uses: ./setup-gradle
       env: 
@@ -187,11 +167,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -220,11 +195,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
@@ -253,11 +223,6 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java to ensure consistency
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'liberica'
-        java-version: 17
     - name: Setup Gradle
       uses: ./setup-gradle
       with:
