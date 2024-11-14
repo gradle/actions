@@ -18,6 +18,9 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-gradle-home-${{ inputs.cache-key-prefix }}
   GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-gradle-home
 
+permissions:
+  contents: read
+
 jobs:
   restore-gradle-home-seed-build:
     strategy:

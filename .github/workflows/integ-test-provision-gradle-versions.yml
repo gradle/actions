@@ -18,6 +18,9 @@ env:
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: provision-gradle-versions-${{ inputs.cache-key-prefix }}
   GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 
+permissions:
+  contents: read
+
 jobs:   
   # Tests for executing with different Gradle versions. 
   # Each build verifies that it is executed with the expected Gradle version.

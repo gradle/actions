@@ -4,7 +4,7 @@ on:
     types: [assigned, review_requested]
 
 permissions:
-  pull-requests: write
+  contents: read
 
 jobs:
   build-distribution:
@@ -16,6 +16,8 @@ jobs:
       uses: ./.github/actions/build-dist
 
   successful-build-with-always-comment:
+    permissions:
+      pull-requests: write
     needs: build-distribution
     runs-on: ubuntu-latest
     steps:
@@ -34,6 +36,8 @@ jobs:
       run: ./gradlew build --scan
 
   successful-build-with-comment-on-failure:
+    permissions:
+      pull-requests: write
     needs: build-distribution
     runs-on: ubuntu-latest
     steps:
@@ -52,6 +56,8 @@ jobs:
       run: ./gradlew build --scan
 
   failing-build-with-comment-on-failure:
+    permissions:
+      pull-requests: write
     needs: build-distribution
     runs-on: ubuntu-latest
     steps:

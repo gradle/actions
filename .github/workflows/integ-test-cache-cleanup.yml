@@ -18,6 +18,9 @@ env:
   # Requires a fresh cache entry each run
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: cache-cleanup-${{ inputs.cache-key-prefix }}-${{github.run_number}}
 
+permissions:
+  contents: read
+
 jobs:
   cache-cleanup-full-build:
     strategy:

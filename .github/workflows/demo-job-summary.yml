@@ -3,6 +3,9 @@ name: Demo Job Summary, for Gradle builds
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-distribution:
     runs-on: ubuntu-latest
