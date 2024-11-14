@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   update-dist:
+    # Only run for the Gradle repository; otherwise when users create pull requests from their `main` branch
+    # it would erroneously update `dist` on their branch (and the pull request)
+    if: github.repository == 'gradle/actions'
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -45,9 +48,6 @@ jobs:
     # Important: The push event will not trigger any other workflows, see
     # https://github.com/stefanzweifel/git-auto-commit-action?tab=readme-ov-file#commits-made-by-this-action-do-not-trigger-new-workflow-runs
     - name: Commit & push changes
-      # Only run for the Gradle repository; otherwise when users create pull requests from their `main` branch
-      # it would erroneously update `dist` on their branch (and the pull request)
-      if: github.repository == 'gradle/actions'
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: '[bot] Update dist directory'
