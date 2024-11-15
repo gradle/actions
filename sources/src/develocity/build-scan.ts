@@ -19,6 +19,7 @@ export async function setup(config: BuildScanConfig): Promise<void> {
     maybeExportVariableNotEmpty('DEVELOCITY_CAPTURE_FILE_FINGERPRINTS', config.getDevelocityCaptureFileFingerprints())
     maybeExportVariableNotEmpty('DEVELOCITY_ENFORCE_URL', config.getDevelocityEnforceUrl())
     maybeExportVariableNotEmpty('DEVELOCITY_PLUGIN_VERSION', config.getDevelocityPluginVersion())
+    maybeExportVariableNotEmpty('DEVELOCITY_CCUD_PLUGIN_VERSION', config.getDevelocityCcudPluginVersion())
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_URL', config.getGradlePluginRepositoryUrl())
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_USERNAME', config.getGradlePluginRepositoryUsername())
     maybeExportVariableNotEmpty('GRADLE_PLUGIN_REPOSITORY_PASSWORD', config.getGradlePluginRepositoryPassword())
