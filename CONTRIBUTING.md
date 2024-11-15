@@ -3,8 +3,9 @@
 The `build` script in the project root provides a convenient way to perform many local build tasks:
 1. `./build` will lint and compile typescript sources
 2. `./build all` will lint and compile typescript and run unit tests
-3. `./build init-scripts` will run the init-script integration tests
-4. `./build act <act-commands>` will run `act` after building local changes (see below)
+3. `./build install` will install npm packages followed by lint and compile
+4. `./build init-scripts` will run the init-script integration tests
+5. `./build act <act-commands>` will run `act` after building local changes (see below)
 
 ## Using `act` to run integ-test workflows locally
 

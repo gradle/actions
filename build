@@ -4,12 +4,10 @@ cd sources
 
 case "$1" in
     all)
-        npm clean-install
         npm run all
         ;;
     act)
         # Build and copy outputs to the dist directory
-        npm install
         npm run build
         cd ..
         cp -r sources/dist .
@@ -18,18 +16,21 @@ case "$1" in
         # Revert the changes to the dist directory
         git checkout -- dist
         ;;
-    init-scripts)
-        cd test/init-scripts
-        ./gradlew check
-        ;;
     dist)
-        npm install
+        npm clean-install
         npm run build
         cd ..
         cp -r sources/dist .
         ;;
+    init-scripts)
+        cd test/init-scripts
+        ./gradlew check
+        ;;
+    install)
+        npm clean-install
+        npm run build
+        ;;
     *)
-        npm install
         npm run build
         ;;
 esac
