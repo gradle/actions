@@ -196,6 +196,9 @@ When Gradle is executed with the [configuration-cache](https://docs.gradle.org/c
 in the project directory, at `<project-dir>/.gradle/configuration-cache`. Due to the way the configuration-cache works, [this file may contain stored credentials and other
 secrets](https://docs.gradle.org/release-nightly/userguide/configuration_cache.html#config_cache:secrets), and this data needs to be encrypted to be safely stored in the GitHub Actions cache.
 
+> [!IMPORTANT]
+> To avoid potentially leaking secrets in the configuration-cache entry, the action will only save or restore configuration-cache data if the `cache-encryption-key` parameter is set.
+
 To benefit from configuration caching in your GitHub Actions workflow, you must:
 - Execute your build with Gradle 8.6 or newer. This can be achieved directly or via the Gradle Wrapper.
 - Enable the configuration cache for your build.
@@ -220,7 +223,10 @@ jobs:
     - run: gradle build --configuration-cache
 ```
 
-> [!IMPORTANT]
+Even with everything correctly configured, you may find that the configuration-cache entry is not reused in your workflow.
+This is often due to a known issue: [Included builds containing build logic prevent configuration-cache reuse](https://github.com/gradle/actions/issues/21). Refer to the issue for more details.
+
+> [!NOTE]
 > The configuration cache cannot be saved or restored in workflows triggered by a pull requests from a repository fork.
 > This is because [GitHub secrets are not passed to workflows triggered by PRs from forks](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#using-secrets-in-a-workflow).
 > This prevents a malicious PR from reading the configuration-cache data, which may encode secrets read by Gradle.
