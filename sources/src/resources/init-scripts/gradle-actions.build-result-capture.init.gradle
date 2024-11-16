@@ -32,15 +32,19 @@ if (isTopLevelBuild) {
 
         // Use the Develocity plugin to also capture build scan links, when available
         settingsEvaluated { settings ->
-            settings.pluginManager.withPlugin(GE_PLUGIN_ID) {
-                // Only execute if develocity plugin isn't applied.
-                if (!settings.extensions.findByName(DEVELOCITY_EXTENSION)) {
+            def captureBuildScanLink = {
+                // Prefer the 'develocity' extension, if available
+                if (settings.extensions.findByName(DEVELOCITY_EXTENSION)) {
+                    captureUsingBuildScanPublished(settings.extensions[DEVELOCITY_EXTENSION].buildScan, invocationId, resultsWriter)
+                } else {
                     captureUsingBuildScanPublished(settings.extensions[GE_EXTENSION].buildScan, invocationId, resultsWriter)
                 }
             }
-
+            settings.pluginManager.withPlugin(GE_PLUGIN_ID, captureBuildScanLink)
             settings.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
-                captureUsingBuildScanPublished(settings.extensions[DEVELOCITY_EXTENSION].buildScan, invocationId, resultsWriter)
+                // Develocity plugin applies GE plugin: avoid duplicate call
+                if (settings.pluginManager.hasPlugin(GE_PLUGIN_ID)) return
+                captureBuildScanLink()
             }
         }
     } else if (atLeastGradle3) {
@@ -48,15 +52,21 @@ if (isTopLevelBuild) {
             // By default, use 'buildFinished' to capture build results
             captureUsingBuildFinished(gradle, invocationId, resultsWriter)
 
-            gradle.rootProject.pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
-                // Only execute if develocity plugin isn't applied.
-                if (!gradle.rootProject.extensions.findByName(DEVELOCITY_EXTENSION)) {
+            def captureBuildScanLink = {
+                // Prefer the 'develocity' extension, if available
+                if (gradle.rootProject.extensions.findByName(DEVELOCITY_EXTENSION)) {
+                    captureUsingBuildScanPublished(gradle.rootProject.extensions[DEVELOCITY_EXTENSION].buildScan, invocationId, resultsWriter)
+                } else {
                     captureUsingBuildScanPublished(gradle.rootProject.extensions[BUILD_SCAN_EXTENSION], invocationId, resultsWriter)
                 }
             }
 
+            gradle.rootProject.pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID, captureBuildScanLink)
+
             gradle.rootProject.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
-                captureUsingBuildScanPublished(gradle.rootProject.extensions[DEVELOCITY_EXTENSION].buildScan, invocationId, resultsWriter)
+                // Develocity plugin applies Build Scan plugin: avoid duplicate call
+                if (gradle.rootProject.pluginManager.hasPlugin(BUILD_SCAN_PLUGIN_ID)) return
+                captureBuildScanLink()
             }
         }
     }
