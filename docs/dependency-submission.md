@@ -276,7 +276,7 @@ For example, if you want to exclude dependencies resolved by the `buildSrc` proj
       uses: gradle/actions/dependency-submission@v4
       with:
         # Exclude all dependencies that originate solely in the 'buildSrc' project
-        dependency-graph-exclude-projets: ':buildSrc'
+        dependency-graph-exclude-projects: ':buildSrc'
         # Exclude dependencies that are only resolved in test classpaths
         dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'
 ```
