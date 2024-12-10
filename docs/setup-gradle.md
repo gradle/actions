@@ -127,6 +127,8 @@ cache-disabled: true
 
 By default, The `setup-gradle` action will only write to the cache from Jobs on the default (`main`/`master`) branch.
 Jobs on other branches will read entries from the cache but will not write updated entries.
+
+This setup is designed around [GitHub imposed restrictions on cache access](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache) and should work well in most scenarios.
 See [Optimizing cache effectiveness](#select-which-branches-should-write-to-the-cache) for a more detailed explanation.
 
 In some circumstances, it makes sense to change this default and configure a workflow Job to read existing cache entries but not to write changes back.
