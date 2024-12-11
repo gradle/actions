@@ -12,6 +12,7 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     def initScript = 'gradle-actions.inject-develocity.init.gradle'
 
     private static final GradleVersion GRADLE_5 = GradleVersion.version('5.0')
+    private static final GradleVersion GRADLE_6 = GradleVersion.version('6.0')
 
     def "does not apply Develocity plugins when not requested"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
@@ -91,19 +92,12 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     def "applies deprecated Gradle Enterprise or Build Scan plugins if requested"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
-        given:
-        def appliedPluginClass = testGradleVersion.gradleVersion >= GradleVersion.version("6.0")
-                ? "com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin"
-                : "com.gradle.scan.plugin.BuildScanPlugin"
-
         when:
         // 3.16.2 is the latest version of deprecated plugins
         def result = run(testGradleVersion, testConfig('3.16.2'))
 
         then:
-        1 == result.output.count("Applying $appliedPluginClass via init script")
-
-        and:
+        outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion, '3.16.2')
         outputContainsBuildScanUrl(result)
 
         where:
@@ -366,35 +360,52 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assert 1 == result.output.count(message)
     }
 
-    void outputContainsDevelocityPluginApplicationViaInitScript(BuildResult result, GradleVersion gradleVersion) {
-        def pluginApplicationLogMsgGradle4 = "Applying com.gradle.scan.plugin.BuildScanPlugin via init script"
-        def pluginApplicationLogMsgGradle5AndHigher = "Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script"
+    void outputContainsDevelocityPluginApplicationViaInitScript(BuildResult result, GradleVersion gradleVersion, String pluginVersion = DEVELOCITY_PLUGIN_VERSION) {
+        def pluginApplicationLogMsgGradle4 = "Applying com.gradle.scan.plugin.BuildScanPlugin with version 1.16 via init script"
+        def pluginApplicationLogMsgBuildScanPlugin = "Applying com.gradle.scan.plugin.BuildScanPlugin with version ${pluginVersion} via init script"
+        def pluginApplicationLogMsgGEPlugin = "Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin with version ${pluginVersion} via init script"
+        def pluginApplicationLogMsgDVPlugin = "Applying com.gradle.develocity.agent.gradle.DevelocityPlugin with version ${pluginVersion} via init script"
+
+        def isGEPluginVersion = GradleVersion.version(pluginVersion) < GradleVersion.version("3.17")
+
         if (gradleVersion < GRADLE_5) {
             assert result.output.contains(pluginApplicationLogMsgGradle4)
             assert 1 == result.output.count(pluginApplicationLogMsgGradle4)
-            assert !result.output.contains(pluginApplicationLogMsgGradle5AndHigher)
-        } else {
-            assert result.output.contains(pluginApplicationLogMsgGradle5AndHigher)
-            assert 1 == result.output.count(pluginApplicationLogMsgGradle5AndHigher)
+            assert !result.output.contains(pluginApplicationLogMsgGEPlugin)
+            assert !result.output.contains(pluginApplicationLogMsgDVPlugin)
+        } else if (gradleVersion < GRADLE_6 && isGEPluginVersion) {
+            assert result.output.contains(pluginApplicationLogMsgBuildScanPlugin)
+            assert 1 == result.output.count(pluginApplicationLogMsgBuildScanPlugin)
+            assert !result.output.contains(pluginApplicationLogMsgGEPlugin)
+            assert !result.output.contains(pluginApplicationLogMsgDVPlugin)
+        } else if (isGEPluginVersion) {
+            assert result.output.contains(pluginApplicationLogMsgGEPlugin)
+            assert 1 == result.output.count(pluginApplicationLogMsgGEPlugin)
             assert !result.output.contains(pluginApplicationLogMsgGradle4)
+            assert !result.output.contains(pluginApplicationLogMsgDVPlugin)
+        } else {
+            assert result.output.contains(pluginApplicationLogMsgDVPlugin)
+            assert 1 == result.output.count(pluginApplicationLogMsgDVPlugin)
+            assert !result.output.contains(pluginApplicationLogMsgGradle4)
+            assert !result.output.contains(pluginApplicationLogMsgGEPlugin)
         }
     }
 
     void outputMissesDevelocityPluginApplicationViaInitScript(BuildResult result) {
-        def pluginApplicationLogMsgGradle4 = "Applying com.gradle.scan.plugin.BuildScanPlugin via init script"
-        def pluginApplicationLogMsgGradle5AndHigher = "Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script"
+        def pluginApplicationLogMsgGradle4 = "Applying com.gradle.scan.plugin.BuildScanPlugin"
+        def pluginApplicationLogMsgGradle5AndHigher = "Applying com.gradle.develocity.agent.gradle.DevelocityPlugin"
         assert !result.output.contains(pluginApplicationLogMsgGradle4)
         assert !result.output.contains(pluginApplicationLogMsgGradle5AndHigher)
     }
 
-    void outputContainsCcudPluginApplicationViaInitScript(BuildResult result) {
-        def pluginApplicationLogMsg = "Applying com.gradle.CommonCustomUserDataGradlePlugin via init script"
+    void outputContainsCcudPluginApplicationViaInitScript(BuildResult result, String ccudPluginVersion = CCUD_PLUGIN_VERSION) {
+        def pluginApplicationLogMsg = "Applying com.gradle.CommonCustomUserDataGradlePlugin with version ${ccudPluginVersion} via init script"
         assert result.output.contains(pluginApplicationLogMsg)
         assert 1 == result.output.count(pluginApplicationLogMsg)
     }
 
     void outputMissesCcudPluginApplicationViaInitScript(BuildResult result) {
-        def pluginApplicationLogMsg = "Applying com.gradle.CommonCustomUserDataGradlePlugin via init script"
+        def pluginApplicationLogMsg = "Applying com.gradle.CommonCustomUserDataGradlePlugin"
         assert !result.output.contains(pluginApplicationLogMsg)
     }
 
