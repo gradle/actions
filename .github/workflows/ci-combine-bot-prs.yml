@@ -17,7 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: combine-wrapperbot-prs
-        uses: github/combine-prs@v5
+        uses: github/combine-prs@v5.2.0
         with:
-          branch_regex: ^wrapperbot\/.*$
+          branch_prefix: wrapperbot
+          pr_title: 'Bump Gradle Wrappers'
+          ci_required: "false"
           github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
