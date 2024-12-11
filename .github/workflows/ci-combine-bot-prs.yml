@@ -1,0 +1,23 @@
+name: Combine Bot PRs
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+# The minimum permissions required to run this Action
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  combine-wrapperbot-prs:
+    if: github.repository == 'gradle/actions'
+    runs-on: ubuntu-latest
+    steps:
+      - name: combine-wrapperbot-prs
+        uses: github/combine-prs@v5
+        with:
+          branch_regex: ^wrapperbot\/.*$
+          github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
