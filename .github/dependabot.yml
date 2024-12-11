@@ -5,6 +5,7 @@ registries:
     url: https://plugins.gradle.org/m2
     username: dummy # Required by dependabot
     password: dummy # Required by dependabot
+
 updates:
   - package-ecosystem: "npm"
     directory: "/sources"
@@ -16,25 +17,12 @@ updates:
         - "*"
       
   - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      github-actions:
-        patterns:
-        - "*"
-  # github-actions with directory: "/" only monitors .github/workflows
-  # https://github.com/dependabot/dependabot-core/issues/6345
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/build-dist"
-    schedule:
-      interval: "weekly"
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/init-integ-test"
+    # github-actions with directory: "/" only monitors .github/workflows
+    # https://github.com/dependabot/dependabot-core/issues/6345
+    directories:
+      - "/"
+      - "/.github/actions/build-dist"
+      - "/.github/actions/init-integ-test"
     schedule:
       interval: "weekly"
     groups:
@@ -43,44 +31,19 @@ updates:
           - "*"
 
   - package-ecosystem: "gradle"
-    directory: ".github/workflow-samples/gradle-plugin"
+    directories:
+      - ".github/workflow-samples/gradle-plugin"
+      - ".github/workflow-samples/groovy-dsl"
+      - ".github/workflow-samples/java-toolchain"
+      - ".github/workflow-samples/kotlin-dsl"
+      - ".github/workflow-samples/no-wrapper"
+      - ".github/workflow-samples/no-wrapper-gradle-5"
+      - "sources/test/init-scripts"
     registries:
       - gradle-plugin-portal
     schedule:
       interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: ".github/workflow-samples/groovy-dsl"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: ".github/workflow-samples/java-toolchain"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: ".github/workflow-samples/kotlin-dsl"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: ".github/workflow-samples/no-wrapper"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: ".github/workflow-samples/no-wrapper-gradle-5"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: "sources/test/init-scripts"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
+    groups:
+      gradle:
+        patterns:
+          - "*"
