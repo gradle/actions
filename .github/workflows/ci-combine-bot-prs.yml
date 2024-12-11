@@ -3,14 +3,15 @@ name: Combine Bot PRs
 on:
   workflow_dispatch:
 
-# The minimum permissions required to run this Action
 permissions:
-  contents: write
-  pull-requests: write
-  checks: read
+  contents: read
 
 jobs:
   combine-wrapperbot-prs:
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
     if: github.repository == 'gradle/actions'
     runs-on: ubuntu-latest
     steps:
@@ -18,6 +19,6 @@ jobs:
         uses: github/combine-prs@v5.2.0
         with:
           branch_prefix: wrapperbot
+          combine_branch_name: wrapperbot/combined-wrapper-updates
           pr_title: 'Bump Gradle Wrappers'
           ci_required: "false"
-          github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
