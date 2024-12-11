@@ -28,7 +28,7 @@ class BaseInitScriptTest extends Specification {
     static final TestGradleVersion GRADLE_7_1 = new TestGradleVersion(GradleVersion.version('7.1.1'), 8, 16)
     static final TestGradleVersion GRADLE_7_X = new TestGradleVersion(GradleVersion.version('7.6.2'), 8, 19)
     static final TestGradleVersion GRADLE_8_0 = new TestGradleVersion(GradleVersion.version('8.0.2'), 8, 19)
-    static final TestGradleVersion GRADLE_8_X = new TestGradleVersion(GradleVersion.version('8.11'), 8, 23)
+    static final TestGradleVersion GRADLE_8_X = new TestGradleVersion(GradleVersion.version('8.11.1'), 8, 23)
 
     static final List<TestGradleVersion> ALL_VERSIONS = [
         GRADLE_3_X, // First version where TestKit supports environment variables
