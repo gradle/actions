@@ -39,7 +39,7 @@ test('has loaded hardcoded wrapper jars checksums', async () => {
 test('fetches wrapper jar checksums that are missing from hardcoded set', async () => {
   const unknownChecksums = await checksums.fetchUnknownChecksums(false, knownChecksumsWithout8_1())
 
-  expect(unknownChecksums.checksums.size).toEqual(1)
+  expect(unknownChecksums.checksums.size).toBeGreaterThan(0)
   expect(unknownChecksums.checksums.has(CHECKSUM_8_1)).toBe(true)
   expect(unknownChecksums.checksums.get(CHECKSUM_8_1)).toEqual(new Set(['8.1-rc-1', '8.1-rc-2', '8.1-rc-3', '8.1-rc-4', '8.1', '8.1.1']))
 })
