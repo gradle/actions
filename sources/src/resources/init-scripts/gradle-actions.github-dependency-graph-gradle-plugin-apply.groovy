@@ -11,7 +11,7 @@ buildscript {
   logger.lifecycle("Resolving dependency graph plugin ${dependencyGraphPluginVersion} from plugin repository: ${pluginRepositoryUrl}")
   repositories {
     maven { 
-      url pluginRepositoryUrl 
+      url = pluginRepositoryUrl
       if (pluginRepositoryUsername && pluginRepositoryPassword) {
         logger.lifecycle("Applying credentials for plugin repository: ${pluginRepositoryUrl}")
         credentials {
