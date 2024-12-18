@@ -1,5 +1,6 @@
 import * as httpm from 'typed-rest-client/HttpClient'
 import * as cheerio from 'cheerio'
+import * as core from '@actions/core'
 
 import fileWrapperChecksums from './wrapper-checksums.json'
 
@@ -59,12 +60,7 @@ export async function fetchUnknownChecksums(
     }
 
     const wrapperChecksums = new WrapperChecksums()
-    await Promise.all(
-        checksumUrls.map(async ([version, url]) => {
-            const checksum = await httpGetText(url)
-            wrapperChecksums.add(version, checksum)
-        })
-    )
+    await fetchAndStoreChecksums(checksumUrls, wrapperChecksums)
     return wrapperChecksums
 }
 
@@ -93,4 +89,21 @@ async function addDistributionSnapshotChecksumUrls(checksumUrls: [string, string
             checksumUrls.push([version, `https://services.gradle.org${url}`])
         }
     })
+}
+
+async function fetchAndStoreChecksums(
+    checksumUrls: [string, string][],
+    wrapperChecksums: WrapperChecksums
+): Promise<void> {
+    const batchSize = 10
+    for (let i = 0; i < checksumUrls.length; i += batchSize) {
+        const batch = checksumUrls.slice(i, i + batchSize)
+        await Promise.all(
+            batch.map(async ([version, url]) => {
+                const checksum = await httpGetText(url)
+                wrapperChecksums.add(version, checksum)
+            })
+        )
+        core.info(`Fetched ${i + batch.length} of ${checksumUrls.length} checksums`)
+    }
 }
