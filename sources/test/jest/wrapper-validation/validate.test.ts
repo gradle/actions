@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as validate from '../../../src/wrapper-validation/validate'
 import {expect, test, jest} from '@jest/globals'
-import { WrapperChecksums } from '../../../src/wrapper-validation/checksums'
+import { WrapperChecksums, KNOWN_CHECKSUMS } from '../../../src/wrapper-validation/checksums'
 import { ChecksumCache } from '../../../src/wrapper-validation/cache'
 import exp from 'constants'
 
@@ -10,6 +10,21 @@ jest.setTimeout(30000)
 
 const baseDir = path.resolve('./test/jest/wrapper-validation')
 const tmpDir = path.resolve('./test/jest/tmp')
+
+const CHECKSUM_3888 = '3888c76faa032ea8394b8a54e04ce2227ab1f4be64f65d450f8509fe112d38ce'
+
+function knownChecksumsWithout3888(): WrapperChecksums {
+  const knownChecksums = new WrapperChecksums()
+  // iterate over all known checksums and add them to the knownChecksums object
+  for (const [checksum, versions] of KNOWN_CHECKSUMS.checksums) {
+    if (checksum !== CHECKSUM_3888) {
+      for (const version of versions) {
+        knownChecksums.add(version, checksum)
+      }
+    }
+  }
+  return knownChecksums
+}
 
 test('succeeds if all found wrapper jars are valid', async () => {
   const result = await validate.findInvalidWrapperJars(baseDir, false, [
@@ -47,7 +62,7 @@ test('succeeds if all found wrapper jars are previously valid', async () => {
 })
 
 test('succeeds if all found wrapper jars are valid (and checksums are fetched from Gradle API)', async () => {
-  const knownValidChecksums = new WrapperChecksums()
+  const knownValidChecksums = knownChecksumsWithout3888()
   const result = await validate.findInvalidWrapperJars(
     baseDir,
     false,
