@@ -141,7 +141,7 @@ class TestDependencyGraph extends BaseInitScriptTest {
         // TODO:DAZ This props are set too late to control init-script plugin resolution
         // This makes the tests fail on Mac with Gradle < 6
         def args = jvmArgs
-        args.add('-DGRADLE_PLUGIN_REPOSITORY_URL=https://plugins.grdev.net/m2')
+        args.add('-Dgradle.plugin-repository.url=https://plugins.grdev.net/m2')
         def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, args, vars)
 
         then:
@@ -160,12 +160,11 @@ class TestDependencyGraph extends BaseInitScriptTest {
         vars.put('GRADLE_PLUGIN_REPOSITORY_URL', 'https://plugins.grdev.net/m2')
         vars.put('GRADLE_PLUGIN_REPOSITORY_USERNAME', 'REPO_USER')
         vars.put('GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'REPO_PASSWORD')
-        // TODO:DAZ This props are set too late to control init-script plugin resolution
-        // This makes the tests fail on Mac with Gradle < 6
+
         def args = jvmArgs
-        args.add('-DGRADLE_PLUGIN_REPOSITORY_URL=https://plugins.grdev.net/m2')
-        args.add('-DGRADLE_PLUGIN_REPOSITORY_USERNAME=REPO_USER')
-        args.add('-DGRADLE_PLUGIN_REPOSITORY_PASSWORD=REPO_PASSWORD')
+        args.add('-Dgradle.plugin-repository.url=https://plugins.grdev.net/m2')
+        args.add('-Dgradle.plugin-repository.username=REPO_USER')
+        args.add('-Dgradle.plugin-repository.password=REPO_PASSWORD')
         def result = run(['help', '--info'], initScript, testGradleVersion.gradleVersion, args, vars)
 
         then:
