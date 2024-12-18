@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: combine-wrapperbot-prs
-        uses: github/combine-prs@v5.2.0
+        uses: github/combine-prs@2909f404763c3177a456e052bdb7f2e85d3a7cb3 # v5.2.0
         with:
           branch_prefix: wrapperbot
           combine_branch_name: wrapperbot/combined-wrapper-updates
