@@ -55,9 +55,8 @@ export class CacheCleaner {
         )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
 
-        // Gradle >= 8.11 required for cache cleanup
         // TODO: This is ineffective: we should be using the newest version of Gradle that ran a build, or a newer version if it's available on PATH.
-        const executable = await provisioner.provisionGradleAtLeast('8.11.1')
+        const executable = await provisioner.provisionGradleAtLeast('8.12')
 
         await core.group('Executing Gradle to clean up caches', async () => {
             core.info(`Cleaning up caches last used before ${cleanTimestamp}`)
