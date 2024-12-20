@@ -4,7 +4,7 @@ export const DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.
 
 export const DEFAULT_READONLY_REASON = `[Cache was read-only](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-read-only). By default, the action will only write to the cache for Jobs running on the default branch.`
 
-export const DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching) via action confiugration. Gradle User Home was not restored from or saved to the cache.`
+export const DEFAULT_DISABLED_REASON = `[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching) via action configuration. Gradle User Home was not restored from or saved to the cache.`
 
 export const DEFAULT_WRITEONLY_REASON = `[Cache was set to write-only](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-write-only) via action configuration. Gradle User Home was not restored from cache.`
 
