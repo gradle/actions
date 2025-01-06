@@ -1,6 +1,7 @@
-import {DevelocityAccessCredentials, getToken} from "../../src/develocity/short-lived-token";
 import nock from "nock";
 import { describe, expect, it } from '@jest/globals'
+
+import { DevelocityAccessCredentials, getToken } from "../../src/develocity/short-lived-token";
 
 describe('short lived tokens', () => {
     it('parse valid access key should return an object', async () => {

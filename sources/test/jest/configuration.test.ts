@@ -1,5 +1,6 @@
+import { describe, expect, it } from '@jest/globals'
+
 import * as inputParams from '../../src/configuration'
-import { describe, expect} from '@jest/globals'
 
 describe('input params', () => {
     describe('parses numeric input', () => {

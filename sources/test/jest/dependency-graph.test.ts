@@ -1,3 +1,5 @@
+import { describe, expect, it } from '@jest/globals'
+
 import { DependencyGraphConfig } from "../../src/configuration" 
 
 describe('dependency-graph', () => {
