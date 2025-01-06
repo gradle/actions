@@ -10,6 +10,7 @@ import {CacheCleaner} from './cache-cleaner'
 import {DaemonController} from '../daemon-controller'
 import {CacheConfig} from '../configuration'
 import {BuildResults} from '../build-results'
+import {CacheKeyGenerator} from './cache-key'
 
 const CACHE_RESTORED_VAR = 'GRADLE_BUILD_ACTION_CACHE_RESTORED'
 
@@ -26,7 +27,8 @@ export async function restore(
     }
     core.exportVariable(CACHE_RESTORED_VAR, true)
 
-    const gradleStateCache = new GradleUserHomeCache(userHome, gradleUserHome, cacheConfig)
+    // TODO(Nava2): Move `new CacheKeyGenerator()` to a class property.
+    const gradleStateCache = new GradleUserHomeCache(userHome, gradleUserHome, cacheConfig, new CacheKeyGenerator())
 
     if (cacheConfig.isCacheDisabled()) {
         core.info('Cache is disabled: will not restore state from previous builds.')
@@ -110,7 +112,8 @@ export async function save(
     }
 
     await core.group('Caching Gradle state', async () => {
-        return new GradleUserHomeCache(userHome, gradleUserHome, cacheConfig).save(cacheListener)
+        const cacheKeyGenerator = new CacheKeyGenerator()
+        return new GradleUserHomeCache(userHome, gradleUserHome, cacheConfig, cacheKeyGenerator).save(cacheListener)
     })
 }
 

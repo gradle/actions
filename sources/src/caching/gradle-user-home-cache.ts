@@ -4,7 +4,7 @@ import * as glob from '@actions/glob'
 
 import path from 'path'
 import fs from 'fs'
-import {generateCacheKey} from './cache-key'
+import {CacheKeyGenerator} from './cache-key'
 import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
 import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
@@ -21,10 +21,18 @@ export class GradleUserHomeCache {
     private readonly gradleUserHome: string
     private readonly cacheConfig: CacheConfig
 
-    constructor(userHome: string, gradleUserHome: string, cacheConfig: CacheConfig) {
+    private readonly cacheKeyGenerator: CacheKeyGenerator
+
+    constructor(
+        userHome: string,
+        gradleUserHome: string,
+        cacheConfig: CacheConfig,
+        cacheKeyGenerator: CacheKeyGenerator
+    ) {
         this.userHome = userHome
         this.gradleUserHome = gradleUserHome
         this.cacheConfig = cacheConfig
+        this.cacheKeyGenerator = cacheKeyGenerator
     }
 
     init(): void {
@@ -52,7 +60,7 @@ export class GradleUserHomeCache {
     async restore(listener: CacheListener): Promise<void> {
         const entryListener = listener.entry(this.cacheDescription)
 
-        const cacheKey = generateCacheKey(this.cacheName, this.cacheConfig)
+        const cacheKey = this.cacheKeyGenerator.generateCacheKey(this.cacheName, this.cacheConfig)
 
         cacheDebug(
             `Requesting ${this.cacheDescription} with
@@ -95,7 +103,7 @@ export class GradleUserHomeCache {
      * it is saved with the exact key.
      */
     async save(listener: CacheListener): Promise<void> {
-        const cacheKey = generateCacheKey(this.cacheName, this.cacheConfig).key
+        const cacheKey = this.cacheKeyGenerator.generateCacheKey(this.cacheName, this.cacheConfig).key
         const restoredCacheKey = core.getState(RESTORED_CACHE_KEY_KEY)
         const gradleHomeEntryListener = listener.entry(this.cacheDescription)
 

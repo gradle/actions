@@ -8,7 +8,7 @@ import {cacheDebug, hashFileNames, isCacheDebuggingEnabled, restoreCache, saveCa
 
 import {BuildResult, loadBuildResults} from '../build-results'
 import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
-import {getCacheKeyBase} from './cache-key'
+import {CacheKeyGenerator} from './cache-key'
 import {versionIsAtLeast} from '../execution/gradle'
 
 const SKIP_RESTORE_VAR = 'GRADLE_BUILD_ACTION_SKIP_RESTORE'
@@ -85,10 +85,18 @@ abstract class AbstractEntryExtractor {
     protected readonly gradleUserHome: string
     private extractorName: string
 
-    constructor(gradleUserHome: string, extractorName: string, cacheConfig: CacheConfig) {
+    private readonly cacheKeyGenerator: CacheKeyGenerator
+
+    constructor(
+        gradleUserHome: string,
+        extractorName: string,
+        cacheConfig: CacheConfig,
+        cacheKeyGenerator: CacheKeyGenerator
+    ) {
         this.gradleUserHome = gradleUserHome
         this.extractorName = extractorName
         this.cacheConfig = cacheConfig
+        this.cacheKeyGenerator = cacheKeyGenerator
     }
 
     /**
@@ -247,7 +255,7 @@ abstract class AbstractEntryExtractor {
 
         cacheDebug(`Generating cache key for ${artifactType} from file names: ${relativeFiles}`)
 
-        return `${getCacheKeyBase(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`
+        return `${this.cacheKeyGenerator.getCacheKeyBase(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`
     }
 
     protected async createCacheKeyFromFileContents(artifactType: string, pattern: string): Promise<string> {
@@ -255,7 +263,7 @@ abstract class AbstractEntryExtractor {
 
         cacheDebug(`Generating cache key for ${artifactType} from files matching: ${pattern}`)
 
-        return `${getCacheKeyBase(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`
+        return `${this.cacheKeyGenerator.getCacheKeyBase(artifactType, CACHE_PROTOCOL_VERSION)}-${key}`
     }
 
     // Run actions sequentially if debugging is enabled
@@ -305,8 +313,12 @@ abstract class AbstractEntryExtractor {
 }
 
 export class GradleHomeEntryExtractor extends AbstractEntryExtractor {
-    constructor(gradleUserHome: string, cacheConfig: CacheConfig) {
-        super(gradleUserHome, 'gradle-home', cacheConfig)
+    constructor(
+        gradleUserHome: string,
+        cacheConfig: CacheConfig,
+        cacheKeyGenerator: CacheKeyGenerator = new CacheKeyGenerator()
+    ) {
+        super(gradleUserHome, 'gradle-home', cacheConfig, cacheKeyGenerator)
     }
 
     async extract(listener: CacheListener): Promise<void> {
@@ -364,8 +376,12 @@ export class GradleHomeEntryExtractor extends AbstractEntryExtractor {
 }
 
 export class ConfigurationCacheEntryExtractor extends AbstractEntryExtractor {
-    constructor(gradleUserHome: string, cacheConfig: CacheConfig) {
-        super(gradleUserHome, 'configuration-cache', cacheConfig)
+    constructor(
+        gradleUserHome: string,
+        cacheConfig: CacheConfig,
+        cacheKeyGenerator: CacheKeyGenerator = new CacheKeyGenerator()
+    ) {
+        super(gradleUserHome, 'configuration-cache', cacheConfig, cacheKeyGenerator)
     }
 
     /**

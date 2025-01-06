@@ -27,74 +27,79 @@ export class CacheKey {
 }
 
 /**
- * Generates a cache key specific to the current job execution.
- * The key is constructed from the following inputs (with some user overrides):
- * - The cache key prefix: defaults to 'gradle-' but can be overridden by the user
- * - The cache protocol version
- * - The runner operating system
- * - The name of the workflow and Job being executed
- * - The matrix values for the Job being executed (job context)
- * - The SHA of the commit being executed
- *
- * Caches are restored by trying to match the these key prefixes in order:
- * - The full key with SHA
- * - A previous key for this Job + matrix
- * - Any previous key for this Job (any matrix)
- * - Any previous key for this cache on the current OS
+ * Provides generation fascilities for [CacheKey] values.
  */
-export function generateCacheKey(cacheName: string, config: CacheConfig): CacheKey {
-    const prefix = process.env[CACHE_KEY_PREFIX_VAR] || ''
+export class CacheKeyGenerator {
+    /**
+     * Generates a cache key specific to the current job execution.
+     * The key is constructed from the following inputs (with some user overrides):
+     * - The cache key prefix: defaults to 'gradle-' but can be overridden by the user
+     * - The cache protocol version
+     * - The runner operating system
+     * - The name of the workflow and Job being executed
+     * - The matrix values for the Job being executed (job context)
+     * - The SHA of the commit being executed
+     *
+     * Caches are restored by trying to match the these key prefixes in order:
+     * - The full key with SHA
+     * - A previous key for this Job + matrix
+     * - Any previous key for this Job (any matrix)
+     * - Any previous key for this cache on the current OS
+     */
+    generateCacheKey(cacheName: string, config: CacheConfig): CacheKey {
+        const prefix = process.env[CACHE_KEY_PREFIX_VAR] || ''
 
-    const cacheKeyBase = `${prefix}${getCacheKeyBase(cacheName, CACHE_PROTOCOL_VERSION)}`
+        const cacheKeyBase = `${prefix}${this.getCacheKeyBase(cacheName, CACHE_PROTOCOL_VERSION)}`
 
-    // At the most general level, share caches for all executions on the same OS
-    const cacheKeyForEnvironment = `${cacheKeyBase}|${getCacheKeyEnvironment()}`
+        // At the most general level, share caches for all executions on the same OS
+        const cacheKeyForEnvironment = `${cacheKeyBase}|${this.getCacheKeyEnvironment()}`
 
-    // Then prefer caches that run job with the same ID
-    const cacheKeyForJob = `${cacheKeyForEnvironment}|${getCacheKeyJob()}`
+        // Then prefer caches that run job with the same ID
+        const cacheKeyForJob = `${cacheKeyForEnvironment}|${this.getCacheKeyJob()}`
 
-    // Prefer (even more) jobs that run this job in the same workflow with the same context (matrix)
-    const cacheKeyForJobContext = `${cacheKeyForJob}[${getCacheKeyJobInstance()}]`
+        // Prefer (even more) jobs that run this job in the same workflow with the same context (matrix)
+        const cacheKeyForJobContext = `${cacheKeyForJob}[${this.getCacheKeyJobInstance()}]`
 
-    // Exact match on Git SHA
-    const cacheKey = `${cacheKeyForJobContext}-${getCacheKeyJobExecution()}`
+        // Exact match on Git SHA
+        const cacheKey = `${cacheKeyForJobContext}-${this.getCacheKeyJobExecution()}`
 
-    if (config.isCacheStrictMatch()) {
-        return new CacheKey(cacheKey, [cacheKeyForJobContext])
+        if (config.isCacheStrictMatch()) {
+            return new CacheKey(cacheKey, [cacheKeyForJobContext])
+        }
+
+        return new CacheKey(cacheKey, [cacheKeyForJobContext, cacheKeyForJob, cacheKeyForEnvironment])
     }
 
-    return new CacheKey(cacheKey, [cacheKeyForJobContext, cacheKeyForJob, cacheKeyForEnvironment])
-}
-
-export function getCacheKeyBase(cacheName: string, cacheProtocolVersion: string): string {
-    // Prefix can be used to force change all cache keys (defaults to cache protocol version)
-    return `gradle-${cacheName}-${cacheProtocolVersion}`
-}
-
-function getCacheKeyEnvironment(): string {
-    const runnerOs = process.env['RUNNER_OS'] || ''
-    const runnerArch = process.env['RUNNER_ARCH'] || ''
-    return process.env[CACHE_KEY_OS_VAR] || `${runnerOs}-${runnerArch}`
-}
-
-function getCacheKeyJob(): string {
-    return process.env[CACHE_KEY_JOB_VAR] || github.context.job
-}
-
-function getCacheKeyJobInstance(): string {
-    const override = process.env[CACHE_KEY_JOB_INSTANCE_VAR]
-    if (override) {
-        return override
+    getCacheKeyBase(cacheName: string, cacheProtocolVersion: string): string {
+        // Prefix can be used to force change all cache keys (defaults to cache protocol version)
+        return `gradle-${cacheName}-${cacheProtocolVersion}`
     }
 
-    // By default, we hash the workflow name and the full `matrix` data for the run, to uniquely identify this job invocation
-    // The only way we can obtain the `matrix` data is via the `workflow-job-context` parameter in action.yml.
-    const workflowName = github.context.workflow
-    const workflowJobContext = getJobMatrix()
-    return hashStrings([workflowName, workflowJobContext])
-}
+    private getCacheKeyEnvironment(): string {
+        const runnerOs = process.env['RUNNER_OS'] || ''
+        const runnerArch = process.env['RUNNER_ARCH'] || ''
+        return process.env[CACHE_KEY_OS_VAR] || `${runnerOs}-${runnerArch}`
+    }
 
-function getCacheKeyJobExecution(): string {
-    // Used to associate a cache key with a particular execution (default is bound to the git commit sha)
-    return process.env[CACHE_KEY_JOB_EXECUTION_VAR] || github.context.sha
+    private getCacheKeyJob(): string {
+        return process.env[CACHE_KEY_JOB_VAR] || github.context.job
+    }
+
+    private getCacheKeyJobInstance(): string {
+        const override = process.env[CACHE_KEY_JOB_INSTANCE_VAR]
+        if (override) {
+            return override
+        }
+
+        // By default, we hash the workflow name and the full `matrix` data for the run, to uniquely identify this job invocation
+        // The only way we can obtain the `matrix` data is via the `workflow-job-context` parameter in action.yml.
+        const workflowName = github.context.workflow
+        const workflowJobContext = getJobMatrix()
+        return hashStrings([workflowName, workflowJobContext])
+    }
+
+    private getCacheKeyJobExecution(): string {
+        // Used to associate a cache key with a particular execution (default is bound to the git commit sha)
+        return process.env[CACHE_KEY_JOB_EXECUTION_VAR] || github.context.sha
+    }
 }
