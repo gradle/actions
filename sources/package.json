@@ -7,7 +7,7 @@
     "postinstall": "patch-package",
     "prettier-write": "prettier --write 'src/**/*.ts'",
     "prettier-check": "prettier --check 'src/**/*.ts'",
-    "lint": "eslint 'src/**/*.ts'",
+    "lint": "eslint",
     "compile-dependency-submission-main": "ncc build src/actions/dependency-submission/main.ts --out dist/dependency-submission/main --source-map --no-source-map-register",
     "compile-dependency-submission-post": "ncc build src/actions/dependency-submission/post.ts --out dist/dependency-submission/post --source-map --no-source-map-register",
     "compile-setup-gradle-main": "ncc build src/actions/setup-gradle/main.ts --out dist/setup-gradle/main --source-map --no-source-map-register",
