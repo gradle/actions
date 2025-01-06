@@ -1,5 +1,6 @@
-import { describe } from 'node:test'
 import { versionIsAtLeast, parseGradleVersionFromOutput } from '../../src/execution/gradle'
+
+import { describe, expect, it} from '@jest/globals'
 
 describe('gradle', () => {
     describe('can compare version with', () => {

@@ -4,6 +4,7 @@ import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
 import {CacheCleaner} from '../../src/caching/cache-cleaner'
+import {expect, test, jest} from '@jest/globals'
 
 jest.setTimeout(120000)
 
