@@ -1,6 +1,6 @@
-import { afterAll, describe, expect, it, jest } from '@jest/globals'
+import {afterAll, describe, expect, it, jest} from '@jest/globals'
 
-import { getPredefinedToolchains, mergeToolchainContent } from "../../src/caching/gradle-user-home-utils";
+import {getPredefinedToolchains, mergeToolchainContent} from "../../src/caching/gradle-user-home-utils";
 
 describe('predefined-toolchains', () => {
     const OLD_ENV = process.env

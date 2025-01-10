@@ -2,9 +2,9 @@ import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
-import { expect, test, jest } from '@jest/globals'
+import {expect, test, jest} from '@jest/globals'
 
-import { CacheCleaner } from '../../src/caching/cache-cleaner'
+import {CacheCleaner} from '../../src/caching/cache-cleaner'
 
 jest.setTimeout(120000)
 

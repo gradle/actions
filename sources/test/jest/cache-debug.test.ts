@@ -1,9 +1,9 @@
 import * as path from 'path'
 import * as fs from 'fs'
-import { describe, expect, it } from '@jest/globals'
+import {describe, expect, it} from '@jest/globals'
 
-import { GradleUserHomeCache } from "../../src/caching/gradle-user-home-cache"
-import { CacheConfig } from "../../src/configuration"
+import {GradleUserHomeCache} from "../../src/caching/gradle-user-home-cache"
+import {CacheConfig} from "../../src/configuration"
 
 const testTmp = 'test/jest/tmp'
 fs.rmSync(testTmp, {recursive: true, force: true})

@@ -1,6 +1,6 @@
-import { describe, expect, it } from '@jest/globals'
+import {describe, expect, it} from '@jest/globals'
 
-import { CacheEntryListener, CacheListener } from '../../src/caching/cache-reporting'
+import {CacheEntryListener, CacheListener} from '../../src/caching/cache-reporting'
 
 describe('caching report', () => {
     describe('reports not fully restored', () => {
