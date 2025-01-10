@@ -1,3 +1,5 @@
+import {afterAll, describe, expect, it, jest} from '@jest/globals'
+
 import {getPredefinedToolchains, mergeToolchainContent} from "../../src/caching/gradle-user-home-utils";
 
 describe('predefined-toolchains', () => {

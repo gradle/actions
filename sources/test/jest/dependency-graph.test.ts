@@ -1,4 +1,6 @@
-import { DependencyGraphConfig } from "../../src/configuration" 
+import {describe, expect, it} from '@jest/globals'
+
+import {DependencyGraphConfig} from "../../src/configuration" 
 
 describe('dependency-graph', () => {
     describe('constructs job correlator', () => {
