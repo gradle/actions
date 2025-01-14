@@ -1,4 +1,5 @@
-import exp from 'constants'
+import {describe, expect, it} from '@jest/globals'
+
 import {CacheEntryListener, CacheListener} from '../../src/caching/cache-reporting'
 
 describe('caching report', () => {

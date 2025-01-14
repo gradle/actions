@@ -4,7 +4,6 @@ import * as validate from '../../../src/wrapper-validation/validate'
 import {expect, test, jest} from '@jest/globals'
 import { WrapperChecksums, KNOWN_CHECKSUMS } from '../../../src/wrapper-validation/checksums'
 import { ChecksumCache } from '../../../src/wrapper-validation/cache'
-import exp from 'constants'
 
 jest.setTimeout(30000)
 
