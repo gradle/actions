@@ -13,34 +13,35 @@ export function readResourceFileAsString(...paths: string[]): string {
  * @VisibleForTesting
  */
 export function getPredefinedToolchains(): string | null {
-    const javaHomeEnvs: string[] = []
-    for (const javaHomeEnvsKey in process.env) {
-        if (javaHomeEnvsKey.startsWith('JAVA_HOME_')) {
-            javaHomeEnvs.push(javaHomeEnvsKey)
-        }
-    }
+    // Get the version and path for each JAVA_HOME env var
+    const javaHomeEnvs = Object.entries(process.env)
+        .filter(([key]) => key.startsWith('JAVA_HOME_') && process.env[key])
+        .map(([key, _value]) => ({
+            jdkVersion: key.match(/JAVA_HOME_(\d+)_/)?.[1] ?? null,
+            jdkPath: `\${env.${key}}`
+        }))
+        .filter(env => env.jdkVersion !== null)
+
     if (javaHomeEnvs.length === 0) {
         return null
     }
+
     // language=XML
-    let toolchainsXml = `<?xml version="1.0" encoding="UTF-8"?>
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <toolchains>
 <!-- JDK Toolchains installed by default on GitHub-hosted runners -->
-`
-    for (const javaHomeEnv of javaHomeEnvs) {
-        const version = javaHomeEnv.match(/JAVA_HOME_(\d+)_/)?.[1]!
-        toolchainsXml += `  <toolchain>
+${javaHomeEnvs
+    .map(
+        ({jdkVersion, jdkPath}) => `  <toolchain>
     <type>jdk</type>
     <provides>
-      <version>${version}</version>
+      <version>${jdkVersion}</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.${javaHomeEnv}}</jdkHome>
+      <jdkHome>${jdkPath}</jdkHome>
     </configuration>
-  </toolchain>\n`
-    }
-    toolchainsXml += `</toolchains>\n`
-    return toolchainsXml
+  </toolchain>`).join('\n')}
+</toolchains>\n`
 }
 
 export function mergeToolchainContent(existingToolchainContent: string, preInstalledToolchains: string): string {
