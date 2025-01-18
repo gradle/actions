@@ -16,9 +16,9 @@ export function getPredefinedToolchains(): string | null {
     // Get the version and path for each JAVA_HOME env var
     const javaHomeEnvs = Object.entries(process.env)
         .filter(([key]) => key.startsWith('JAVA_HOME_') && process.env[key])
-        .map(([key, _value]) => ({
+        .map(([key, value]) => ({
             jdkVersion: key.match(/JAVA_HOME_(\d+)_/)?.[1] ?? null,
-            jdkPath: `\${env.${key}}`
+            jdkPath: value as string
         }))
         .filter(env => env.jdkVersion !== null)
 
@@ -40,7 +40,9 @@ ${javaHomeEnvs
     <configuration>
       <jdkHome>${jdkPath}</jdkHome>
     </configuration>
-  </toolchain>`).join('\n')}
+  </toolchain>`
+    )
+    .join('\n')}
 </toolchains>\n`
 }
 
