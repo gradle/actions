@@ -50,6 +50,7 @@
     "which": "5.0.0"
   },
   "devDependencies": {
+    "@gradle/develocity-agent": "https://develocity-npm-pkgs.gradle.com/gradle-develocity-agent-0.9.0.tgz",
     "@types/jest": "29.5.14",
     "@types/node": "20.17.13",
     "@types/unzipper": "0.10.10",
