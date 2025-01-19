@@ -15,6 +15,7 @@ permissions:
 jobs:
   check-format-and-unit-test:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout sources
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -31,13 +32,26 @@ jobs:
       with:
         gradle-version: "8.12"
 
-    - name: Check formatting and compile
+    - name: Install npm dependencies
       run: |
         npm clean-install
+      working-directory: sources
+
+    - name: Check formatting and compile
+      run: |
         npm run check
         npm run compile
       working-directory: sources
+      env:
+        NODE_OPTIONS: '-r @gradle/develocity-agent/preload'
+        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
+
     - name: Run unit tests
       run: |
         npm test
       working-directory: sources
+      env:
+        NODE_OPTIONS: '-r @gradle/develocity-agent/preload'
+        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
