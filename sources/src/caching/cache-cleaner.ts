@@ -75,6 +75,7 @@ export class CacheCleaner {
             '--no-scan',
             '--build-cache',
             '-DGITHUB_DEPENDENCY_GRAPH_ENABLED=false',
+            '-DGRADLE_ACTIONS_SKIP_BUILD_RESULT_CAPTURE=true',
             'noop'
         ]
 

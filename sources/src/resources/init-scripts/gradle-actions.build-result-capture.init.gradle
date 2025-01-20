@@ -2,13 +2,20 @@
  * Capture information for each executed Gradle build to display in the job summary.
  */
 import org.gradle.util.GradleVersion
+import org.slf4j.LoggerFactory
 
+def SKIP_BUILD_CAPTURE = "GRADLE_ACTIONS_SKIP_BUILD_RESULT_CAPTURE"
 def BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan"
 def BUILD_SCAN_EXTENSION = "buildScan"
 def DEVELOCITY_PLUGIN_ID = "com.gradle.develocity"
 def DEVELOCITY_EXTENSION = "develocity"
 def GE_PLUGIN_ID = "com.gradle.enterprise"
 def GE_EXTENSION = "gradleEnterprise"
+
+if (System.properties[SKIP_BUILD_CAPTURE] ?: System.getenv(SKIP_BUILD_CAPTURE)) {
+    logger.lifecycle("gradle/actions: Not capturing build results")
+    return
+}
 
 // Only run against root build. Do not run against included builds.
 def isTopLevelBuild = gradle.getParent() == null
@@ -79,7 +86,6 @@ def captureUsingBuildService(invocationId) {
 
 void captureUsingBuildFinished(gradle, String invocationId, ResultsWriter resultsWriter) {
     gradle.buildFinished { result ->
-        println "Got buildFinished: ${result}"
         def buildResults = [
             rootProjectName: rootProject.name,
             rootProjectDir: rootProject.projectDir.absolutePath,
@@ -124,6 +130,8 @@ void captureUsingBuildScanPublished(buildScanExtension, String invocationId, Res
 }
 
 class ResultsWriter {
+    private final logger = LoggerFactory.getLogger("gradle/actions")
+
     void writeToResultsFile(String subDir, String invocationId, def content) {
         def runnerTempDir = System.getProperty("RUNNER_TEMP") ?: System.getenv("RUNNER_TEMP")
         def githubActionStep = System.getProperty("GITHUB_ACTION") ?: System.getenv("GITHUB_ACTION")
@@ -136,6 +144,7 @@ class ResultsWriter {
             buildResultsDir.mkdirs()
             def buildResultsFile = new File(buildResultsDir, githubActionStep + invocationId + ".json")
             if (!buildResultsFile.exists()) {
+                logger.lifecycle("gradle/actions: Writing build results to ${buildResultsFile}")
                 buildResultsFile << groovy.json.JsonOutput.toJson(content)
             }
         } catch (Exception e) {
