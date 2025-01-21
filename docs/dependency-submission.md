@@ -103,6 +103,9 @@ In some cases, the default action configuration will not be sufficient, and addi
         # Do not attempt to submit the dependency-graph. Save it as a workflow artifact.
         dependency-graph: generate-and-upload
 
+        # Change the number of days that workflow artifacts are retained. (Default is 30 days).
+        artifact-retention-days: 5
+
         # Specify the location where dependency graph files will be generated.
         dependency-graph-report-dir: custom-report-dir
 
@@ -117,6 +120,29 @@ The `GitHub Dependency Graph Gradle Plugin` can be further
 [configured via a number of environment variables](https://github.com/gradle/github-dependency-graph-gradle-plugin?#required-environment-variables). 
 These will be automatically set by the `dependency-submission` action, but you may override these values 
 by setting them explicitly in your workflow file.
+
+### Reducing storage costs for saved dependency graph artifacts
+
+By default, the dependency graph that is generated is stored as a workflow artifact.
+To reduce storage costs for these artifacts, you can:
+
+1. Set the `artifact-retention-days`:
+
+```yaml
+    - name: Generate dependency graph but only store workflow artifacts for 1 day
+      uses: gradle/actions/dependency-submission@v4
+      with:
+        artifact-retention-days: 1 # Default is 30 days or as configured for repository
+```
+
+2. Disable storing dependency-graph artifacts using `generate-and-submit`
+
+```yaml
+    - name: Generate and submit dependency graph but do not store as workflow artifact
+      uses: gradle/actions/dependency-submission@v4
+      with:
+        dependency-graph: 'generate-and-submit' # Default value is 'generate-submit-and-upload'
+```
 
 # Resolving a dependency vulnerability
 

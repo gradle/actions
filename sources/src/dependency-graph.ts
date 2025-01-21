@@ -60,7 +60,10 @@ export async function complete(config: DependencyGraphConfig): Promise<void> {
             case DependencyGraphOption.DownloadAndSubmit: // Performed in setup
                 return
             case DependencyGraphOption.GenerateAndSubmit:
-                await findAndSubmitDependencyGraphs(config)
+                await findAndSubmitDependencyGraphs(config, false)
+                return
+            case DependencyGraphOption.GenerateSubmitAndUpload:
+                await findAndSubmitDependencyGraphs(config, true)
                 return
             case DependencyGraphOption.GenerateAndUpload:
                 await findAndUploadDependencyGraphs(config)
@@ -83,7 +86,7 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
     }
 }
 
-async function findAndSubmitDependencyGraphs(config: DependencyGraphConfig): Promise<void> {
+async function findAndSubmitDependencyGraphs(config: DependencyGraphConfig, uploadAfterSubmit: boolean): Promise<void> {
     if (isRunningInActEnvironment()) {
         core.info('Dependency graph not supported in the ACT environment.')
         return
@@ -99,6 +102,10 @@ async function findAndSubmitDependencyGraphs(config: DependencyGraphConfig): Pro
             core.info(String(uploadError))
         }
         throw e
+    }
+
+    if (uploadAfterSubmit) {
+        await uploadDependencyGraphs(dependencyGraphFiles, config)
     }
 }
 

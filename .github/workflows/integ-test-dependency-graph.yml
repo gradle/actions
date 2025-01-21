@@ -153,3 +153,40 @@ jobs:
             ls -l dependency-graph-reports
             exit 1
         fi        
+
+  dependency-graph-generate-submit-and-upload:
+    permissions:
+      contents: write
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Setup Gradle for dependency-graph generate
+      uses: ./setup-gradle
+      with:
+        dependency-graph: generate-submit-and-upload
+    - name: Run gradle build
+      id: gradle-build
+      run: ./gradlew build
+      working-directory: .github/workflow-samples/groovy-dsl
+
+  dependency-graph-generate-submit-and-upload-check:
+    needs: [dependency-graph-generate-submit-and-upload]
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: Download dependency-graph artifact
+      uses: actions/download-artifact@v4
+      with:
+        path: downloaded-dependency-graphs
+        pattern: dependency-graph_*dependency-graph-generate-submit-and-upload.json
+    - name: Check for downloaded dependency graphs
+      shell: bash
+      run: |
+        ls -A "${{ github.workspace }}/downloaded-dependency-graphs"
+        if [ -z "$(ls -A "${{ github.workspace }}/downloaded-dependency-graphs")" ]; then
+          echo "No dependency graph files found"
+          exit 1
+        fi
