@@ -39,7 +39,11 @@ jobs:
         npm run check
         npm run compile
       working-directory: sources
-    
+      env:
+        NODE_OPTIONS: '-r @gradle/develocity-agent/preload'
+        DEVELOCITY_URL: https://ge.solutions-team.gradle.com
+        DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+
     - name: Copy the generated sources/dist directory to the top-level dist
       run: |
         cp -r sources/dist .
