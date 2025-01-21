@@ -39,7 +39,7 @@ describe('predefined-toolchains', () => {
       <version>8</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_8_X64}</jdkHome>
+      <jdkHome>/jdks/foo_8</jdkHome>
     </configuration>
   </toolchain>
   <toolchain>
@@ -48,7 +48,7 @@ describe('predefined-toolchains', () => {
       <version>11</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_11_X64}</jdkHome>
+      <jdkHome>/jdks/foo_11</jdkHome>
     </configuration>
   </toolchain>
   <toolchain>
@@ -57,7 +57,7 @@ describe('predefined-toolchains', () => {
       <version>21</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_21_ARM64}</jdkHome>
+      <jdkHome>/jdks/foo_21</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>
@@ -81,7 +81,7 @@ describe('predefined-toolchains', () => {
       <version>8</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_8_X64}</jdkHome>
+      <jdkHome>/jdks/foo_8</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>
@@ -98,7 +98,7 @@ describe('predefined-toolchains', () => {
       <version>8</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_8_X64}</jdkHome>
+      <jdkHome>/jdks/foo_8</jdkHome>
     </configuration>
   </toolchain>
 
@@ -109,7 +109,7 @@ describe('predefined-toolchains', () => {
       <version>11</version>
     </provides>
     <configuration>
-      <jdkHome>\${env.JAVA_HOME_11_X64}</jdkHome>
+      <jdkHome>/jdks/foo_11</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>
