@@ -718,20 +718,6 @@ A known exception to this is that Gradle `7.0`, `7.0.1`, and `7.0.2` are not sup
 
 See [here](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=readme-ov-file#gradle-compatibility) for complete compatibility information.
 
-### Reducing storage costs for saved dependency graph artifacts
-
-When `generate` or `generate-and-submit` is used with the action, the dependency graph that is generated is stored as a workflow artifact.
-By default, these artifacts are retained for 30 days (or as configured for the repository).
-To reduce storage costs for these artifacts, you can set the `artifact-retention-days` value to a lower number.
-
-```yaml
-    - name: Generate dependency graph, but only retain artifact for one day
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        dependency-graph: generate
-        artifact-retention-days: 1
-```
-
 # Develocity Build Scan® integration
 
 Publishing a Develocity Build Scan can be very helpful for Gradle builds run on GitHub Actions. Each Build Scan provides a
