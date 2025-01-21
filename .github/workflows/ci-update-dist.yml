@@ -33,16 +33,20 @@ jobs:
         cache: npm
         cache-dependency-path: sources/package-lock.json
 
-    - name: Build distribution
+    - name: Install npm dependencies
       run: |
         npm clean-install
+      working-directory: sources
+
+    - name: Build distribution
+      run: |
         npm run check
         npm run compile
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle/develocity-agent/preload'
-        DEVELOCITY_URL: https://ge.solutions-team.gradle.com
-        DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Copy the generated sources/dist directory to the top-level dist
       run: |
