@@ -23,7 +23,7 @@ export async function setup(config: BuildScanConfig): Promise<void> {
     if (config.getBuildScanPublishEnabled()) {
         maybeExportVariable('DEVELOCITY_INJECTION_ENABLED', 'true')
         maybeExportVariable('DEVELOCITY_PLUGIN_VERSION', '3.19')
-        maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '2.0.2')
+        maybeExportVariable('DEVELOCITY_CCUD_PLUGIN_VERSION', '2.1')
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_URL', config.getBuildScanTermsOfUseUrl())
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', config.getBuildScanTermsOfUseAgree())
     }

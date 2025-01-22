@@ -902,7 +902,7 @@ Here's an example using the env vars:
         DEVELOCITY_URL: https://develocity.your-server.com
         DEVELOCITY_ENFORCE_URL: true
         DEVELOCITY_PLUGIN_VERSION: "3.19"
-        DEVELOCITY_CCUD_PLUGIN_VERSION: "2.0.2"
+        DEVELOCITY_CCUD_PLUGIN_VERSION: "2.1"
 ```
 
 # Dependency verification
