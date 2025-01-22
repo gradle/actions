@@ -29,7 +29,7 @@ jobs:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: https://ge.solutions-team.gradle.com
       DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
-      DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0.2'
+      DEVELOCITY_CCUD_PLUGIN_VERSION: '2.1'
       ${{matrix.accessKeyEnv}}: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
     strategy:
       fail-fast: false
@@ -76,7 +76,7 @@ jobs:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
       DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
-      DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0.2'
+      DEVELOCITY_CCUD_PLUGIN_VERSION: '2.1'
     strategy:
       fail-fast: false
       matrix:
@@ -117,7 +117,7 @@ jobs:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_URL: 'https://localhost:3333/'
       DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
-      DEVELOCITY_CCUD_PLUGIN_VERSION: '2.0.2'
+      DEVELOCITY_CCUD_PLUGIN_VERSION: '2.1'
       # Access key also set as an env var, we want to check it does not leak
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
       DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
