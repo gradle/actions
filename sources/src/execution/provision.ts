@@ -88,7 +88,7 @@ async function gradleReleaseNightly(): Promise<GradleVersionInfo> {
 async function gradleRelease(version: string): Promise<GradleVersionInfo> {
     const versionInfo = await findGradleVersionDeclaration(version)
     if (!versionInfo) {
-        throw new Error(`Gradle version ${version} does not exists`)
+        throw new Error(`Gradle version ${version} does not exist`)
     }
     return versionInfo
 }
