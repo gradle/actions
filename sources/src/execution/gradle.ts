@@ -35,18 +35,45 @@ async function executeGradleBuild(executable: string | undefined, root: string, 
 }
 
 export function versionIsAtLeast(actualVersion: string, requiredVersion: string): boolean {
-    const splitVersion = actualVersion.split('-')
-    const coreVersion = splitVersion[0]
-    const prerelease = splitVersion.length > 1
-
-    const actualSemver = semver.coerce(coreVersion)!
-    const comparisonSemver = semver.coerce(requiredVersion)!
-
-    if (prerelease) {
-        return semver.gt(actualSemver, comparisonSemver)
-    } else {
-        return semver.gte(actualSemver, comparisonSemver)
+    if (actualVersion === requiredVersion) {
+        return true
     }
+
+    const actual = new GradleVersion(actualVersion)
+    const required = new GradleVersion(requiredVersion)
+
+    const actualSemver = semver.coerce(actual.versionPart)!
+    const comparisonSemver = semver.coerce(required.versionPart)!
+
+    if (semver.gt(actualSemver, comparisonSemver)) {
+        return true // Actual version is greater than comparison. So it's at least as new.
+    }
+    if (semver.lt(actualSemver, comparisonSemver)) {
+        return false // Actual version is less than comparison. So it's not as new.
+    }
+
+    // Actual and required version numbers are equal, so compare the other parts
+
+    if (actual.snapshotPart || required.snapshotPart) {
+        if (actual.snapshotPart && !required.snapshotPart && !required.stagePart) {
+            return false // Actual has a snapshot, but required is a plain version. Required is newer.
+        }
+        if (required.snapshotPart && !actual.snapshotPart && !actual.stagePart) {
+            return true // Required has a snapshot, but actual is a plain version. Actual is newer.
+        }
+
+        return false // Cannot compare case where both versions have a snapshot or stage
+    }
+
+    if (actual.stagePart) {
+        if (required.stagePart) {
+            return actual.stagePart >= required.stagePart // Compare stages for newer
+        }
+
+        return false // Actual has a stage, but required does not. So required is always newer.
+    }
+
+    return true // Actual has no stage part or snapshot part, so it cannot be older than required.
 }
 
 export async function findGradleVersionOnPath(): Promise<GradleExecutable | undefined> {
@@ -71,4 +98,23 @@ class GradleExecutable {
         readonly version: string,
         readonly executable: string
     ) {}
+}
+
+class GradleVersion {
+    static PATTERN = /((\d+)(\.\d+)+)(-([a-z]+)-(\w+))?(-(SNAPSHOT|\d{14}([-+]\d{4})?))?/
+
+    versionPart: string
+    stagePart: string
+    snapshotPart: string
+
+    constructor(readonly version: string) {
+        const matcher = GradleVersion.PATTERN.exec(version)
+        if (!matcher) {
+            throw new Error(`'${version}' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')`)
+        }
+
+        this.versionPart = matcher[1]
+        this.stagePart = matcher[4]
+        this.snapshotPart = matcher[7]
+    }
 }
