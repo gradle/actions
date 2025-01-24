@@ -4,8 +4,9 @@ import * as exec from '@actions/exec'
 import fs from 'fs'
 import path from 'path'
 import * as provisioner from '../execution/provision'
-import {BuildResults} from '../build-results'
+import {BuildResult, BuildResults} from '../build-results'
 import {versionIsAtLeast} from '../execution/gradle'
+import {gradleWrapperScript} from '../execution/gradlew'
 
 export class CacheCleaner {
     private readonly gradleUserHome: string
@@ -38,7 +39,11 @@ export class CacheCleaner {
         const preferredVersion = buildResults.highestGradleVersion()
         if (preferredVersion && versionIsAtLeast(preferredVersion, '8.11')) {
             try {
-                return await provisioner.provisionGradleAtLeast(preferredVersion)
+                const wrapperScripts = buildResults.results
+                    .map(result => this.findGradleWrapperScript(result))
+                    .filter(Boolean) as string[]
+
+                return await provisioner.provisionGradleWithVersionAtLeast(preferredVersion, wrapperScripts)
             } catch (e) {
                 // Ignore the case where the preferred version cannot be located in https://services.gradle.org/versions/all.
                 // This can happen for snapshot Gradle versions.
@@ -49,7 +54,17 @@ export class CacheCleaner {
         }
 
         // Fallback to the minimum version required for cache-cleanup
-        return await provisioner.provisionGradleAtLeast('8.11')
+        return await provisioner.provisionGradleWithVersionAtLeast('8.11')
+    }
+
+    private findGradleWrapperScript(result: BuildResult): string | null {
+        try {
+            const wrapperScript = gradleWrapperScript(result.rootProjectDir)
+            return path.resolve(result.rootProjectDir, wrapperScript)
+        } catch (error) {
+            core.debug(`No Gradle Wrapper found for ${result.rootProjectName}: ${error}`)
+            return null
+        }
     }
 
     // Visible for testing
