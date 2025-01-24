@@ -76,28 +76,19 @@ export function versionIsAtLeast(actualVersion: string, requiredVersion: string)
     return true // Actual has no stage part or snapshot part, so it cannot be older than required.
 }
 
-export async function findGradleVersionOnPath(): Promise<GradleExecutable | undefined> {
-    const gradleExecutable = await which('gradle', {nothrow: true})
-    if (gradleExecutable) {
-        const output = await exec.getExecOutput(gradleExecutable, ['-v'], {silent: true})
-        const version = parseGradleVersionFromOutput(output.stdout)
-        return version ? new GradleExecutable(version, gradleExecutable) : undefined
-    }
+export async function findGradleExecutableOnPath(): Promise<string | null> {
+    return await which('gradle', {nothrow: true})
+}
 
-    return undefined
+export async function determineGradleVersion(gradleExecutable: string): Promise<string | undefined> {
+    const output = await exec.getExecOutput(gradleExecutable, ['-v'], {silent: true})
+    return parseGradleVersionFromOutput(output.stdout)
 }
 
 export function parseGradleVersionFromOutput(output: string): string | undefined {
     const regex = /Gradle (\d+\.\d+(\.\d+)?(-.*)?)/
     const versionString = output.match(regex)?.[1]
     return versionString
-}
-
-class GradleExecutable {
-    constructor(
-        readonly version: string,
-        readonly executable: string
-    ) {}
 }
 
 class GradleVersion {
