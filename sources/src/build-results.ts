@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import {versionIsAtLeast} from './execution/gradle'
 
 export interface BuildResult {
     get rootProjectName(): string
@@ -31,6 +32,18 @@ export class BuildResults {
     uniqueGradleHomes(): string[] {
         const allHomes = this.results.map(buildResult => buildResult.gradleHomeDir)
         return Array.from(new Set(allHomes))
+    }
+
+    highestGradleVersion(): string | null {
+        if (this.results.length === 0) {
+            return null
+        }
+        return this.results
+            .map(result => result.gradleVersion)
+            .reduce((maxVersion: string, currentVersion: string) => {
+                if (!maxVersion) return currentVersion
+                return versionIsAtLeast(currentVersion, maxVersion) ? currentVersion : maxVersion
+            })
     }
 }
 

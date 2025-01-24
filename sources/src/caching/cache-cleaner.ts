@@ -4,6 +4,8 @@ import * as exec from '@actions/exec'
 import fs from 'fs'
 import path from 'path'
 import * as provisioner from '../execution/provision'
+import {BuildResults} from '../build-results'
+import {versionIsAtLeast} from '../execution/gradle'
 
 export class CacheCleaner {
     private readonly gradleUserHome: string
@@ -21,13 +23,37 @@ export class CacheCleaner {
         return timestamp
     }
 
-    async forceCleanup(): Promise<void> {
+    async forceCleanup(buildResults: BuildResults): Promise<void> {
+        const executable = await this.gradleExecutableForCleanup(buildResults)
         const cleanTimestamp = core.getState('clean-timestamp')
-        await this.forceCleanupFilesOlderThan(cleanTimestamp)
+        await this.forceCleanupFilesOlderThan(cleanTimestamp, executable)
+    }
+
+    /**
+     * Attempt to use the newest Gradle version that was used to run a build, at least 8.11.
+     *
+     * This will avoid the need to provision a Gradle version for the cleanup when not necessary.
+     */
+    private async gradleExecutableForCleanup(buildResults: BuildResults): Promise<string> {
+        const preferredVersion = buildResults.highestGradleVersion()
+        if (preferredVersion && versionIsAtLeast(preferredVersion, '8.11')) {
+            try {
+                return await provisioner.provisionGradleAtLeast(preferredVersion)
+            } catch (e) {
+                // Ignore the case where the preferred version cannot be located in https://services.gradle.org/versions/all.
+                // This can happen for snapshot Gradle versions.
+                core.info(
+                    `Failed to provision Gradle ${preferredVersion} for cache cleanup. Falling back to default version.`
+                )
+            }
+        }
+
+        // Fallback to the minimum version required for cache-cleanup
+        return await provisioner.provisionGradleAtLeast('8.11')
     }
 
     // Visible for testing
-    async forceCleanupFilesOlderThan(cleanTimestamp: string): Promise<void> {
+    async forceCleanupFilesOlderThan(cleanTimestamp: string, executable: string): Promise<void> {
         // Run a dummy Gradle build to trigger cache cleanup
         const cleanupProjectDir = path.resolve(this.tmpDir, 'dummy-cleanup-project')
         fs.mkdirSync(cleanupProjectDir, {recursive: true})
@@ -54,9 +80,6 @@ export class CacheCleaner {
             `
         )
         fs.writeFileSync(path.resolve(cleanupProjectDir, 'build.gradle'), 'task("noop") {}')
-
-        // TODO: This is ineffective: we should be using the newest version of Gradle that ran a build, or a newer version if it's available on PATH.
-        const executable = await provisioner.provisionGradleAtLeast('8.12')
 
         await core.group('Executing Gradle to clean up caches', async () => {
             core.info(`Cleaning up caches last used before ${cleanTimestamp}`)

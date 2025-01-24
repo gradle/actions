@@ -102,7 +102,7 @@ export async function save(
             cacheListener.setCacheCleanupDisabled(CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT)
         } else if (cacheConfig.shouldPerformCacheCleanup(buildResults.anyFailed())) {
             cacheListener.setCacheCleanupEnabled()
-            await performCacheCleanup(gradleUserHome)
+            await performCacheCleanup(gradleUserHome, buildResults)
         } else {
             core.info('Not performing cache-cleanup due to build failure')
             cacheListener.setCacheCleanupDisabled(CLEANUP_DISABLED_DUE_TO_FAILURE)
@@ -114,10 +114,10 @@ export async function save(
     })
 }
 
-async function performCacheCleanup(gradleUserHome: string): Promise<void> {
+async function performCacheCleanup(gradleUserHome: string, buildResults: BuildResults): Promise<void> {
     const cacheCleaner = new CacheCleaner(gradleUserHome, process.env['RUNNER_TEMP']!)
     try {
-        await cacheCleaner.forceCleanup()
+        await cacheCleaner.forceCleanup(buildResults)
     } catch (e) {
         core.warning(`Cache cleanup failed. Will continue. ${String(e)}`)
     }

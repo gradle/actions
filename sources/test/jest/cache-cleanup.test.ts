@@ -28,7 +28,7 @@ test('will cleanup unused dependency jars and build-cache entries', async () => 
     expect(fs.existsSync(commonsMath311)).toBe(true)
     expect(fs.readdirSync(buildCacheDir).length).toBe(4) // gc.properties, build-cache-1.lock, and 2 task entries
 
-    await cacheCleaner.forceCleanupFilesOlderThan(timestamp)
+    await cacheCleaner.forceCleanupFilesOlderThan(timestamp, 'gradle')
 
     expect(fs.existsSync(commonsMath31)).toBe(false)
     expect(fs.existsSync(commonsMath311)).toBe(true)
@@ -68,7 +68,7 @@ test('will cleanup unused gradle versions', async () => {
     // The wrapper won't be removed if it was recently downloaded. Age it.
     setUtimes(wrapper802, new Date(Date.now() - 48 * 60 * 60 * 1000))
 
-    await cacheCleaner.forceCleanupFilesOlderThan(timestamp)
+    await cacheCleaner.forceCleanupFilesOlderThan(timestamp, 'gradle')
 
     expect(fs.existsSync(gradle802)).toBe(false)
     expect(fs.existsSync(transforms3)).toBe(false)
