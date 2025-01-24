@@ -221,7 +221,7 @@ jobs:
     - uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: 8.6
-        cache-encryption-key: ${{ secrets.GradleEncryptionKey }}
+        cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     - run: gradle build --configuration-cache
 ```
 
