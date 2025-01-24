@@ -36,6 +36,10 @@ case "$1" in
         npm clean-install
         npm run build
         ;;
+    test)
+        shift
+        npm test -- $@
+        ;;
     *)
         npm run build
         ;;
