@@ -438,6 +438,15 @@ so that a Job Summary is never generated, or so that a Job Summary is only gener
 add-job-summary: 'on-failure' # Valid values are 'always' (default), 'never', and 'on-failure'
 ```
 
+### Excluding specific Gradle builds from Job Summary
+
+The Job Summary works by installing an init-script in Gradle User Home which will record details of any Gradle execution during the workflow.
+This means that any Gradle excecution sharing the same Gradle User Home will show up in the Job Summary, which may include Gradle executions 
+run as part of integration testing.
+
+To avoid having these test builds show up in the Job Summary, add the `GRADLE_ACTIONS_SKIP_BUILD_RESULT_CAPTURE=true` environment variable
+to the process that executes Gradle. This will stop the init-script from collecting any build results.
+
 ### Adding Job Summary as a Pull Request comment
 
 It is sometimes more convenient to view the results of a GitHub Actions Job directly from the Pull Request that triggered
