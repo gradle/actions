@@ -361,7 +361,7 @@ submitted before the dependency review can complete. The period to wait is contr
 Here's an example of a separate "Dependency Review" workflow that will wait up to 10 minutes for dependency submission to complete.
 
 ```yaml
-name: dependency-review
+name: Dependency Review
 
 on:
   pull_request:
