@@ -321,12 +321,19 @@ The GitHub [dependency-review-action](https://github.com/actions/dependency-revi
 understand dependency changes (and the security impact of these changes) for a pull request,
 by comparing the dependency graph for the pull-request with that of the HEAD commit.
 
-Example of a pull request workflow that executes a build for a pull request and runs the `dependency-review-action`:
+Integrating the Dependency Review Action requires 2 changes to your workflows:
+
+#### 1. Add a `pull_request` trigger to your existing Dependency Submission workflow.
+
+In order to perform Dependency Review on a pull request, the dependency graph must be submitted for the pull request.
+To do this, simply add a `pull_request` trigger to your existing dependency submission workflow.
 
 ```yaml
-name: Dependency review for pull requests
+name: Dependency Submission
 
 on:
+  push:
+    branches: [ 'main' ]
   pull_request:
 
 permissions:
@@ -344,10 +351,36 @@ jobs:
 
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v4
-
-    - name: Perform dependency review
-      uses: actions/dependency-review-action@v4
 ```
+
+#### 2. Add a dedicated Dependency Review workflow
+
+The Dependency Review workflow will be triggered directly on `pull_request`, but will wait until the dependency graph results are
+submitted before the dependency review can complete. The period to wait is controlled by the `retry-on-snapshot-warnings` input parameters.
+
+Here's an example of a separate "Dependency Review" workflow that will wait up to 10 minutes for dependency submission to complete.
+
+```yaml
+name: dependency-review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Dependency Review'
+      uses: actions/dependency-review-action@v4
+      with:
+        retry-on-snapshot-warnings: true
+        retry-on-snapshot-warnings-timeout: 600
+```
+
+The `retry-on-snapshot-warnings-timeout` (in seconds) needs to be long enough to allow the modified dependency-submission workflow to complete.
 
 ## Usage with pull requests from public forked repositories
 
@@ -406,36 +439,6 @@ jobs:
       with:
         dependency-graph: download-and-submit # Download saved dependency-graph and submit
 ```
-
-### Integrating `dependency-review-action` for pull requests from public forked repositories
-
-To integrate the `dependency-review-action` into the pull request workflows above, a third workflow file is required.
-This workflow will be triggered directly on `pull_request`, but will wait until the dependency graph results are
-submitted before the dependency review can complete. The period to wait is controlled by the `retry-on-snapshot-warnings` input parameters.
-
-Here's an example of a separate "Dependency Review" workflow that will wait for 10 minutes for the above PR check workflow to complete.
-
-```yaml
-name: dependency-review
-
-on:
-  pull_request:
-
-permissions:
-  contents: read
-
-jobs:
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-    - name: 'Dependency Review'
-      uses: actions/dependency-review-action@v4
-      with:
-        retry-on-snapshot-warnings: true
-        retry-on-snapshot-warnings-timeout: 600
-```
-
-The `retry-on-snapshot-warnings-timeout` (in seconds) needs to be long enough to allow the entire `Generate and save dependency graph` and `Download and submit dependency graph` workflows (above) to complete.
 
 # Gradle version compatibility
 
