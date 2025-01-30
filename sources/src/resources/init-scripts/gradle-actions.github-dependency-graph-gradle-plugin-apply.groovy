@@ -15,8 +15,8 @@ buildscript {
       if (pluginRepositoryUsername && pluginRepositoryPassword) {
         logger.lifecycle("Applying credentials for plugin repository: ${pluginRepositoryUrl}")
         credentials {
-          username(pluginRepositoryUsername)
-          password(pluginRepositoryPassword)
+          username = pluginRepositoryUsername
+          password = pluginRepositoryPassword
         }
         authentication {
           basic(BasicAuthentication)

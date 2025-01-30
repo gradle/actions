@@ -3,6 +3,8 @@ name: CI-integ-test-full
 on:
   workflow_dispatch:
   push:
+    branches:
+    - 'main'
     paths:
     - 'dist/**'
 
