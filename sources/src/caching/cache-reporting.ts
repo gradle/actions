@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as cache from '@actions/cache'
 
 export const DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`
@@ -133,6 +134,8 @@ export class CacheEntryListener {
     }
 
     markRestored(key: string, size: number | undefined, time: number): CacheEntryListener {
+        core.info(`Restored cache entry with key ${key} in ${time}ms`)
+
         this.restoredKey = key
         this.restoredSize = size
         this.restoredTime = time
@@ -145,6 +148,8 @@ export class CacheEntryListener {
     }
 
     markSaved(key: string, size: number | undefined, time: number): CacheEntryListener {
+        core.info(`Saved cache entry with key ${key} in ${time}ms`)
+
         this.savedKey = key
         this.savedSize = size
         this.savedTime = time

@@ -47,7 +47,6 @@ export async function restoreCache(
         if (restoredEntry !== undefined) {
             const restoreTime = Date.now() - startTime
             listener.markRestored(restoredEntry.key, restoredEntry.size, restoreTime)
-            core.info(`Restored cache entry with key ${cacheKey} to ${cachePath.join()} in ${restoreTime}ms`)
         }
         return restoredEntry
     } catch (error) {
@@ -63,7 +62,6 @@ export async function saveCache(cachePath: string[], cacheKey: string, listener:
         const savedEntry = await cache.saveCache(cachePath, cacheKey)
         const saveTime = Date.now() - startTime
         listener.markSaved(savedEntry.key, savedEntry.size, saveTime)
-        core.info(`Saved cache entry with key ${cacheKey} from ${cachePath.join()} in ${saveTime}ms`)
     } catch (error) {
         if (error instanceof cache.ReserveCacheError) {
             listener.markAlreadyExists(cacheKey)
