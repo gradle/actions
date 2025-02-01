@@ -1,6 +1,6 @@
 import * as gitHubCache from '@actions/cache'
 import * as core from '@actions/core'
-import {Cache, CacheResult} from './cache-api'
+import {Cache} from './cache-api'
 
 const SEGMENT_DOWNLOAD_TIMEOUT_VAR = 'SEGMENT_DOWNLOAD_TIMEOUT_MINS'
 const SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT = 10 * 60 * 1000 // 10 minutes
@@ -17,24 +17,33 @@ export class GitHubActionsCache implements Cache {
             : {segmentTimeoutInMs: SEGMENT_DOWNLOAD_TIMEOUT_DEFAULT}
 
         const restored = await gitHubCache.restoreCache(paths, primaryKey, restoreKeys, cacheRestoreOptions)
-        return restored ? this.cacheEntry(restored.key, restored.size) : undefined
+        return restored ? this.cacheResult(restored.key, restored.size) : undefined
     }
 
     async save(paths: string[], key: string): Promise<CacheResult> {
         try {
             const cacheEntry = await gitHubCache.saveCache(paths, key)
-            return this.cacheEntry(cacheEntry.key, cacheEntry.size)
+            return this.cacheResult(cacheEntry.key, cacheEntry.size)
         } catch (error) {
             if (error instanceof gitHubCache.ReserveCacheError) {
                 // Reserve cache errors are expected if the artifact has been previously cached
                 core.info(`Cache entry ${key} already exists: ${error}`)
-                return this.cacheEntry(key, 0)
+                return this.cacheResult(key, 0)
             }
             throw error
         }
     }
 
-    private cacheEntry(key: string, size?: number): CacheResult {
+    private cacheResult(key: string, size?: number): CacheResult {
         return new CacheResult(key, size)
+    }
+}
+
+class CacheResult {
+    key: string
+    size?: number
+    constructor(key: string, size?: number) {
+        this.key = key
+        this.size = size
     }
 }
