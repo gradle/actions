@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import * as cache from '@actions/cache'
 
 import * as crypto from 'crypto'
 import * as path from 'path'
@@ -80,11 +79,7 @@ export function cacheDebug(message: string): void {
 }
 
 export function handleCacheFailure(error: unknown, message: string): void {
-    if (error instanceof cache.ValidationError) {
-        // Fail on cache validation errors
-        throw error
-    }
-    // Warn on all other errors
+    // Warn on and continue on any cache error
     core.warning(`${message}: ${error}`)
     if (error instanceof Error && error.stack) {
         cacheDebug(error.stack)
