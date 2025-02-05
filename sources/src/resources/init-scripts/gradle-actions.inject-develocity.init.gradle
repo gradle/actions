@@ -1,6 +1,6 @@
 /*
  * Initscript for injection of Develocity into Gradle builds.
- * Version: v1.1.1
+ * Version: 1.2
  */
 
 import org.gradle.util.GradleVersion
@@ -110,7 +110,6 @@ if (buildScanCaptureEnabled) {
 }
 
 void enableDevelocityInjection() {
-    def BUILD_SCAN_PLUGIN_ID = 'com.gradle.build-scan'
     def BUILD_SCAN_PLUGIN_CLASS = 'com.gradle.scan.plugin.BuildScanPlugin'
 
     def GRADLE_ENTERPRISE_PLUGIN_ID = 'com.gradle.enterprise'
@@ -153,6 +152,12 @@ void enableDevelocityInjection() {
         logger.lifecycle("Accepting Gradle Terms of Use: $buildScanTermsOfUseUrl")
     }
 
+    // finish early if DV plugin version is unsupported (v3.6.4 is the minimum version tested and supports back to DV 2021.1)
+    if (develocityPluginVersion && isNotAtLeast(develocityPluginVersion, '3.6.4')) {
+        logger.warn("Develocity Gradle plugin must be at least 3.6.4. Configured version is $develocityPluginVersion.")
+        return
+    }
+
     // finish early if configuration parameters passed in via system properties are not valid/supported
     if (ccudPluginVersion && isNotAtLeast(ccudPluginVersion, '1.7')) {
         logger.warn("Common Custom User Data Gradle plugin must be at least 1.7. Configured version is $ccudPluginVersion.")
@@ -190,8 +195,6 @@ void enableDevelocityInjection() {
                             // Develocity plugin publishes scans by default
                             buildScanExtension.publishAlways()
                         }
-                        // uploadInBackground not available for build-scan-plugin 1.16
-                        if (buildScanExtension.metaClass.respondsTo(buildScanExtension, 'setUploadInBackground', Boolean)) buildScanExtension.uploadInBackground = buildScanUploadInBackground
                         buildScanExtension.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, ciAutoInjectionCustomValueValue
                         if (isAtLeast(develocityPluginVersion, '2.1') && atLeastGradle5) {
                             logger.lifecycle("Setting captureFileFingerprints: $develocityCaptureFileFingerprints")
@@ -221,6 +224,9 @@ void enableDevelocityInjection() {
                             develocity.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
                             develocity.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
                         }
+
+                        logger.lifecycle("Setting uploadInBackground: $buildScanUploadInBackground")
+                        develocity.buildScan.uploadInBackground = buildScanUploadInBackground
                     },
                     { buildScan ->
                         afterEvaluate {
@@ -240,6 +246,12 @@ void enableDevelocityInjection() {
                                 buildScan.licenseAgreementUrl = buildScanTermsOfUseUrl
                                 buildScan.licenseAgree = buildScanTermsOfUseAgree
                             }
+                        }
+
+                        // uploadInBackground available for build-scan-plugin 3.3.4 and later only
+                        if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) {
+                            logger.lifecycle("Setting uploadInBackground: $buildScanUploadInBackground")
+                            buildScan.uploadInBackground = buildScanUploadInBackground
                         }
                     }
                 )
@@ -276,7 +288,6 @@ void enableDevelocityInjection() {
                     }
 
                     eachDevelocitySettingsExtension(settings) { ext ->
-                        ext.buildScan.uploadInBackground = buildScanUploadInBackground
                         ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, ciAutoInjectionCustomValueValue
                     }
 
@@ -313,6 +324,9 @@ void enableDevelocityInjection() {
                         develocity.buildScan.termsOfUseUrl = buildScanTermsOfUseUrl
                         develocity.buildScan.termsOfUseAgree = buildScanTermsOfUseAgree
                     }
+
+                    logger.lifecycle("Setting uploadInBackground: $buildScanUploadInBackground")
+                    develocity.buildScan.uploadInBackground = buildScanUploadInBackground
                 },
                 { gradleEnterprise ->
                     if (develocityUrl && develocityEnforceUrl) {
@@ -331,6 +345,12 @@ void enableDevelocityInjection() {
                         printAcceptingGradleTermsOfUse()
                         gradleEnterprise.buildScan.termsOfServiceUrl = buildScanTermsOfUseUrl
                         gradleEnterprise.buildScan.termsOfServiceAgree = buildScanTermsOfUseAgree
+                    }
+
+                    // uploadInBackground available for gradle-enterprise-plugin 3.3.4 and later only
+                    if (gradleEnterprise.buildScan.metaClass.respondsTo(gradleEnterprise.buildScan, 'setUploadInBackground', Boolean)) {
+                        logger.lifecycle("Setting uploadInBackground: $buildScanUploadInBackground")
+                        gradleEnterprise.buildScan.uploadInBackground = buildScanUploadInBackground
                     }
                 }
             )
