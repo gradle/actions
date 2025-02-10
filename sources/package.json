@@ -52,20 +52,20 @@
   "devDependencies": {
     "@gradle/develocity-agent": "https://develocity-npm-pkgs.gradle.com/gradle-develocity-agent-0.9.0.tgz",
     "@types/jest": "29.5.14",
-    "@types/node": "20.17.16",
+    "@types/node": "20.17.17",
     "@types/unzipper": "0.10.10",
     "@types/which": "3.0.4",
     "@typescript-eslint/parser": "7.18.0",
     "@vercel/ncc": "0.38.3",
     "eslint": "8.57.1",
-    "eslint-plugin-github": "5.1.7",
+    "eslint-plugin-github": "5.1.8",
     "eslint-plugin-jest": "28.11.0",
     "jest": "29.7.0",
     "js-yaml": "4.1.0",
     "nock": "13.5.6",
     "npm-run-all": "4.1.5",
     "patch-package": "8.0.0",
-    "prettier": "3.4.2",
+    "prettier": "3.5.0",
     "ts-jest": "29.2.5",
     "typescript": "5.7.3"
   }
