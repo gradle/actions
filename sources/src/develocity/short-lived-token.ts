@@ -67,7 +67,7 @@ export async function getToken(accessKey: string, expiry: string): Promise<Devel
 }
 
 class ShortLivedTokenClient {
-    httpc = new httpm.HttpClient('gradle/actions/setup-gradle')
+    httpc = new httpm.HttpClient('gradle/actions')
     maxRetries = 3
     retryInterval = 1000
 

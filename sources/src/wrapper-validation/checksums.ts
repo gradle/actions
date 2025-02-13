@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 
 import fileWrapperChecksums from './wrapper-checksums.json'
 
-const httpc = new httpm.HttpClient('gradle/wrapper-validation-action', undefined, {allowRetries: true, maxRetries: 3})
+const httpc = new httpm.HttpClient('gradle/actions', undefined, {allowRetries: true, maxRetries: 3})
 
 export class WrapperChecksums {
     checksums = new Map<string, Set<string>>()
