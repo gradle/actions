@@ -1,5 +1,13 @@
 [
   {
+    "version": "8.14-milestone-1",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
+    "version": "8.13-rc-1",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
     "version": "8.12.1",
     "checksum": "2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046"
   },
