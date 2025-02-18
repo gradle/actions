@@ -42,6 +42,7 @@ jobs:
         uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
         with:
           branch: bot/wrapper-checksums-update
+          author: Bot Githubaction <bot-githubaction@gradle.com>
           commit-message: Update known wrapper checksums
           title: Update known wrapper checksums
           # Note: Unfortunately this action cannot trigger the regular workflows for the PR automatically, see
