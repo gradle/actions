@@ -16,7 +16,7 @@ import java.nio.file.Files
 import java.util.zip.GZIPOutputStream
 
 class BaseInitScriptTest extends Specification {
-    static final String DEVELOCITY_PLUGIN_VERSION = '3.19.1'
+    static final String DEVELOCITY_PLUGIN_VERSION = '3.19.2'
     static final String CCUD_PLUGIN_VERSION = '2.1'
 
     static final TestGradleVersion GRADLE_3_X = new TestGradleVersion(GradleVersion.version('3.5.1'), 7, 9)
