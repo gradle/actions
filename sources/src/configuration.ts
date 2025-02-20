@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import * as cache from '@actions/cache'
 import * as deprecator from './deprecation-collector'
+import {getCache} from './caching/cache-api'
 import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 
 import path from 'path'
@@ -104,8 +104,12 @@ export enum DependencyGraphOption {
 }
 
 export class CacheConfig {
+    isFeatureAvailable(): boolean {
+        return getCache().isAvailable()
+    }
+
     isCacheDisabled(): boolean {
-        if (!cache.isFeatureAvailable()) {
+        if (!this.isFeatureAvailable()) {
             return true
         }
 

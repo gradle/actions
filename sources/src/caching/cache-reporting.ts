@@ -1,4 +1,5 @@
-import * as cache from '@actions/cache'
+import * as core from '@actions/core'
+import {getCache} from './cache-api'
 
 export const DEFAULT_CACHE_ENABLED_REASON = `[Cache was enabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#caching-build-state-between-jobs). Action attempted to both restore and save the Gradle User Home.`
 
@@ -28,6 +29,7 @@ export const CLEANUP_DISABLED_DUE_TO_CONFIG_CACHE_HIT =
  */
 export class CacheListener {
     cacheEntries: CacheEntryListener[] = []
+    cacheAvailable = getCache().isAvailable()
     cacheReadOnly = false
     cacheWriteOnly = false
     cacheDisabled = false
@@ -39,7 +41,7 @@ export class CacheListener {
     }
 
     get cacheStatus(): string {
-        if (!cache.isFeatureAvailable()) return 'not available'
+        if (!this.cacheAvailable) return 'not available'
         if (this.cacheDisabled) return 'disabled'
         if (this.cacheWriteOnly) return 'write-only'
         if (this.cacheReadOnly) return 'read-only'
@@ -133,6 +135,8 @@ export class CacheEntryListener {
     }
 
     markRestored(key: string, size: number | undefined, time: number): CacheEntryListener {
+        core.info(`Restored cache entry with key ${key} in ${time}ms`)
+
         this.restoredKey = key
         this.restoredSize = size
         this.restoredTime = time
@@ -145,6 +149,8 @@ export class CacheEntryListener {
     }
 
     markSaved(key: string, size: number | undefined, time: number): CacheEntryListener {
+        core.info(`Saved cache entry with key ${key} in ${time}ms`)
+
         this.savedKey = key
         this.savedSize = size
         this.savedTime = time
