@@ -34,6 +34,42 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
+    def "produces build results file for build that fails in included build with #testGradleVersion"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        def includedBuildRoot = new File(testProjectDir, 'included-build')
+        includedBuildRoot.mkdir()
+        def includedSettings = new File(includedBuildRoot, 'settings.gradle')
+        def includedBuild = new File(includedBuildRoot, 'build.gradle')
+
+        includedSettings << """
+            rootProject.name = 'included-build'
+"""
+        includedBuild << '''
+task expectFailure {
+    doLast {
+        throw new RuntimeException("Expected to fail in included build")
+    }
+}
+'''
+        settingsFile << """
+includeBuild('included-build')
+"""
+        buildFile << """
+task expectFailure {
+    dependsOn(gradle.includedBuild('included-build').task(':expectFailure'))
+}
+"""
+        runAndFail(testGradleVersion.gradleVersion)
+
+        then:
+        assertResults('expectFailure', testGradleVersion, true)
+
+        where:
+        testGradleVersion << ALL_VERSIONS
+    }
+
     def "produces build results file for build with --configuration-cache on #testGradleVersion"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
