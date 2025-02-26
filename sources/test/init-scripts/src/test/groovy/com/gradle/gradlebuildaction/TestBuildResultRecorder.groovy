@@ -20,7 +20,7 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
         testGradleVersion << ALL_VERSIONS
     }
 
-    def "produces build results file for failing build with #testGradleVersion"() {
+    def "produces build results file for failing task with #testGradleVersion"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
 
         when:
@@ -32,6 +32,22 @@ class TestBuildResultRecorder extends BaseInitScriptTest {
 
         where:
         testGradleVersion << ALL_VERSIONS
+    }
+
+    def "produces build results file for failing configuration with #testGradleVersion"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        buildFile << '''
+throw new RuntimeException("Error in configuration")
+'''
+        runAndFail(testGradleVersion.gradleVersion)
+
+        then:
+        assertResults('expectFailure', testGradleVersion, true)
+
+        where:
+        testGradleVersion << SETTINGS_PLUGIN_VERSIONS // No build results generated for older Gradle versions
     }
 
     def "produces build results file for build that fails in included build with #testGradleVersion"() {
