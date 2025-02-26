@@ -41,10 +41,8 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
             // Got EVALUATE SETTINGS event: not a config-cache hit"
             configCacheHit = false
         }
-        if (buildOperation.details in RunRootBuildWorkBuildOperationType.Details) {
-            if (finishEvent.failure != null) {
-                buildFailed = true
-            }
+        if (finishEvent.failure != null) {
+            buildFailed = true
         }
     }
 

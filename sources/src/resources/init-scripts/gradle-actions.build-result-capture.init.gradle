@@ -25,13 +25,13 @@ if (isTopLevelBuild) {
 
     def atLeastGradle3 = version >= GradleVersion.version("3.0")
     def atLeastGradle6 = version >= GradleVersion.version("6.0")
+    def atLeastGradle7 = version >= GradleVersion.version("7.0")
 
     def invocationId = "-${System.currentTimeMillis()}"
 
     if (atLeastGradle6) {
-        // By default, use standard mechanisms to capture build results
-        def useBuildService = version >= GradleVersion.version("6.6")
-        if (useBuildService) {
+        // Use BuildService for modern Gradle versions
+        if (atLeastGradle7) {
             captureUsingBuildService(invocationId)
         } else {
             captureUsingBuildFinished(gradle, invocationId, resultsWriter)
