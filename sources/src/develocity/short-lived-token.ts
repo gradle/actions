@@ -67,11 +67,9 @@ export async function getToken(accessKey: string, expiry: string): Promise<Devel
 }
 
 class ShortLivedTokenClient {
-    httpc = new httpm.HttpClient(
-        'gradle/actions/setup-gradle',
-        undefined,
-        {ignoreSslError: process.env.DEVELOCITY_ALLOW_UNTRUSTED_SERVER == "true"}
-    )
+    httpc = new httpm.HttpClient('gradle/actions/setup-gradle', undefined, {
+        ignoreSslError: process.env.DEVELOCITY_ALLOW_UNTRUSTED_SERVER === 'true'
+    })
     maxRetries = 3
     retryInterval = 1000
 
