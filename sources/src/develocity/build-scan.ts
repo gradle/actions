@@ -28,7 +28,11 @@ export async function setup(config: BuildScanConfig): Promise<void> {
         maybeExportVariable('DEVELOCITY_TERMS_OF_USE_AGREE', config.getBuildScanTermsOfUseAgree())
     }
 
-    return setupToken(config.getDevelocityAccessKey(), config.getDevelocityTokenExpiry())
+    return setupToken(
+        config.getDevelocityAccessKey(),
+        config.getDevelocityAllowUntrustedServer(),
+        config.getDevelocityTokenExpiry()
+    )
 }
 
 function maybeExportVariable(variableName: string, value: unknown): void {

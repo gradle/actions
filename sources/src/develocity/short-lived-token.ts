@@ -3,11 +3,15 @@ import * as core from '@actions/core'
 import {BuildScanConfig} from '../configuration'
 import {recordDeprecation} from '../deprecation-collector'
 
-export async function setupToken(develocityAccessKey: string, develocityTokenExpiry: string): Promise<void> {
+export async function setupToken(
+    develocityAccessKey: string,
+    develocityAllowUntrustedServer: boolean | undefined,
+    develocityTokenExpiry: string
+): Promise<void> {
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...')
-            const tokens = await getToken(develocityAccessKey, develocityTokenExpiry)
+            const tokens = await getToken(develocityAccessKey, develocityAllowUntrustedServer, develocityTokenExpiry)
             if (tokens != null && !tokens.isEmpty()) {
                 core.debug(`Got token(s), setting the access key env vars`)
                 const token = tokens.raw()
@@ -41,10 +45,14 @@ function handleMissingAccessToken(): void {
     }
 }
 
-export async function getToken(accessKey: string, expiry: string): Promise<DevelocityAccessCredentials | null> {
+export async function getToken(
+    accessKey: string,
+    allowUntrustedServer: undefined | boolean,
+    expiry: string
+): Promise<DevelocityAccessCredentials | null> {
     const empty: Promise<DevelocityAccessCredentials | null> = new Promise(r => r(null))
     const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey)
-    const shortLivedTokenClient = new ShortLivedTokenClient()
+    const shortLivedTokenClient = new ShortLivedTokenClient(allowUntrustedServer)
 
     if (develocityAccessKey == null) {
         return empty
@@ -67,9 +75,15 @@ export async function getToken(accessKey: string, expiry: string): Promise<Devel
 }
 
 class ShortLivedTokenClient {
-    httpc = new httpm.HttpClient('gradle/actions/setup-gradle')
+    httpc: httpm.HttpClient
     maxRetries = 3
     retryInterval = 1000
+
+    constructor(develocityAllowUntrustedServer: boolean | undefined) {
+        this.httpc = new httpm.HttpClient('gradle/actions/setup-gradle', undefined, {
+            ignoreSslError: develocityAllowUntrustedServer
+        })
+    }
 
     async fetchToken(serverUrl: string, accessKey: HostnameAccessKey, expiry: string): Promise<HostnameAccessKey> {
         const queryParams = expiry ? `?expiresInHours=${expiry}` : ''
