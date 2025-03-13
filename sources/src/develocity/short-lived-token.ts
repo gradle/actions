@@ -80,12 +80,9 @@ class ShortLivedTokenClient {
     retryInterval = 1000
 
     constructor(develocityAllowUntrustedServer: boolean | undefined) {
-        this.httpc = new httpm.HttpClient('gradle/actions/setup-gradle')
-        if (develocityAllowUntrustedServer !== undefined) {
-            this.httpc.requestOptions = {
-                ignoreSslError: develocityAllowUntrustedServer
-            }
-        }
+        this.httpc = new httpm.HttpClient('gradle/actions/setup-gradle', undefined, {
+            ignoreSslError: develocityAllowUntrustedServer
+        })
     }
 
     async fetchToken(serverUrl: string, accessKey: HostnameAccessKey, expiry: string): Promise<HostnameAccessKey> {
