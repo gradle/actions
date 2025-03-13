@@ -5,13 +5,13 @@ import {recordDeprecation} from '../deprecation-collector'
 
 export async function setupToken(
     develocityAccessKey: string,
-    develocityTokenExpiry: string,
-    develocityAllowUntrustedServer: boolean | undefined
+    develocityAllowUntrustedServer: boolean | undefined,
+    develocityTokenExpiry: string
 ): Promise<void> {
     if (develocityAccessKey) {
         try {
             core.debug('Fetching short-lived token...')
-            const tokens = await getToken(develocityAccessKey, develocityTokenExpiry, develocityAllowUntrustedServer)
+            const tokens = await getToken(develocityAccessKey, develocityAllowUntrustedServer, develocityTokenExpiry)
             if (tokens != null && !tokens.isEmpty()) {
                 core.debug(`Got token(s), setting the access key env vars`)
                 const token = tokens.raw()
@@ -47,12 +47,12 @@ function handleMissingAccessToken(): void {
 
 export async function getToken(
     accessKey: string,
-    expiry: string,
-    develocityAllowUntrustedServer: undefined | boolean
+    allowUntrustedServer: undefined | boolean,
+    expiry: string
 ): Promise<DevelocityAccessCredentials | null> {
     const empty: Promise<DevelocityAccessCredentials | null> = new Promise(r => r(null))
     const develocityAccessKey = DevelocityAccessCredentials.parse(accessKey)
-    const shortLivedTokenClient = new ShortLivedTokenClient(develocityAllowUntrustedServer)
+    const shortLivedTokenClient = new ShortLivedTokenClient(allowUntrustedServer)
 
     if (develocityAccessKey == null) {
         return empty

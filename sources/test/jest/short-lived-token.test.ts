@@ -39,7 +39,7 @@ describe('short lived tokens', () => {
                 message: 'connect ECONNREFUSED 127.0.0.1:3333',
                 code: 'ECONNREFUSED'
             })
-        await expect(getToken('localhost=key0', '', false))
+        await expect(getToken('localhost=key0', false, ''))
             .resolves
             .toBeNull()
     })
@@ -50,14 +50,14 @@ describe('short lived tokens', () => {
             .times(3)
             .reply(500, 'Internal error')
         expect.assertions(1)
-        await expect(getToken('dev=xyz', '', false))
+        await expect(getToken('dev=xyz', false, ''))
             .resolves
             .toBeNull()
     })
 
     it('get short lived token returns null when access key is empty', async () => {
         expect.assertions(1)
-        await expect(getToken('', '', false))
+        await expect(getToken('', false, ''))
             .resolves
             .toBeNull()
     })
@@ -67,7 +67,7 @@ describe('short lived tokens', () => {
             .post('/api/auth/token')
             .reply(200, 'token')
         expect.assertions(1)
-        await expect(getToken('dev=key1', '', false))
+        await expect(getToken('dev=key1', false, ''))
             .resolves
             .toEqual({"keys": [{"hostname": "dev", "key": "token"}]})
     })
@@ -80,7 +80,7 @@ describe('short lived tokens', () => {
             .post('/api/auth/token')
             .reply(200, 'token2')
         expect.assertions(1)
-        await expect(getToken('dev=key1;prod=key2', '', false))
+        await expect(getToken('dev=key1;prod=key2', false, ''))
             .resolves
             .toEqual({"keys": [{"hostname": "dev", "key": "token1"}, {"hostname": "prod", "key": "token2"}]})
     })
@@ -97,7 +97,7 @@ describe('short lived tokens', () => {
             .post('/api/auth/token')
             .reply(200, 'token2')
         expect.assertions(1)
-        await expect(getToken('dev=key1;bogus=key0;prod=key2', '', false))
+        await expect(getToken('dev=key1;bogus=key0;prod=key2', false, ''))
             .resolves
             .toEqual({"keys": [{"hostname": "dev", "key": "token1"}, {"hostname": "prod", "key": "token2"}]})
     })
@@ -112,7 +112,7 @@ describe('short lived tokens', () => {
             .times(3)
             .reply(500, 'Internal Error')
         expect.assertions(1)
-        await expect(getToken('dev=key1;bogus=key0', '', false))
+        await expect(getToken('dev=key1;bogus=key0', false, ''))
             .resolves
             .toBeNull()
     })
@@ -122,7 +122,7 @@ describe('short lived tokens', () => {
             .post('/api/auth/token?expiresInHours=4')
             .reply(200, 'token')
         expect.assertions(1)
-        await expect(getToken('dev=key1', '4', false))
+        await expect(getToken('dev=key1', false, '4'))
             .resolves
             .toEqual({"keys": [{"hostname": "dev", "key": "token"}]})
     })

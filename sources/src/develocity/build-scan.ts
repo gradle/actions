@@ -30,8 +30,8 @@ export async function setup(config: BuildScanConfig): Promise<void> {
 
     return setupToken(
         config.getDevelocityAccessKey(),
-        config.getDevelocityTokenExpiry(),
-        config.getDevelocityAllowUntrustedServer()
+        config.getDevelocityAllowUntrustedServer(),
+        config.getDevelocityTokenExpiry()
     )
 }
 
