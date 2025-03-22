@@ -1,5 +1,29 @@
 [
   {
+    "version": "8.14-milestone-5",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
+    "version": "8.14-milestone-4",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
+    "version": "8.13",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
+    "version": "8.14-milestone-3",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
+    "version": "8.13-rc-2",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
+    "version": "8.14-milestone-2",
+    "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  {
     "version": "8.14-milestone-1",
     "checksum": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
   },
