@@ -27,7 +27,7 @@ index ef0928b..4e2f570 100644
 +}
 \ No newline at end of file
 diff --git a/node_modules/@actions/cache/lib/cache.js b/node_modules/@actions/cache/lib/cache.js
-index 45201b6..2654e4b 100644
+index e9e45c9..336733b 100644
 --- a/node_modules/@actions/cache/lib/cache.js
 +++ b/node_modules/@actions/cache/lib/cache.js
 @@ -154,18 +154,21 @@ function restoreCacheV1(paths, primaryKey, restoreKeys, options, enableCrossOsAr
@@ -132,7 +132,7 @@ index 45201b6..2654e4b 100644
          finally {
              // Try to delete the archive to save space
              try {
-@@ -422,19 +432,23 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
+@@ -430,19 +440,23 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
                  throw new Error(`Unable to finalize cache with key ${key}, another job may be finalizing this cache.`);
              }
              cacheId = parseInt(finalizeResponse.entryId);
@@ -168,7 +168,7 @@ index 45201b6..2654e4b 100644
          finally {
              // Try to delete the archive to save space
              try {
-@@ -447,4 +461,11 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
+@@ -455,4 +469,11 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
          return cacheId;
      });
  }

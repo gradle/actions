@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    java
 }
 
 java {
@@ -12,6 +12,10 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation('junit:junit:4.13.2')
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnit()
+        }
+    }
 }
