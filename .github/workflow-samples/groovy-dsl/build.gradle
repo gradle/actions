@@ -6,8 +6,12 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation('junit:junit:4.13.2')
+testing {
+    suites {
+        test {
+            useJUnit()
+        }
+    }
 }
 
 tasks.named("test").configure {
