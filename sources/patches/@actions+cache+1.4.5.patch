@@ -31,10 +31,44 @@ index 29aabbd..76724a9 100644
 +    constructor(key: string, size?: number);
 +}
 diff --git a/node_modules/@actions/cache/lib/cache.js b/node_modules/@actions/cache/lib/cache.js
-index af64009..6876563 100644
+index af64009..62b28e3 100644
 --- a/node_modules/@actions/cache/lib/cache.js
 +++ b/node_modules/@actions/cache/lib/cache.js
-@@ -229,7 +229,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+@@ -121,6 +121,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+             archivePath = path.join(yield utils.createTempDirectory(), utils.getCacheFileName(compressionMethod));
+             core.debug(`Archive Path: ${archivePath}`);
+             const cacheKey = (_b = (_a = cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.cache_entry) === null || _a === void 0 ? void 0 : _a.cache_user_given_key) !== null && _b !== void 0 ? _b : primaryKey;
++            let archiveFileSize = 0;
+             switch (cacheEntry.provider) {
+                 case 's3':
+                 case 'r2': {
+@@ -141,7 +142,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+                     if (core.isDebug()) {
+                         yield (0, tar_1.listTar)(archivePath, compressionMethod);
+                     }
+-                    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
++                    archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+                     core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
+                     yield (0, tar_1.extractTar)(archivePath, compressionMethod);
+                     core.info('Cache restored successfully');
+@@ -197,7 +198,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+                         if (core.isDebug()) {
+                             yield (0, tar_1.listTar)(archivePath, compressionMethod);
+                         }
+-                        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
++                        archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+                         core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
+                         yield (0, tar_1.extractTar)(archivePath, compressionMethod);
+                     }
+@@ -222,14 +223,14 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+                     if (core.isDebug()) {
+                         yield (0, tar_1.listTar)(archivePath, compressionMethod);
+                     }
+-                    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
++                    archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+                     core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
+                     yield (0, tar_1.extractTar)(archivePath, compressionMethod);
+                     core.info('Cache restored successfully');
                      break;
                  }
              }
@@ -43,7 +77,24 @@ index af64009..6876563 100644
          }
          catch (error) {
              const typedError = error;
-@@ -348,7 +348,7 @@ function saveCache(paths, key, enableCrossOsArchive = false, enableCrossArchArch
+@@ -278,6 +279,7 @@ function saveCache(paths, key, enableCrossOsArchive = false, enableCrossArchArch
+         }
+         const archiveFolder = yield utils.createTempDirectory();
+         const archivePath = path.join(archiveFolder, utils.getCacheFileName(compressionMethod));
++        let archiveFileSize = 0;
+         core.debug(`Archive Path: ${archivePath}`);
+         try {
+             yield (0, tar_1.createTar)(archiveFolder, cachePaths, compressionMethod);
+@@ -285,7 +287,7 @@ function saveCache(paths, key, enableCrossOsArchive = false, enableCrossArchArch
+                 yield (0, tar_1.listTar)(archivePath, compressionMethod);
+             }
+             const fileSizeLimit = 1000 * 1024 * 1024 * 1024; // 1000GB per repo limit
+-            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
++            archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+             core.debug(`File Size: ${archiveFileSize}`);
+             if (archiveFileSize > fileSizeLimit) {
+                 throw new Error(`Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the 1000GB limit, not saving cache.`);
+@@ -348,7 +350,7 @@ function saveCache(paths, key, enableCrossOsArchive = false, enableCrossArchArch
                  core.debug(`Failed to delete archive: ${error}`);
              }
          }
@@ -52,7 +103,7 @@ index af64009..6876563 100644
      });
  }
  exports.saveCache = saveCache;
-@@ -372,4 +372,10 @@ function deleteCache(paths, key, enableCrossOsArchive = false, enableCrossArchAr
+@@ -372,4 +374,10 @@ function deleteCache(paths, key, enableCrossOsArchive = false, enableCrossArchAr
      });
  }
  exports.deleteCache = deleteCache;
