@@ -1,0 +1,66 @@
+diff --git a/node_modules/@actions/cache/lib/cache.d.ts b/node_modules/@actions/cache/lib/cache.d.ts
+index 29aabbd..76724a9 100644
+--- a/node_modules/@actions/cache/lib/cache.d.ts
++++ b/node_modules/@actions/cache/lib/cache.d.ts
+@@ -22,7 +22,7 @@ export declare function isFeatureAvailable(): boolean;
+  * @param enableCrossArchArchive an optional boolean enabled to restore cache created on any arch
+  * @returns string returns the key for the cache hit, otherwise returns undefined
+  */
+-export declare function restoreCache(paths: string[], primaryKey: string, restoreKeys?: string[], options?: DownloadOptions, enableCrossOsArchive?: boolean, enableCrossArchArchive?: boolean): Promise<string | undefined>;
++export declare function restoreCache(paths: string[], primaryKey: string, restoreKeys?: string[], options?: DownloadOptions, enableCrossOsArchive?: boolean, enableCrossArchArchive?: boolean): Promise<CacheEntry | undefined>;
+ /**
+  * Saves a list of files with the specified key
+  *
+@@ -32,9 +32,17 @@ export declare function restoreCache(paths: string[], primaryKey: string, restor
+  * @param enableCrossArchArchive an optional boolean enabled to save cache on any arch which could be restored on any arch
+  * @returns string returns cacheId if the cache was saved successfully and throws an error if save fails
+  */
+-export declare function saveCache(paths: string[], key: string, enableCrossOsArchive?: boolean, enableCrossArchArchive?: boolean): Promise<string>;
++export declare function saveCache(paths: string[], key: string, enableCrossOsArchive?: boolean, enableCrossArchArchive?: boolean): Promise<CacheEntry>;
+ /**
+  * Deletes an entire cache by cache key.
+  * @param key The cache keys
+  */
+ export declare function deleteCache(paths: string[], key: string, enableCrossOsArchive?: boolean, enableCrossArchArchive?: boolean): Promise<void>;
++
++// PATCHED: Add `CacheEntry` as return type for save/restore functions
++// This allows us to track and report on cache entry sizes.
++export declare class CacheEntry {
++    key: string;
++    size?: number;
++    constructor(key: string, size?: number);
++}
+diff --git a/node_modules/@actions/cache/lib/cache.js b/node_modules/@actions/cache/lib/cache.js
+index af64009..6876563 100644
+--- a/node_modules/@actions/cache/lib/cache.js
++++ b/node_modules/@actions/cache/lib/cache.js
+@@ -229,7 +229,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+                     break;
+                 }
+             }
+-            return cacheKey;
++            return new CacheEntry(cacheKey, archiveFileSize);
+         }
+         catch (error) {
+             const typedError = error;
+@@ -348,7 +348,7 @@ function saveCache(paths, key, enableCrossOsArchive = false, enableCrossArchArch
+                 core.debug(`Failed to delete archive: ${error}`);
+             }
+         }
+-        return cacheKey;
++        return new CacheEntry(cacheKey, archiveFileSize);
+     });
+ }
+ exports.saveCache = saveCache;
+@@ -372,4 +372,10 @@ function deleteCache(paths, key, enableCrossOsArchive = false, enableCrossArchAr
+     });
+ }
+ exports.deleteCache = deleteCache;
++class CacheEntry {
++    constructor(key, size) {
++        this.key = key;
++        this.size = size;
++    }
++}
+ //# sourceMappingURL=cache.js.map
+\ No newline at end of file
