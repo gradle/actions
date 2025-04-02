@@ -41,7 +41,7 @@ export function handlePostActionError(error: unknown): void {
             core.info(error.stack)
         }
     } else {
-        core.warning(`Unhandled error in Gradle post-action - job will continue: ${error}`)
+        core.warning(`Unhandled error in Gradle post-action. Job will continue: ${error}`)
         if (error instanceof Error && error.stack) {
             core.info(error.stack)
         }
