@@ -53,12 +53,23 @@ jobs:
       run: |
         cp -r sources/dist .
 
+    - name: Import GPG key to sign commits
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.GH_BOT_PGP_PRIVATE_KEY }}
+        passphrase: ${{ secrets.GH_BOT_PGP_PASSPHRASE }}
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+        git_config_global: true
+    
     # Commit and push changes; has no effect if the files did not change
     # Important: The push event will not trigger any other workflows, see
     # https://github.com/stefanzweifel/git-auto-commit-action?tab=readme-ov-file#commits-made-by-this-action-do-not-trigger-new-workflow-runs
     - name: Commit & push changes
       uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
       with:
-        commit_author: Bot Githubaction <bot-githubaction@gradle.com>
+        commit_author: bot-githubaction <bot-githubaction@gradle.com>
+        commit_user_name: bot-githubaction
+        commit_user_email: bot-githubaction@gradle.com
         commit_message: '[bot] Update dist directory'
         file_pattern: dist
