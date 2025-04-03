@@ -37,12 +37,22 @@ jobs:
         run: node ../.github/workflows/update-checksums-file.js
         working-directory: sources
 
+      - name: Import GPG key to sign commits
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GH_BOT_PGP_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GH_BOT_PGP_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_config_global: true
+
       # If there are no changes, this action will not create a pull request
       - name: Create or update pull request
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           branch: bot/wrapper-checksums-update
-          author: Bot Githubaction <bot-githubaction@gradle.com>
+          author: bot-githubaction <bot-githubaction@gradle.com>
+          committer: bot-githubaction <bot-githubaction@gradle.com>
           commit-message: Update known wrapper checksums
           title: Update known wrapper checksums
           # Note: Unfortunately this action cannot trigger the regular workflows for the PR automatically, see
