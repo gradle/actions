@@ -490,43 +490,43 @@ class TestDevelocityInjection extends BaseInitScriptTest {
 
         def getEnvVars() {
             Map<String, String> envVars = [
-                DEVELOCITY_INJECTION_INIT_SCRIPT_NAME     : "gradle-actions.inject-develocity.init.gradle",
-                DEVELOCITY_INJECTION_ENABLED              : "true",
-                DEVELOCITY_URL                            : serverUrl,
-                DEVELOCITY_ALLOW_UNTRUSTED_SERVER         : "true",
-                DEVELOCITY_PLUGIN_VERSION                 : develocityPluginVersion,
-                DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND: "true", // Need to upload in background since our Mock server doesn't cope with foreground upload
-                DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE    : 'gradle-actions',
-                DEVELOCITY_INJECTION_DEBUG                : "true"
+                DEVELOCITY_INJECTION_INIT_SCRIPT_NAME         : "gradle-actions.inject-develocity.init.gradle",
+                DEVELOCITY_INJECTION_ENABLED                  : "true",
+                DEVELOCITY_INJECTION_URL                      : serverUrl,
+                DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER   : "true",
+                DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: develocityPluginVersion,
+                DEVELOCITY_INJECTION_UPLOAD_IN_BACKGROUND     : "true", // Need to upload in background since our Mock server doesn't cope with foreground upload
+                DEVELOCITY_INJECTION_CUSTOM_VALUE             : 'gradle-actions',
+                DEVELOCITY_INJECTION_DEBUG                    : "true"
             ]
-            if (enforceUrl) envVars.put("DEVELOCITY_ENFORCE_URL", "true")
-            if (ccudPluginVersion != null) envVars.put("DEVELOCITY_CCUD_PLUGIN_VERSION", ccudPluginVersion)
-            if (pluginRepositoryUrl != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
-            if (pluginRepositoryUsername != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_USERNAME", pluginRepositoryUsername)
-            if (pluginRepositoryPassword != null) envVars.put("GRADLE_PLUGIN_REPOSITORY_PASSWORD", pluginRepositoryPassword)
-            if (captureFileFingerprints) envVars.put("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS", "true")
+            if (enforceUrl) envVars.put("DEVELOCITY_INJECTION_ENFORCE_URL", "true")
+            if (ccudPluginVersion != null) envVars.put("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION", ccudPluginVersion)
+            if (captureFileFingerprints) envVars.put("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS", "true")
+            if (pluginRepositoryUrl != null) envVars.put("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
+            if (pluginRepositoryUsername != null) envVars.put("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_USERNAME", pluginRepositoryUsername)
+            if (pluginRepositoryPassword != null) envVars.put("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD", pluginRepositoryPassword)
 
             return envVars
         }
 
         def getJvmArgs() {
             List<String> jvmArgs = [
-                "-Ddevelocity.injection.init-script-name=gradle-actions.inject-develocity.init.gradle",
-                "-Ddevelocity.injection-enabled=true",
-                "-Ddevelocity.url=$serverUrl",
-                "-Ddevelocity.allow-untrusted-server=true",
-                "-Ddevelocity.plugin.version=$develocityPluginVersion",
-                "-Ddevelocity.build-scan.upload-in-background=true",
-                "-Ddevelocity.auto-injection.custom-value=gradle-actions",
-                "-Ddevelocity.injection.debug=true"
+                "-Ddevelocity-injection.init-script-name=gradle-actions.inject-develocity.init.gradle",
+                "-Ddevelocity-injection.enabled=true",
+                "-Ddevelocity-injection.url=$serverUrl",
+                "-Ddevelocity-injection.allow-untrusted-server=true",
+                "-Ddevelocity-injection.develocity-plugin.version=$develocityPluginVersion",
+                "-Ddevelocity-injection.upload-in-background=true",
+                "-Ddevelocity-injection.custom-value=gradle-actions",
+                "-Ddevelocity-injection.debug=true"
             ]
 
-            if (enforceUrl) jvmArgs.add("-Ddevelocity.enforce-url=true")
-            if (ccudPluginVersion != null) jvmArgs.add("-Ddevelocity.ccud-plugin.version=$ccudPluginVersion")
-            if (pluginRepositoryUrl != null) jvmArgs.add("-Dgradle.plugin-repository.url=$pluginRepositoryUrl")
-            if (pluginRepositoryUsername != null) jvmArgs.add("-Dgradle.plugin-repository.username=$pluginRepositoryUsername")
-            if (pluginRepositoryPassword != null) jvmArgs.add("-Dgradle.plugin-repository.password=$pluginRepositoryPassword")
-            if (captureFileFingerprints) jvmArgs.add("-Ddevelocity.capture-file-fingerprints=true")
+            if (enforceUrl) jvmArgs.add("-Ddevelocity-injection.enforce-url=true")
+            if (ccudPluginVersion != null) jvmArgs.add("-Ddevelocity-injection.ccud-plugin.version=$ccudPluginVersion")
+            if (captureFileFingerprints) jvmArgs.add("-Ddevelocity-injection.capture-file-fingerprints=true")
+            if (pluginRepositoryUrl != null) jvmArgs.add("-Ddevelocity-injection.plugin-repository.url=$pluginRepositoryUrl")
+            if (pluginRepositoryUsername != null) jvmArgs.add("-Ddevelocity-injection.plugin-repository.username=$pluginRepositoryUsername")
+            if (pluginRepositoryPassword != null) jvmArgs.add("-Ddevelocity-injection.plugin-repository.password=$pluginRepositoryPassword")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
         }
