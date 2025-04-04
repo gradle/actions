@@ -870,7 +870,7 @@ This access key will be used during the action execution to get a short-lived to
 The `init-script` supports several additional configuration parameters that you may find useful. All configuration options (required and optional) are detailed below:
 
 | Variable                             | Required | Description                                                                                                                                                             |
-|--------------------------------------| --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|--------------------------------------| :---: |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | develocity-injection-enabled         | :white_check_mark: | enables Develocity injection                                                                                                                                            |
 | develocity-url                       | :white_check_mark: | the URL of the Develocity server                                                                                                                                        |
 | develocity-allow-untrusted-server    | | allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed certificate                                              |
@@ -884,18 +884,18 @@ The `init-script` supports several additional configuration parameters that you 
 
 The input parameters can be expressed as environment variables following the relationships outlined in the table below:
 
-| Input                                | Environment Variable                 |
-|--------------------------------------|--------------------------------------|
-| develocity-injection-enabled         | DEVELOCITY_INJECTION_ENABLED         |
-| develocity-url                       | DEVELOCITY_URL                       |
-| develocity-allow-untrusted-server    | DEVELOCITY_ALLOW_UNTRUSTED_SERVER    |
-| develocity-capture-file-fingerprints | DEVELOCITY_CAPTURE_FILE_FINGERPRINTS |
-| develocity-enforce-url               | DEVELOCITY_ENFORCE_URL               |
-| develocity-plugin-version            | DEVELOCITY_PLUGIN_VERSION            |
-| develocity-ccud-plugin-version       | DEVELOCITY_CCUD_PLUGIN_VERSION       |
-| gradle-plugin-repository-url         | GRADLE_PLUGIN_REPOSITORY_URL         |
-| gradle-plugin-repository-username    | GRADLE_PLUGIN_REPOSITORY_USERNAME    |
-| gradle-plugin-repository-password    | GRADLE_PLUGIN_REPOSITORY_PASSWORD    |
+| Input                                | Environment Variable                           |
+|--------------------------------------|------------------------------------------------|
+| develocity-injection-enabled         | DEVELOCITY_INJECTION_ENABLED                   |
+| develocity-url                       | DEVELOCITY_INJECTION_URL                       |
+| develocity-enforce-url               | DEVELOCITY_INJECTION_ENFORCE_URL               |
+| develocity-allow-untrusted-server    | DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER    |
+| develocity-capture-file-fingerprints | DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS |
+| develocity-plugin-version            | DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION |
+| develocity-ccud-plugin-version       | DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION       |
+| gradle-plugin-repository-url         | DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL     |
+| gradle-plugin-repository-username    | DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_USERNAME|
+| gradle-plugin-repository-password    | DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD|
 
 
 Here's an example using the env vars:
