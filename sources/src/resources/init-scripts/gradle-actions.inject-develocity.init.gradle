@@ -1,6 +1,6 @@
 /*
  * Initscript for injection of Develocity into Gradle builds.
- * Version: 1.3
+ * Version: 2.0
  */
 
 import org.gradle.util.GradleVersion
@@ -18,24 +18,24 @@ initscript {
         return gradle.startParameter.systemPropertiesArgs[name] ?: System.getProperty(name) ?: System.getenv(envVarName)
     }
 
-    def requestedInitScriptName = getInputParam(gradle, 'develocity.injection.init-script-name')
+    def requestedInitScriptName = getInputParam(gradle, 'develocity-injection.init-script-name')
     def initScriptName = buildscript.sourceFile.name
     if (requestedInitScriptName != initScriptName) {
         return
     }
 
     // Plugin loading is only required for Develocity injection. Abort early if not enabled.
-    def develocityInjectionEnabled = Boolean.parseBoolean(getInputParam(gradle, "develocity.injection-enabled"))
+    def develocityInjectionEnabled = Boolean.parseBoolean(getInputParam(gradle, "develocity-injection.enabled"))
     if (!develocityInjectionEnabled) {
         return
     }
 
-    def pluginRepositoryUrl = getInputParam(gradle, 'gradle.plugin-repository.url')
-    def pluginRepositoryUsername = getInputParam(gradle, 'gradle.plugin-repository.username')
-    def pluginRepositoryPassword = getInputParam(gradle, 'gradle.plugin-repository.password')
-    def develocityPluginVersion = getInputParam(gradle, 'develocity.plugin.version')
-    def ccudPluginVersion = getInputParam(gradle, 'develocity.ccud-plugin.version')
-    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity.injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
+    def pluginRepositoryUrl = getInputParam(gradle, 'develocity-injection.plugin-repository.url')
+    def pluginRepositoryUsername = getInputParam(gradle, 'develocity-injection.plugin-repository.username')
+    def pluginRepositoryPassword = getInputParam(gradle, 'develocity-injection.plugin-repository.password')
+    def develocityPluginVersion = getInputParam(gradle, 'develocity-injection.develocity-plugin.version')
+    def ccudPluginVersion = getInputParam(gradle, 'develocity-injection.ccud-plugin.version')
+    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
 
     def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
     def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -91,10 +91,10 @@ if (!isTopLevelBuild) {
     return
 }
 
-def requestedInitScriptName = getInputParam(gradle, 'develocity.injection.init-script-name')
+def requestedInitScriptName = getInputParam(gradle, 'develocity-injection.init-script-name')
 def initScriptName = buildscript.sourceFile.name
 
-def develocityInjectionEnabled = Boolean.parseBoolean(getInputParam(gradle, "develocity.injection-enabled"))
+def develocityInjectionEnabled = Boolean.parseBoolean(getInputParam(gradle, "develocity-injection.enabled"))
 if (develocityInjectionEnabled) {
     if (requestedInitScriptName != initScriptName) {
         logger.log(LogLevel.WARN, "Develocity injection not enabled because requested init script name was '${requestedInitScriptName}', but '${initScriptName}' was expected")
@@ -127,17 +127,17 @@ void enableDevelocityInjection() {
     def CCUD_PLUGIN_ID = 'com.gradle.common-custom-user-data-gradle-plugin'
     def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
-    def develocityUrl = getInputParam(gradle, 'develocity.url')
-    def develocityAllowUntrustedServer = Boolean.parseBoolean(getInputParam(gradle, 'develocity.allow-untrusted-server'))
-    def develocityEnforceUrl = Boolean.parseBoolean(getInputParam(gradle, 'develocity.enforce-url'))
-    def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam(gradle, 'develocity.build-scan.upload-in-background'))
-    def develocityCaptureFileFingerprints = getInputParam(gradle, 'develocity.capture-file-fingerprints') ? Boolean.parseBoolean(getInputParam(gradle, 'develocity.capture-file-fingerprints')) : true
-    def develocityPluginVersion = getInputParam(gradle, 'develocity.plugin.version')
-    def ccudPluginVersion = getInputParam(gradle, 'develocity.ccud-plugin.version')
-    def buildScanTermsOfUseUrl = getInputParam(gradle, 'develocity.terms-of-use.url')
-    def buildScanTermsOfUseAgree = getInputParam(gradle, 'develocity.terms-of-use.agree')
-    def ciAutoInjectionCustomValueValue = getInputParam(gradle, 'develocity.auto-injection.custom-value')
-    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity.injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
+    def develocityUrl = getInputParam(gradle, 'develocity-injection.url')
+    def develocityAllowUntrustedServer = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.allow-untrusted-server'))
+    def develocityEnforceUrl = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.enforce-url'))
+    def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.upload-in-background'))
+    def develocityCaptureFileFingerprints = getInputParam(gradle, 'develocity-injection.capture-file-fingerprints') ? Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.capture-file-fingerprints')) : true
+    def develocityPluginVersion = getInputParam(gradle, 'develocity-injection.develocity-plugin.version')
+    def ccudPluginVersion = getInputParam(gradle, 'develocity-injection.ccud-plugin.version')
+    def buildScanTermsOfUseUrl = getInputParam(gradle, 'develocity-injection.terms-of-use.url')
+    def buildScanTermsOfUseAgree = getInputParam(gradle, 'develocity-injection.terms-of-use.agree')
+    def ciAutoInjectionCustomValueValue = getInputParam(gradle, 'develocity-injection.custom-value')
+    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
 
     def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
     def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -372,7 +372,7 @@ void enableDevelocityInjection() {
 }
 
 void applyPluginExternally(def pluginManager, String pluginClassName, String pluginVersion) {
-    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity.injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
+    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
     logger.log(logLevel, "Applying $pluginClassName with version $pluginVersion via init script")
 
     def externallyApplied = 'develocity.externally-applied'
