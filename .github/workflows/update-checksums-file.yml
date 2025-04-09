@@ -38,7 +38,7 @@ jobs:
         working-directory: sources
 
       - name: Import GPG key to sign commits
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
         with:
           gpg_private_key: ${{ secrets.GH_BOT_PGP_PRIVATE_KEY }}
           passphrase: ${{ secrets.GH_BOT_PGP_PASSPHRASE }}
