@@ -40,6 +40,7 @@
     "@actions/glob": "0.5.0",
     "@actions/http-client": "2.2.3",
     "@actions/tool-cache": "2.0.2",
+    "@octokit/request-error": "5.1.1",
     "@octokit/webhooks-types": "7.6.1",
     "cheerio": "^1.0.0",
     "semver": "7.7.1",
@@ -69,6 +70,9 @@
     "typescript": "5.8.3"
   },
   "overrides": {
-    "@azure/logger": "1.1.4"
+    "@azure/logger": "1.1.4",
+    "@octokit/request": "8.4.1",
+    "@octokit/request-error": "5.1.1",
+    "@octokit/plugin-paginate-rest": "9.2.2"
   }
 }
