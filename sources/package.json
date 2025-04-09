@@ -40,7 +40,6 @@
     "@actions/glob": "0.5.0",
     "@actions/http-client": "2.2.3",
     "@actions/tool-cache": "2.0.2",
-    "@octokit/rest": "21.1.1",
     "@octokit/webhooks-types": "7.6.1",
     "cheerio": "^1.0.0",
     "semver": "7.7.1",
