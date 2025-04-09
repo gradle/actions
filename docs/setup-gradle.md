@@ -60,7 +60,7 @@ Downloaded Gradle versions are stored in the GitHub Actions cache, to avoid havi
  - name: Setup Gradle 8.10
    uses: gradle/actions/setup-gradle@v4
    with:
-     gradle-version: "8.10" # Quotes required to prevent YAML converting to number
+     gradle-version: '8.10' # Quotes required to prevent YAML converting to number
   - name: Build with Gradle 8.10
     run: gradle build
 ```
@@ -220,7 +220,7 @@ jobs:
 
     - uses: gradle/actions/setup-gradle@v4
       with:
-        gradle-version: 8.6
+        gradle-version: '8.6'
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     - run: gradle build --configuration-cache
 ```
@@ -474,7 +474,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
-        add-job-summary-as-pr-comment: on-failure # Valid values are 'never' (default), 'always', and 'on-failure'
+        add-job-summary-as-pr-comment: 'on-failure' # Valid values are 'never' (default), 'always', and 'on-failure'
 
     - run: ./gradlew build --scan
 ```
@@ -675,7 +675,7 @@ jobs:
     - name: Run a build, resolving the 'dependency-graph' plugin from the plugin portal proxy
       run: ./gradlew build
       env:
-        GRADLE_PLUGIN_REPOSITORY_URL: "https://gradle-plugins-proxy.mycorp.com"
+        GRADLE_PLUGIN_REPOSITORY_URL: 'https://gradle-plugins-proxy.mycorp.com'
 
         # Set the following variables if your custom plugin repository requires authentication
         # GRADLE_PLUGIN_REPOSITORY_USERNAME: "username"
@@ -746,8 +746,8 @@ To publish to https://scans.gradle.com, you must specify in your workflow that y
       uses: gradle/actions/setup-gradle@v4
       with:
         build-scan-publish: true
-        build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
-        build-scan-terms-of-use-agree: "yes"
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
 
     - name: Run a Gradle build - a build scan will be published automatically
       run: ./gradlew build
@@ -783,7 +783,7 @@ To avoid this, use the `develocity-token-expiry` parameter to specify a differen
       uses: gradle/actions/setup-gradle@v4
       with:
         develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
-        develocity-token-expiry: 8 # The number of hours that the access token should remain valid (max 24).
+        develocity-token-expiry: '8' # The number of hours that the access token should remain valid (max 24).
 ```
 
 ### Develocity access key supplied as environment variable
@@ -837,14 +837,14 @@ Here's a minimal example:
       uses: gradle/actions/setup-gradle@v4
       with:
         develocity-injection-enabled: true
-        develocity-url: https://develocity.your-server.com
-        develocity-plugin-version: 3.17.5
+        develocity-url: 'https://develocity.your-server.com'
+        develocity-plugin-version: '4.0'
 
     - name: Run a Gradle build with Develocity injection enabled
       run: ./gradlew build
 ```
 
-This configuration will automatically apply `v3.19.2` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
+This configuration will automatically apply `v4.0` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
 
 This example assumes that the `develocity.your-server.com` server allows anonymous publishing of build scans.
 In the likely scenario that your Develocity server requires authentication, you will also need to pass a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable) taken from a secret:
@@ -857,10 +857,10 @@ In the likely scenario that your Develocity server requires authentication, you 
 
     - name: Run a Gradle build with Develocity injection enabled
       run: ./gradlew build
-      env:
-        DEVELOCITY_INJECTION_ENABLED: true
-        DEVELOCITY_URL: https://develocity.your-server.com
-        DEVELOCITY_PLUGIN_VERSION: 3.17
+      with:
+        develocity-injection-enabled: true
+        develocity-url: 'https://develocity.your-server.com'
+        develocity-plugin-version: '4.0'
 ```
 
 This access key will be used during the action execution to get a short-lived token and set it to the DEVELOCITY_ACCESS_KEY environment variable.
@@ -908,10 +908,10 @@ Here's an example using the env vars:
       run: ./gradlew build
       env:
         DEVELOCITY_INJECTION_ENABLED: true
-        DEVELOCITY_URL: https://develocity.your-server.com
-        DEVELOCITY_ENFORCE_URL: true
-        DEVELOCITY_PLUGIN_VERSION: "3.19"
-        DEVELOCITY_CCUD_PLUGIN_VERSION: "2.1"
+        DEVELOCITY_INJECTION_URL: https://develocity.your-server.com
+        DEVELOCITY_INJECTION_ENFORCE_URL: true
+        DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: '4.0'
+        DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.2.1'
 ```
 
 # Dependency verification
