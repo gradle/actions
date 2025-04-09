@@ -44,7 +44,7 @@ export class CacheCleaner {
                     .filter(Boolean) as string[]
 
                 return await provisioner.provisionGradleWithVersionAtLeast(preferredVersion, wrapperScripts)
-            } catch (e) {
+            } catch (_) {
                 // Ignore the case where the preferred version cannot be located in https://services.gradle.org/versions/all.
                 // This can happen for snapshot Gradle versions.
                 core.info(
