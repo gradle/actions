@@ -106,7 +106,7 @@ class ShortLivedTokenClient {
                 // This should be only 404
                 attempts++
                 if (attempts === this.maxRetries) {
-                    return new Promise((resolve, reject) =>
+                    return new Promise((_resolve, reject) =>
                         reject(
                             new Error(
                                 `Develocity short lived token request failed ${serverUrl} with status code ${response.message.statusCode}`
@@ -117,12 +117,12 @@ class ShortLivedTokenClient {
             } catch (error) {
                 attempts++
                 if (attempts === this.maxRetries) {
-                    return new Promise((resolve, reject) => reject(error))
+                    return new Promise((_resolve, reject) => reject(error))
                 }
             }
             await new Promise(resolve => setTimeout(resolve, this.retryInterval))
         }
-        return new Promise((resolve, reject) => reject(new Error('Illegal state')))
+        return new Promise((_resolve, reject) => reject(new Error('Illegal state')))
     }
 }
 

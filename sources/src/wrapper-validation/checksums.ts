@@ -80,7 +80,7 @@ async function addDistributionSnapshotChecksumUrls(checksumUrls: [string, string
 
     // // Find all links ending with '-wrapper.jar.sha256'
     const wrapperChecksumLinks = $('a[href$="-wrapper.jar.sha256"]')
-    wrapperChecksumLinks.each((index, element) => {
+    wrapperChecksumLinks.each((_index, element) => {
         const url = $(element).attr('href')!
 
         // Extract the version from the url
