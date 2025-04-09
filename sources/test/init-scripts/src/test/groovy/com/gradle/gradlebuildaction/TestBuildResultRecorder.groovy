@@ -248,7 +248,7 @@ task expectFailure {
         when:
         settingsFile.text = """
             plugins {
-                id 'com.gradle.develocity' version '3.19.2' apply(false)
+                id 'com.gradle.develocity' version '4.0' apply(false)
             }
             gradle.settingsEvaluated {
                 apply plugin: 'com.gradle.develocity'
