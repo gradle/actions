@@ -63,7 +63,7 @@ jobs:
       id: gradle-build
       uses: ./dependency-submission
       with:
-        gradle-version: 7.0.1
+        gradle-version: '7.0.1'
         build-root-directory: .github/workflow-samples/groovy-dsl
       continue-on-error: true
     - name: Check step failed

@@ -86,7 +86,7 @@ In some cases, the default action configuration will not be sufficient, and addi
       uses: gradle/actions/dependency-submission@v4
       with:
         # Use a particular Gradle version instead of the configured wrapper.
-        gradle-version: 8.6
+        gradle-version: '8.6'
 
         # The gradle project is not in the root of the repository.
         build-root-directory: my-gradle-project

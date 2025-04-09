@@ -41,14 +41,14 @@ jobs:
       uses: ./setup-gradle
       with:
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
-        gradle-version: 6.9
+        gradle-version: '6.9'
     - name: Test uses Gradle v6.9
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=6.9"
     - name: Setup Gradle with v7.1.1
       uses: ./setup-gradle
       with:
-        gradle-version: 7.1.1
+        gradle-version: '7.1.1'
     - name: Test uses Gradle v7.1.1
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=7.1.1"
@@ -78,20 +78,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gradle: ["8.13", "8.12", "8.12-rc-1", 8.9, 8.1, 7.6.4, 6.9.4, 5.6.4, 4.10.3, 3.5.1]
+        gradle: ['8.13', '8.12', '8.12-rc-1', '8.9', '8.1', '7.6.4', '6.9.4', '5.6.4', '4.10.3', '3.5.1']
         os: ${{fromJSON(inputs.runner-os)}}
         include:
           - java-version: 11
-          - gradle: 5.6.4
+          - gradle: '5.6.4'
             build-root-suffix: -gradle-5
-          - gradle: 4.10.3
+          - gradle: '4.10.3'
             build-root-suffix: -gradle-4
-          - gradle: 3.5.1
+          - gradle: '3.5.1'
             build-root-suffix: -gradle-4
             java-version: 8
         exclude:
           - os: macos-latest # Java 8 is not supported on macos-latest, so we cannot test Gradle 3.5.1
-            gradle: 3.5.1
+            gradle: '3.5.1'
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout sources
