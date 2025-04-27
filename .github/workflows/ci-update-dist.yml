@@ -66,7 +66,7 @@ jobs:
     # Important: The push event will not trigger any other workflows, see
     # https://github.com/stefanzweifel/git-auto-commit-action?tab=readme-ov-file#commits-made-by-this-action-do-not-trigger-new-workflow-runs
     - name: Commit & push changes
-      uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
+      uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5.2.0
       with:
         commit_author: bot-githubaction <bot-githubaction@gradle.com>
         commit_user_name: bot-githubaction
