@@ -53,7 +53,7 @@
     "@gradle/develocity-agent": "https://develocity-npm-pkgs.gradle.com/gradle-develocity-agent-0.10.0.tgz",
     "@jest/globals": "29.7.0",
     "@types/jest": "29.5.14",
-    "@types/node": "20.17.30",
+    "@types/node": "20.17.31",
     "@types/semver": "7.7.0",
     "@types/unzipper": "0.10.11",
     "@types/which": "3.0.4",
