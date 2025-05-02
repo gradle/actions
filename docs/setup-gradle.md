@@ -753,6 +753,9 @@ To publish to https://scans.gradle.com, you must specify in your workflow that y
       run: ./gradlew build
 ```
 
+If your build is configured to [publish on demand](https://docs.gradle.com/develocity/gradle-plugin/current/#publishing_on_demand) 
+using `onlyIf { false }`, setting `build-scan-publish: true` will not force a scan to be published.
+
 ## Managing Develocity access keys
 
 Develocity access keys are long-lived, creating risks if they are leaked. To mitigate this risk this, 
