@@ -30,7 +30,7 @@ jobs:
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
       with:
-        gradle-version: '8.13'
+        gradle-version: '8.14'
 
     - name: Install npm dependencies
       run: |
