@@ -1,6 +1,6 @@
-import * as httpm from 'typed-rest-client/HttpClient'
 import * as cheerio from 'cheerio'
 import * as core from '@actions/core'
+import * as httpm from '@actions/http-client'
 
 import fileWrapperChecksums from './wrapper-checksums.json'
 
