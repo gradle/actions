@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {RequestError} from '@octokit/request-error'
 
 import {BuildResults, BuildResult} from './build-results'
 import {SummaryConfig, getActionId, getGithubToken} from './configuration'
@@ -66,7 +65,7 @@ ${jobSummary}`
             body: prComment
         })
     } catch (error) {
-        if (error instanceof RequestError) {
+        if (error instanceof Error && error.name === 'HttpError') {
             core.warning(buildWarningMessage(error))
         } else {
             throw error
@@ -74,7 +73,7 @@ ${jobSummary}`
     }
 }
 
-function buildWarningMessage(error: RequestError): string {
+function buildWarningMessage(error: Error): string {
     const mainWarning = `Failed to generate PR comment.\n${String(error)}`
     if (error.message === 'Resource not accessible by integration') {
         return `${mainWarning}
