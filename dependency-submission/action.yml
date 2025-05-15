@@ -60,7 +60,7 @@ inputs:
   cache-cleanup:
     description: |
       Specifies if the action should attempt to remove any stale/unused entries from the Gradle User Home prior to saving to the GitHub Actions cache.
-      By default ('on-success'), cleanup is performed when all Gradle builds succeed for the Job. 
+      By default ('on-success'), cleanup is performed when all Gradle builds succeed for the Job.
       This behaviour can be disabled ('never'), or configured to always run irrespective of the build outcome ('always').
       Valid values are 'never', 'on-success' and 'always'.
     required: false
@@ -96,7 +96,7 @@ inputs:
   # Dependency Graph configuration
   dependency-graph:
     description: |
-      Specifies how the dependency-graph should be handled by this action. 
+      Specifies how the dependency-graph should be handled by this action.
       By default a dependency-graph will be generated, submitted to the dependency-submission API, and saved as a workflow artifact.
       Valid values are:
         'generate-and-submit': Generates a dependency graph for the project and submits it in the same Job.
@@ -113,7 +113,7 @@ inputs:
 
   dependency-graph-report-dir:
     description: |
-      Specifies where the dependency graph report will be generated. 
+      Specifies where the dependency graph report will be generated.
       Paths can relative or absolute. Relative paths are resolved relative to the workspace directory.
     required: false
     default: 'dependency-graph-reports'
@@ -131,20 +131,50 @@ inputs:
 
   dependency-graph-include-projects:
     description: |
-      Gradle projects that should be included in dependency graph (regular expression). 
+      Gradle projects that should be included in dependency graph (regular expression).
       When set, only matching projects will be included.
     required: false
 
   dependency-graph-exclude-configurations:
     description: |
-      Gradle configurations that should be included in dependency graph (regular expression). 
+      Gradle configurations that should be included in dependency graph (regular expression).
       When set, anymatching configurations will be excluded.
     required: false
 
   dependency-graph-include-configurations:
     description: |
-      Gradle configurations that should be included in dependency graph (regular expression). 
+      Gradle configurations that should be included in dependency graph (regular expression).
       When set, only matching configurations will be included.
+    required: false
+
+  dependency-graph-detector-name:
+    description: |
+      Override the detector name in the dependency graph snapshot.
+      By default, the detector name is "GitHub Dependency Graph Gradle Plugin".
+    required: false
+
+  dependency-graph-detector-version:
+    description: |
+      Override the detector version in the dependency graph snapshot.
+      By default, the detector version is the version of the GitHub Dependency Graph Gradle Plugin being used.
+    required: false
+
+  dependency-graph-detector-url:
+    description: |
+      Override the detector URL in the dependency graph snapshot.
+      By default, the detector URL is "https://github.com/gradle/github-dependency-graph-gradle-plugin".
+    required: false
+
+  dependency-graph-snapshot-sha:
+    description: |
+      Override the SHA used for the dependency graph snapshot submission.
+      By default, it uses the SHA from the GitHub context.
+    required: false
+
+  dependency-graph-snapshot-ref:
+    description: |
+      Override the ref (branch or tag) used for the dependency graph snapshot submission.
+      By default, it uses the ref from the GitHub context.
     required: false
 
   artifact-retention-days:
@@ -185,7 +215,7 @@ inputs:
 
   allow-snapshot-wrappers:
     description: |
-      When 'true', wrapper validation will include the checksums of snapshot wrapper jars. 
+      When 'true', wrapper validation will include the checksums of snapshot wrapper jars.
       Use this if you are running with nightly or snapshot versions of the Gradle wrapper.
     required: false
     default: false

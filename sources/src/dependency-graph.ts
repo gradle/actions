@@ -31,8 +31,8 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_CONTINUE_ON_FAILURE', config.getDependencyGraphContinueOnFailure())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_CORRELATOR', config.getJobCorrelator())
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_JOB_ID', github.context.runId.toString())
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', github.context.ref)
-    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_SHA', getShaFromContext())
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_REF', getRef(config))
+    maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_SHA', getSha(config))
     maybeExportVariable('GITHUB_DEPENDENCY_GRAPH_WORKSPACE', getWorkspaceDirectory())
     maybeExportVariable('DEPENDENCY_GRAPH_REPORT_DIR', config.getReportDirectory())
 
@@ -79,7 +79,7 @@ async function downloadAndSubmitDependencyGraphs(config: DependencyGraphConfig):
     }
 
     try {
-        await submitDependencyGraphs(await downloadDependencyGraphs(config))
+        await submitDependencyGraphs(await downloadDependencyGraphs(config), config)
     } catch (e) {
         warnOrFail(config, DependencyGraphOption.DownloadAndSubmit, e)
     }
@@ -93,7 +93,7 @@ async function findAndSubmitDependencyGraphs(config: DependencyGraphConfig, uplo
 
     const dependencyGraphFiles = await findDependencyGraphFiles()
     try {
-        await submitDependencyGraphs(dependencyGraphFiles)
+        await submitDependencyGraphs(dependencyGraphFiles, config)
     } catch (e) {
         try {
             await uploadDependencyGraphs(dependencyGraphFiles, config)
@@ -180,7 +180,7 @@ async function uploadDependencyGraphs(dependencyGraphFiles: string[], config: De
     }
 }
 
-async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<void> {
+async function submitDependencyGraphs(dependencyGraphFiles: string[], config?: DependencyGraphConfig): Promise<void> {
     if (dependencyGraphFiles.length === 0) {
         core.info('No dependency graph files found to submit.')
         return
@@ -188,7 +188,7 @@ async function submitDependencyGraphs(dependencyGraphFiles: string[]): Promise<v
 
     for (const dependencyGraphFile of dependencyGraphFiles) {
         try {
-            await submitDependencyGraphFile(dependencyGraphFile)
+            await submitDependencyGraphFile(dependencyGraphFile, config)
         } catch (error) {
             if (error instanceof Error && error.name === 'HttpError') {
                 error.message = translateErrorMessage(dependencyGraphFile, error)
@@ -210,13 +210,42 @@ Note that this permission is never available for a 'pull_request' trigger from a
     return mainWarning
 }
 
-async function submitDependencyGraphFile(jsonFile: string): Promise<void> {
+async function submitDependencyGraphFile(jsonFile: string, config?: DependencyGraphConfig): Promise<void> {
     const octokit = getOctokit()
     const jsonContent = fs.readFileSync(jsonFile, 'utf8')
 
     const jsonObject = JSON.parse(jsonContent)
     jsonObject.owner = github.context.repo.owner
     jsonObject.repo = github.context.repo.repo
+
+    if (config && jsonObject.detector) {
+        // Override detector name
+        if (config.getDetectorName()) {
+            const detectorName = config.getDetectorName()
+            if (detectorName) {
+                core.info(`Overriding detector name from "${jsonObject.detector.name}" to "${detectorName}"`)
+                jsonObject.detector.name = detectorName
+            }
+        }
+
+        // Override detector version
+        if (config.getDetectorVersion()) {
+            const detectorVersion = config.getDetectorVersion()
+            if (detectorVersion) {
+                core.info(`Overriding detector version from "${jsonObject.detector.version}" to "${detectorVersion}"`)
+                jsonObject.detector.version = detectorVersion
+            }
+        }
+
+        // Override detector URL
+        if (config.getDetectorUrl()) {
+            const detectorUrl = config.getDetectorUrl()
+            if (detectorUrl) {
+                core.info(`Overriding detector URL from "${jsonObject.detector.url}" to "${detectorUrl}"`)
+                jsonObject.detector.url = detectorUrl
+            }
+        }
+    }
     const response = await octokit.request('POST /repos/{owner}/{repo}/dependency-graph/snapshots', jsonObject)
 
     const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
@@ -253,6 +282,10 @@ function getRelativePathFromWorkspace(file: string): string {
     return path.relative(workspaceDirectory, file)
 }
 
+function getSha(config: DependencyGraphConfig): string {
+    return config.getSnapshotSha() || getShaFromContext()
+}
+
 function getShaFromContext(): string {
     const context = github.context
     const pullRequestEvents = [
@@ -270,6 +303,10 @@ function getShaFromContext(): string {
     } else {
         return context.sha
     }
+}
+
+function getRef(config: DependencyGraphConfig): string {
+    return config.getSnapshotRef() || github.context.ref
 }
 
 function isRunningInActEnvironment(): boolean {
