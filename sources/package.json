@@ -51,7 +51,7 @@
     "@gradle/develocity-agent": "https://develocity-npm-pkgs.gradle.com/gradle-develocity-agent-0.10.0.tgz",
     "@jest/globals": "29.7.0",
     "@types/jest": "29.5.14",
-    "@types/node": "20.17.46",
+    "@types/node": "20.17.48",
     "@types/semver": "7.7.0",
     "@types/unzipper": "0.10.11",
     "@types/which": "3.0.4",
@@ -66,7 +66,7 @@
     "npm-run-all": "4.1.5",
     "patch-package": "8.0.0",
     "prettier": "3.5.3",
-    "ts-jest": "29.3.2",
+    "ts-jest": "29.3.4",
     "typescript": "5.8.3"
   },
   "overrides": {
