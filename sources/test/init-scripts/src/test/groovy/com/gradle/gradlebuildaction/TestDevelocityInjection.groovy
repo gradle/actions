@@ -355,8 +355,10 @@ class TestDevelocityInjection extends BaseInitScriptTest {
     }
 
     void outputContainsBuildScanUrl(BuildResult result) {
-        def message = "Publishing build scan...\n${mockScansServer.address}s/$PUBLIC_BUILD_SCAN_ID"
-        assert result.output.contains(message)
+        def opt = ['Publishing build scan...', 'Publishing Build Scan...'].stream()
+            .filter { result.output.contains("${it}\n${mockScansServer.address}s/$PUBLIC_BUILD_SCAN_ID") }.findFirst()
+        assert opt.isPresent()
+        def message = opt.get()
         assert 1 == result.output.count(message)
     }
 
