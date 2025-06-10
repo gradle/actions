@@ -19,13 +19,13 @@ export async function setup(config: BuildScanConfig): Promise<void> {
     maybeExportVariableNotEmpty('DEVELOCITY_INJECTION_ENFORCE_URL', config.getDevelocityEnforceUrl())
     maybeExportVariableNotEmpty('DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION', config.getDevelocityPluginVersion())
     maybeExportVariableNotEmpty('DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION', config.getDevelocityCcudPluginVersion())
-    maybeExportVariableNotEmpty('DEVELOCITY_INJECTION__PLUGIN_REPOSITORY_URL', config.getGradlePluginRepositoryUrl())
+    maybeExportVariableNotEmpty('DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL', config.getGradlePluginRepositoryUrl())
     maybeExportVariableNotEmpty(
-        'DEVELOCITY_INJECTION__PLUGIN_REPOSITORY_USERNAME',
+        'DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_USERNAME',
         config.getGradlePluginRepositoryUsername()
     )
     maybeExportVariableNotEmpty(
-        'DEVELOCITY_INJECTION__PLUGIN_REPOSITORY_PASSWORD',
+        'DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD',
         config.getGradlePluginRepositoryPassword()
     )
 
