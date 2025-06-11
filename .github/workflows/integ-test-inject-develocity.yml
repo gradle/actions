@@ -141,6 +141,7 @@ jobs:
         with:
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
           develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          gradle-plugin-repository-url: 'https://plugins.grdev.net/m3/'
       - name: Run Gradle build
         id: gradle
         working-directory: .github/workflow-samples/no-ge
