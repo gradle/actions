@@ -71,6 +71,10 @@ export class DependencyGraphConfig {
         return getOptionalInput('dependency-graph-include-configurations')
     }
 
+    getPluginRepository(): PluginRepositoryConfig {
+        return new PluginRepositoryConfig()
+    }
+
     static constructJobCorrelator(workflow: string, jobId: string, matrixJson: string): string {
         const matrixString = this.describeMatrix(matrixJson)
         const label = matrixString ? `${workflow}-${jobId}-${matrixString}` : `${workflow}-${jobId}`
@@ -301,16 +305,8 @@ export class BuildScanConfig {
         return core.getInput('develocity-ccud-plugin-version')
     }
 
-    getGradlePluginRepositoryUrl(): string {
-        return core.getInput('gradle-plugin-repository-url')
-    }
-
-    getGradlePluginRepositoryUsername(): string {
-        return core.getInput('gradle-plugin-repository-username')
-    }
-
-    getGradlePluginRepositoryPassword(): string {
-        return core.getInput('gradle-plugin-repository-password')
+    getPluginRepository(): PluginRepositoryConfig {
+        return new PluginRepositoryConfig()
     }
 
     private verifyTermsOfUseAgreement(): boolean {
@@ -325,6 +321,20 @@ export class BuildScanConfig {
             return false
         }
         return true
+    }
+}
+
+export class PluginRepositoryConfig {
+    getUrl(): string | undefined {
+        return getOptionalInput('gradle-plugin-repository-url')
+    }
+
+    getUsername(): string | undefined {
+        return getOptionalInput('gradle-plugin-repository-username')
+    }
+
+    getPassword(): string | undefined {
+        return getOptionalInput('gradle-plugin-repository-password')
     }
 }
 
