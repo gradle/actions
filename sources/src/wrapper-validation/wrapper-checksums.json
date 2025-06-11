@@ -1,5 +1,33 @@
 [
   {
+    "version": "8.14.2",
+    "checksum": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172"
+  },
+  {
+    "version": "7.6.5",
+    "checksum": "14dfa961b6704bb3decdea06502781edaa796a82e6da41cd2e1962b14fbe21a3"
+  },
+  {
+    "version": "9.0.0-milestone-9",
+    "checksum": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
+  },
+  {
+    "version": "8.14.1",
+    "checksum": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172"
+  },
+  {
+    "version": "9.0.0-milestone-8",
+    "checksum": "f98ed44dd3f067fa699b5c34661be67c7f0097ea58b0017255141a08d2eb5f87"
+  },
+  {
+    "version": "9.0-milestone-7",
+    "checksum": "f98ed44dd3f067fa699b5c34661be67c7f0097ea58b0017255141a08d2eb5f87"
+  },
+  {
+    "version": "9.0-milestone-6",
+    "checksum": "f98ed44dd3f067fa699b5c34661be67c7f0097ea58b0017255141a08d2eb5f87"
+  },
+  {
     "version": "9.0-milestone-5",
     "checksum": "c605ee1b011c0da3bc468735530c1d43ea3ede0fb8ce978b5479c7f688343ef5"
   },
