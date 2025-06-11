@@ -7,7 +7,7 @@
 
 // @ts-check
 
-const httpm = require('../../sources/node_modules/typed-rest-client/HttpClient')
+const httpm = require('../../sources/node_modules/@actions/http-client')
 
 const path = require('path')
 const fs = require('fs')
