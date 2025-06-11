@@ -97,6 +97,7 @@ jobs:
           gradle-version: ${{ matrix.gradle }}
           develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
           develocity-token-expiry: 1
+          gradle-plugin-repository-url: 'https://plugins.grdev.net/m2/'
       - name: Run Gradle build
         id: gradle
         working-directory: .github/workflow-samples/no-ge
