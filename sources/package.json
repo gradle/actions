@@ -56,7 +56,6 @@
     "@types/unzipper": "0.10.11",
     "@types/which": "3.0.4",
     "@typescript-eslint/eslint-plugin": "8.34.0",
-    "@typescript-eslint/parser": "8.29.1",
     "@vercel/ncc": "0.38.3",
     "dedent": "1.6.0",
     "eslint": "9.24.0",
