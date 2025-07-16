@@ -1,5 +1,25 @@
 [
   {
+    "version": "9.0.0-rc-2",
+    "checksum": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
+  },
+  {
+    "version": "9.0.0-milestone-10",
+    "checksum": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
+  },
+  {
+    "version": "8.14.3",
+    "checksum": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172"
+  },
+  {
+    "version": "7.6.6",
+    "checksum": "14dfa961b6704bb3decdea06502781edaa796a82e6da41cd2e1962b14fbe21a3"
+  },
+  {
+    "version": "9.0.0-rc-1",
+    "checksum": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
+  },
+  {
     "version": "8.14.2",
     "checksum": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172"
   },
