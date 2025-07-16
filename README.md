@@ -1,4 +1,4 @@
-# GitHub Actions for Gradle builds
+# GitHub Actions for Gradle builds by WarpBuild
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/gradle/actions/badge)](https://scorecard.dev/viewer/?uri=github.com/gradle/actions)
 
@@ -8,7 +8,7 @@ This repository contains a set of GitHub Actions that are useful for building Gr
 
 The `setup-gradle` action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.
 
-This replaces the previous `gradle/gradle-build-action`, which now delegates to this implementation.
+This replaces the previous `WarpBuilds/gradle-build-action`, which now delegates to this implementation.
 
 The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), and the examples assume that the Gradle Wrapper has been configured for the project. See [this example](docs/setup-gradle.md#build-with-a-specific-gradle-version) if your project doesn't use the Gradle Wrapper.
 
@@ -24,17 +24,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: 17
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-    - name: Build with Gradle
-      run: ./gradlew build
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: WarpBuilds/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+      - name: Setup Gradle
+        uses: WarpBuilds/gradle-actions/setup-gradle@v4
+      - name: Build with Gradle
+        run: ./gradlew build
 ```
 
 See the [full action documentation](docs/setup-gradle.md) for more advanced usage scenarios.
@@ -53,7 +53,7 @@ name: Dependency Submission
 
 on:
   push:
-    branches: [ 'main' ]
+    branches: ["main"]
 
 permissions:
   contents: write
@@ -62,15 +62,15 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: 17
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v4
 ```
 
 See the [full action documentation](docs/dependency-submission.md) for more advanced usage scenarios.
