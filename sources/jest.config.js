@@ -8,7 +8,7 @@ module.exports = {
   },
   reporters: [
       'default',
-      '@gradle/develocity-agent/jest-reporter',
+      '@gradle-tech/develocity-agent/jest-reporter',
   ],
   verbose: true
 }
