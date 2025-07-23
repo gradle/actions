@@ -1,6 +1,7 @@
+import * as httpm from 'typed-rest-client/HttpClient'
 import * as cheerio from 'cheerio'
 import * as core from '@actions/core'
-import * as httpm from '@actions/http-client'
+//import * as httpm from '@actions/http-client'
 
 import fileWrapperChecksums from './wrapper-checksums.json'
 
@@ -69,20 +70,23 @@ async function httpGetJsonArray(url: string): Promise<unknown[]> {
 }
 
 async function httpGetText(url: string): Promise<string> {
-    const maxAttempts = 4
-    let attempts = 0
-    while (attempts < maxAttempts) {
-        try {
-            const response = await httpc.get(url)
-            return await response.readBody()
-        } catch (error) {
-            attempts++
-            if (attempts === maxAttempts) {
-                return new Promise((_resolve, reject) => reject(error))
-            }
-        }
-    }
-    return new Promise((_resolve, reject) => reject(new Error('Illegal state')))
+    const response = await httpc.get(url)
+    return await response.readBody()
+
+    // const maxAttempts = 4
+    // let attempts = 0
+    // while (attempts < maxAttempts) {
+    //     try {
+    //         const response = await httpc.get(url)
+    //         return await response.readBody()
+    //     } catch (error) {
+    //         attempts++
+    //         if (attempts === maxAttempts) {
+    //             return new Promise((_resolve, reject) => reject(error))
+    //         }
+    //     }
+    // }
+    // return new Promise((_resolve, reject) => reject(new Error('Illegal state')))
 }
 
 async function addDistributionSnapshotChecksumUrls(checksumUrls: [string, string][]): Promise<void> {
