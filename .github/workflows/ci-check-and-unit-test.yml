@@ -43,7 +43,7 @@ jobs:
         npm run compile
       working-directory: sources
       env:
-        NODE_OPTIONS: '-r @gradle/develocity-agent/preload'
+        NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
         DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
@@ -52,6 +52,6 @@ jobs:
         npm test
       working-directory: sources
       env:
-        NODE_OPTIONS: '-r @gradle/develocity-agent/preload'
+        NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
         DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
