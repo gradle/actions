@@ -52,13 +52,6 @@ jobs:
     - name: Test uses Gradle v7.1.1
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=7.1.1"
-    - name: Setup Gradle with release-candidate
-      uses: ./setup-gradle
-      with:
-        gradle-version: release-candidate
-    - name: Test use release-candidate
-      working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help
     - name: Setup Gradle with current
       id: gradle-current
       uses: ./setup-gradle
@@ -73,6 +66,28 @@ jobs:
       with:
         script: |
           core.setFailed('Gradle version parameter not set correctly: value was "${{ steps.gradle-current.outputs.gradle-version }}"')    
+
+  provision-gradle-with-jdk-17:
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Initialize integ-test
+        uses: ./.github/actions/init-integ-test
+        with:
+          java-version: '17'
+      - name: Setup Gradle with release-candidate
+        uses: ./setup-gradle
+        with:
+          gradle-version: release-candidate
+      - name: Test use release-candidate
+        working-directory: .github/workflow-samples/no-wrapper
+        run: gradle help
   
   provision-gradle-version:
     strategy:
