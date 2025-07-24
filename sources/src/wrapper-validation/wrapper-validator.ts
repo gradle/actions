@@ -17,7 +17,9 @@ export async function validateWrappers(
 
     const allowedChecksums = process.env['ALLOWED_GRADLE_WRAPPER_CHECKSUMS']?.split(',') || []
     const previouslyValidatedChecksums = checksumCache.load()
-
+    core.info(`gradleUserHome = ${gradleUserHome}`)
+    core.info(`Previously validated checksums loaded from cache: ${previouslyValidatedChecksums.join(', ')}`)
+    
     const result = await findInvalidWrapperJars(
         workspaceRoot,
         config.allowSnapshotWrappers(),

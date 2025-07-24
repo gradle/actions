@@ -1,3 +1,5 @@
+import * as core from '@actions/core'
+
 import * as find from './find'
 import * as checksums from './checksums'
 import * as hash from './hash'
@@ -21,6 +23,16 @@ export async function findInvalidWrapperJars(
                 previouslyValidatedChecksums.includes(sha) ||
                 knownValidChecksums.checksums.has(sha)
             ) {
+                if (allowedChecksums.includes(sha)) {
+                    core.info("Found allowed Gradle Wrapper JAR file: " + sha)
+                }
+                if (previouslyValidatedChecksums.includes(sha)) {
+                    core.info(`Found previously validated Gradle Wrapper JAR file: ${sha}`)
+                }
+                if(knownValidChecksums.checksums.has(sha)) {
+                    core.info(`Found known valid Gradle Wrapper JAR file: ${sha}`)
+                }
+                
                 result.valid.push(new WrapperJar(wrapperJar, sha))
             } else {
                 notYetValidatedWrappers.push(new WrapperJar(wrapperJar, sha))
@@ -36,6 +48,7 @@ export async function findInvalidWrapperJars(
                 if (!fetchedValidChecksums.checksums.has(wrapperJar.checksum)) {
                     result.invalid.push(wrapperJar)
                 } else {
+                    core.info(`Fall back - Found valid Gradle Wrapper JAR file: ${wrapperJar.checksum}`)
                     result.valid.push(wrapperJar)
                 }
             }
