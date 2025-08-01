@@ -3,7 +3,7 @@
   "extends": [
     "config:recommended",
     "github>gradle/renovate-agent//presets/dv.json5",
-    ":disableDependencyDashboard",
   ],
+  "dependencyDashboardApproval": true,
   "prConcurrentLimit": 0,
 }
