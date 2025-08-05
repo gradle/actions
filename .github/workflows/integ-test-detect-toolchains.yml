@@ -46,7 +46,7 @@ jobs:
       shell: bash
       working-directory: .github/workflow-samples/groovy-dsl
       run: | 
-        grep -q 'Eclipse Temurin JDK 1.8' output.txt || (echo "::error::Did not detect preinstalled JDK 1.8" && exit 1)
+        grep -q 'Eclipse Temurin JDK 8' output.txt || (echo "::error::Did not detect preinstalled JDK 8" && exit 1)
         grep -q 'Eclipse Temurin JDK 11' output.txt || (echo "::error::Did not detect preinstalled JDK 11" && exit 1)
         grep -q 'Eclipse Temurin JDK 17' output.txt || (echo "::error::Did not detect preinstalled JDK 17" && exit 1)
         grep -q 'Eclipse Temurin JDK 21' output.txt || (echo "::error::Did not detect preinstalled JDK 21" && exit 1)
@@ -64,16 +64,16 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Java 20
-      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
-      with:
-        distribution: 'temurin'
-        java-version: 20
     - name: Setup Java 16
       uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
       with:
         distribution: 'temurin'
         java-version: 16
+    - name: Setup Java 20
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+      with:
+        distribution: 'temurin'
+        java-version: 20
     - name: Setup Gradle
       uses: ./setup-gradle
     - name: List detected toolchains
@@ -92,7 +92,7 @@ jobs:
       shell: bash
       working-directory: .github/workflow-samples/groovy-dsl
       run: | 
-        grep -q 'Eclipse Temurin JDK 1.8' output.txt || (echo "::error::Did not detect preinstalled JDK 1.8" && exit 1)
+        grep -q 'Eclipse Temurin JDK 8' output.txt || (echo "::error::Did not detect preinstalled JDK 8" && exit 1)
         grep -q 'Eclipse Temurin JDK 11' output.txt || (echo "::error::Did not detect preinstalled JDK 11" && exit 1)
         grep -q 'Eclipse Temurin JDK 17' output.txt || (echo "::error::Did not detect preinstalled JDK 17" && exit 1)
         grep -q 'Eclipse Temurin JDK 21' output.txt || (echo "::error::Did not detect preinstalled JDK 21" && exit 1)
