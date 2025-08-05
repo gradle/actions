@@ -231,11 +231,26 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{fromJSON(inputs.runner-os)}}
-        gradle: ['8.0.2', '7.6.4', '7.1.1', '6.9.4', '6.0.1', '5.6.4', '5.2.1']
+        gradle: ['9.0.0', '8.14.3', '8.0.2', '7.6.4', '7.1.1', '6.9.4', '6.0.1', '5.6.4', '5.2.1']
         include:
+          - java-version: 17
+          - gradle: '8.14.3'
+            java-version: 11
+          - gradle: '8.0.2'
+            java-version: 11
+          - gradle: '7.6.4'
+            java-version: 11
+          - gradle: '7.1.1'
+            java-version: 11
+          - gradle: '6.9.4'
+            java-version: 11
+          - gradle: '6.0.1'
+            java-version: 11
           - gradle: '5.6.4'
+            java-version: 11
             build-root-suffix: -gradle-5
           - gradle: '5.2.1'
+            java-version: 11
             build-root-suffix: -gradle-5
     runs-on: ${{ matrix.os }}
     steps:
@@ -243,7 +258,8 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
-
+      with:
+        java-version: ${{ matrix.java-version }}
     - name: Generate and submit dependencies
       uses: ./dependency-submission
       with:
