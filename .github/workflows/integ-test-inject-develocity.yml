@@ -171,6 +171,7 @@ jobs:
         id: setup-gradle
         uses: ./setup-gradle
         with:
+          gradle-version: ${{ matrix.gradle }}
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
           develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
       - name: Run Gradle build
