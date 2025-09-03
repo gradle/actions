@@ -239,7 +239,7 @@ outputs:
     description: Version of Gradle that was setup by the action
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: '../dist/setup-gradle/main/index.js'
   post: '../dist/setup-gradle/post/index.js'
   post-if: '!cancelled()'
