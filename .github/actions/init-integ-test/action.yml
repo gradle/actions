@@ -10,7 +10,7 @@ runs:
   using: "composite"
   steps: 
     - name: Setup Java
-      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+      uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
       with:
         distribution: 'temurin'
         java-version: ${{ inputs.java-version }}
@@ -23,7 +23,7 @@ runs:
     # Downloads a 'dist' directory artifact that was uploaded in an earlier 'build-dist' step
     - name: Download dist
       if: ${{ env.SKIP_DIST != 'true' && !env.ACT }}
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
       with:
         name: dist
         path: dist/

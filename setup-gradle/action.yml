@@ -242,6 +242,7 @@ runs:
   using: 'node20'
   main: '../dist/setup-gradle/main/index.js'
   post: '../dist/setup-gradle/post/index.js'
+  post-if: '!cancelled()'
 
 branding:
   icon: 'box'
