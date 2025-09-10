@@ -4,6 +4,7 @@ import * as validate from '../../../src/wrapper-validation/validate'
 import {expect, test, jest} from '@jest/globals'
 import { WrapperChecksums, KNOWN_CHECKSUMS } from '../../../src/wrapper-validation/checksums'
 import { ChecksumCache } from '../../../src/wrapper-validation/cache'
+import { ACTION_METADATA_DIR } from '../../../src/configuration'
 
 jest.setTimeout(30000)
 
@@ -127,4 +128,15 @@ test('can save and load checksums', async () => {
 
   expect(checksumCache.load()).toEqual(['123', '456'])
   expect(fs.existsSync(cacheDir)).toBe(true)
+})
+
+test('can load empty checksum file', async () => {
+    const cacheDir = path.join(tmpDir, 'empty-wrapper-validation-cache')
+    const metadataDir = path.join(cacheDir, ACTION_METADATA_DIR)
+    const emptyChecksumFile = path.join(metadataDir, 'valid-wrappers.json')
+    fs.mkdirSync(metadataDir, { recursive: true });
+    fs.writeFileSync(emptyChecksumFile, '')
+    const checksumCache = new ChecksumCache(cacheDir)
+
+    expect(checksumCache.load()).toEqual([])
 })
