@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import {ACTION_METADATA_DIR} from '../configuration'
+import * as core from '@actions/core'
 
 export class ChecksumCache {
     private readonly cacheFile: string
@@ -11,6 +12,7 @@ export class ChecksumCache {
 
     load(): string[] {
         // Load previously validated checksums saved in Gradle User Home
+        core.info("DEBUG Loading previously validated checksums from cache file: " + this.cacheFile);
         if (fs.existsSync(this.cacheFile)) {
             return JSON.parse(fs.readFileSync(this.cacheFile, 'utf-8'))
         }
