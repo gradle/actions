@@ -222,7 +222,7 @@ outputs:
     description: Version of Gradle that was setup by the action
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: '../dist/dependency-submission/main/index.js'
   post: '../dist/dependency-submission/post/index.js'
 
