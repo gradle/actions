@@ -1,5 +1,9 @@
 [
   {
+    "version": "9.1.0-rc-3",
+    "checksum": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
+  },
+  {
     "version": "9.1.0-rc-2",
     "checksum": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
   },
