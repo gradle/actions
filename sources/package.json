@@ -48,15 +48,15 @@
     "which": "5.0.0"
   },
   "devDependencies": {
-    "@gradle-tech/develocity-agent": "1.0.2",
+    "@gradle-tech/develocity-agent": "2.0.2",
     "@jest/globals": "30.1.2",
     "@types/jest": "30.0.0",
-    "@types/node": "24.5.0",
+    "@types/node": "24.5.2",
     "@types/semver": "7.7.1",
     "@types/unzipper": "0.10.11",
     "@types/which": "3.0.4",
-    "@typescript-eslint/eslint-plugin": "8.44.0",
-    "@vercel/ncc": "0.38.3",
+    "@typescript-eslint/eslint-plugin": "8.44.1",
+    "@vercel/ncc": "0.38.4",
     "dedent": "1.7.0",
     "eslint": "9.24.0",
     "globals": "16.4.0",
@@ -65,7 +65,7 @@
     "npm-run-all": "4.1.5",
     "patch-package": "8.0.0",
     "prettier": "3.6.2",
-    "ts-jest": "29.4.2",
+    "ts-jest": "29.4.4",
     "typescript": "5.9.2"
   },
   "overrides": {
