@@ -20,7 +20,7 @@ To convert your workflows, simply replace:
 ```
 with
 ```
-    uses: gradle/actions/setup-gradle@v4
+    uses: gradle/actions/setup-gradle@v5
 ```
 
 ## The action `gradle/wrapper-validation-action` has been replaced by `gradle/actions/wrapper-validation`
@@ -40,7 +40,7 @@ To convert your workflows, simply replace:
 ```
 with
 ```
-    uses: gradle/actions/wrapper-validation@v4
+    uses: gradle/actions/wrapper-validation@v5
 ```
 
 ## Using the action to execute Gradle via the `arguments` parameter is deprecated
@@ -82,7 +82,7 @@ The exact syntax depends on whether or not your project is configured with the [
 
 ```
 - name: Setup Gradle
-  uses: gradle/actions/setup-gradle@v4
+  uses: gradle/actions/setup-gradle@v5
 
 - name: Assemble the project
   run: ./gradlew assemble
@@ -99,7 +99,7 @@ The exact syntax depends on whether or not your project is configured with the [
 
 ```
 - name: Setup Gradle for a non-wrapper project
-  uses: gradle/actions/setup-gradle@v4
+  uses: gradle/actions/setup-gradle@v5
   with:
     gradle-version: '8.11'
 
