@@ -50,7 +50,7 @@ We created an example [Homoglyph attack PR here](https://github.com/JLLeitschuh/
 Simply add this action to your workflow **after** having checked out your source tree and **before** running any Gradle build:
 
 ```yaml
-uses: gradle/actions/wrapper-validation@v4
+uses: gradle/actions/wrapper-validation@v5
 ```
 
 This action step should precede any step using `gradle/gradle-build-action` or `gradle/actions/setup-gradle`.
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: gradle/actions/wrapper-validation@v4
+      - uses: gradle/actions/wrapper-validation@v5
 ```
 
 ## Contributing to an external GitHub Repository

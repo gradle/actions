@@ -43,7 +43,7 @@ jobs:
         java-version: 17
 
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
 ```
 
 ### Gradle execution
@@ -68,7 +68,7 @@ Three input parameters are required, one to enable publishing and two more to ac
 
 ```yaml
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         build-scan-publish: true
         build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
@@ -83,7 +83,7 @@ In some cases, the default action configuration will not be sufficient, and addi
 
 ```yaml
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         # Use a particular Gradle version instead of the configured wrapper.
         gradle-version: '8.6'
@@ -130,7 +130,7 @@ To reduce storage costs for these artifacts, you can:
 
 ```yaml
     - name: Generate dependency graph but only store workflow artifacts for 1 day
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         artifact-retention-days: 1 # Default is 30 days or as configured for repository
 ```
@@ -139,7 +139,7 @@ To reduce storage costs for these artifacts, you can:
 
 ```yaml
     - name: Generate and submit dependency graph but do not store as workflow artifact
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         dependency-graph: 'generate-and-submit' # Default value is 'generate-submit-and-upload'
 ```
@@ -299,7 +299,7 @@ For example, if you want to exclude dependencies resolved by the `buildSrc` proj
 
 ```yaml
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         # Exclude all dependencies that originate solely in the 'buildSrc' project
         dependency-graph-exclude-projects: ':buildSrc'
@@ -350,7 +350,7 @@ jobs:
         java-version: 17
 
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
 ```
 
 #### 2. Add a dedicated Dependency Review workflow
@@ -412,7 +412,7 @@ jobs:
         java-version: 17
 
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         dependency-graph: generate-and-upload
 ```
@@ -435,7 +435,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
       with:
         dependency-graph: download-and-submit # Download saved dependency-graph and submit
 ```

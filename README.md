@@ -32,7 +32,7 @@ jobs:
         distribution: 'temurin'
         java-version: 17
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
     - name: Build with Gradle
       run: ./gradlew build
 ```
@@ -70,7 +70,7 @@ jobs:
         distribution: 'temurin'
         java-version: 17
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
+      uses: gradle/actions/dependency-submission@v5
 ```
 
 See the [full action documentation](docs/dependency-submission.md) for more advanced usage scenarios.
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: gradle/actions/wrapper-validation@v4
+      - uses: gradle/actions/wrapper-validation@v5
 ```
 
 See the [full action documentation](docs/wrapper-validation.md) for more advanced usage scenarios.

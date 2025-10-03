@@ -11,16 +11,16 @@
   - Note: The gradle actions follow the GitHub Actions convention of including a .0 patch number for the first release of a minor version, unlike the Gradle convention which omits the trailing .0.
 
 ## Release gradle/actions
-- Create a tag for the release. The tag should have the format `v4.1.0`
-  - From CLI: `git tag -s -m "v4.1.0" v4.1.0 && git push --tags`
+- Create a tag for the release. The tag should have the format `v5.0.0`
+  - From CLI: `git tag -s -m "v5.0.0" v5.0.0 && git push --tags`
   - Note that we sign the tag and set the commit message for the tag to the newly released version.
 - Go to https://github.com/gradle/actions/releases and "Draft new release"
   - Use the newly created tag and copy the tag name exactly as the release title.
   - Craft release notes content based on issues closed, PRs merged and commits
   - Include a Full changelog link in the format https://github.com/gradle/actions/compare/v2.12.0...v3.0.0
 - Publish the release.
-- Force push the `v4` tag (or current major version) to point to the new release. It is conventional for users to bind to a major release version using this tag.
-  - From CLI: `git tag -f -s -a -m "v4.0.0" v4 v4.0.0 && git push -f --tags`
+- Force push the `v5` tag (or current major version) to point to the new release. It is conventional for users to bind to a major release version using this tag.
+  - From CLI: `git tag -f -s -a -m "v5.0.0" v5 v5.0.0 && git push -f --tags`
   - Note that we sign the tag and set the commit message for the tag to the newly released version.
 
 ## Post release steps

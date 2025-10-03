@@ -45,7 +45,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
 
     - name: Execute Gradle build
       run: ./gradlew build
@@ -58,7 +58,7 @@ Downloaded Gradle versions are stored in the GitHub Actions cache, to avoid havi
 
 ```yaml
  - name: Setup Gradle 8.10
-   uses: gradle/actions/setup-gradle@v4
+   uses: gradle/actions/setup-gradle@v5
    with:
      gradle-version: '8.10' # Quotes required to prevent YAML converting to number
   - name: Build with Gradle 8.10
@@ -96,7 +96,7 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - uses: gradle/actions/setup-gradle@v4
+    - uses: gradle/actions/setup-gradle@v5
       id: setup-gradle
       with:
         gradle-version: release-candidate
@@ -218,7 +218,7 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - uses: gradle/actions/setup-gradle@v4
+    - uses: gradle/actions/setup-gradle@v5
       with:
         gradle-version: '8.6'
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
@@ -472,7 +472,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         add-job-summary-as-pr-comment: 'on-failure' # Valid values are 'never' (default), 'always', and 'on-failure'
 
@@ -509,7 +509,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
 
     - name: Run build with Gradle wrapper
       run: ./gradlew build --scan
@@ -540,7 +540,7 @@ If you do not want wrapper-validation to occur automatically, you can disable it
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         validate-wrappers: false
 ```
@@ -552,7 +552,7 @@ These are not allowed by default.
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         validate-wrappers: true
         allow-snapshot-wrappers: true
@@ -617,7 +617,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         dependency-graph: generate-and-submit
     - name: Run the usual CI build (dependency-graph will be generated and submitted post-job)
@@ -644,7 +644,7 @@ graph cannot be generated or submitted. You can enable this behavior with the `d
 
 ```yaml
 # Ensure that the workflow Job will fail if the dependency graph cannot be submitted
-- uses: gradle/actions/setup-gradle@v4
+- uses: gradle/actions/setup-gradle@v5
   with:
     dependency-graph: generate-and-submit
     dependency-graph-continue-on-failure: false
@@ -669,7 +669,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         dependency-graph: generate-and-submit
     - name: Run a build, resolving the 'dependency-graph' plugin from the plugin portal proxy
@@ -699,7 +699,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle to generate and submit dependency graphs
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         dependency-graph: generate-and-submit
     - name: Build the app, generating a graph of dependencies required
@@ -743,7 +743,7 @@ To publish to https://scans.gradle.com, you must specify in your workflow that y
 
 ```yaml
     - name: Setup Gradle to publish build scans
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         build-scan-publish: true
         build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
@@ -765,7 +765,7 @@ The short-lived access token will then be used wherever a Develocity access key 
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }} # Long-lived access key, visiblility is restricted to this step.
 
@@ -783,7 +783,7 @@ To avoid this, use the `develocity-token-expiry` parameter to specify a differen
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
         develocity-token-expiry: '8' # The number of hours that the access token should remain valid (max 24).
@@ -805,7 +805,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
 
     # The build will automatically use a short-lived access token to authenticate with Develocity
     - name: Run a Gradle build that is configured to publish to Develocity.
@@ -837,7 +837,7 @@ Here's a minimal example:
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         develocity-injection-enabled: true
         develocity-url: 'https://develocity.your-server.com'
@@ -854,7 +854,7 @@ In the likely scenario that your Develocity server requires authentication, you 
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
 
@@ -905,7 +905,7 @@ Here's an example using the env vars:
 
 ```yaml
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
 
     - name: Run a Gradle build with Develocity injection enabled with environment variables
       run: ./gradlew build
