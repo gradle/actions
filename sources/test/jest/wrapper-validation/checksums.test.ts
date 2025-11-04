@@ -65,10 +65,9 @@ describe('retry', () => {
       nock('https://services.gradle.org', {allowUnmocked: true})
         .get('/versions/all')
         .times(3)
-        .replyWithError({
-          message: 'connect ECONNREFUSED 104.18.191.9:443',
-          code: 'ECONNREFUSED'
-        })
+        .replyWithError(
+            Object.assign(new Error('Connection refused'), { code: 'ECONNREFUSED' }),
+        )
 
       const validChecksums = await checksums.fetchUnknownChecksums(false, knownChecksumsWithout8_1())
       expect(validChecksums.checksums.size).toBeGreaterThan(0)
