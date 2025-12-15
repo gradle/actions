@@ -1,6 +1,6 @@
 /*
  * Initscript for injection of Develocity into Gradle builds.
- * Version: 2.0
+ * Version: 2.0.1
  */
 
 import org.gradle.util.GradleVersion
@@ -15,7 +15,11 @@ initscript {
     def getInputParam = { Gradle gradle, String name ->
         def ENV_VAR_PREFIX = ''
         def envVarName = ENV_VAR_PREFIX + name.toUpperCase().replace('.', '_').replace('-', '_')
-        return gradle.startParameter.systemPropertiesArgs[name] ?: System.getProperty(name) ?: System.getenv(envVarName)
+        // We read the system property value first to make sure it becomes a configuration cache input
+        // Reading from gradle.startParameter.systemPropertiesArgs does not have that effect
+        // We read from gradle.startParameter since Gradle 7.0.2 and earlier cannot reliably read system properties
+        // using System.getProperty from init scripts.
+        return System.getProperty(name) ?: gradle.startParameter.systemPropertiesArgs[name] ?: System.getenv(envVarName)
     }
 
     def requestedInitScriptName = getInputParam(gradle, 'develocity-injection.init-script-name')
@@ -83,7 +87,11 @@ initscript {
 static getInputParam(Gradle gradle, String name) {
     def ENV_VAR_PREFIX = ''
     def envVarName = ENV_VAR_PREFIX + name.toUpperCase().replace('.', '_').replace('-', '_')
-    return gradle.startParameter.systemPropertiesArgs[name] ?: System.getProperty(name) ?: System.getenv(envVarName)
+    // We read the system property value first to make sure it becomes a configuration cache input
+    // Reading from gradle.startParameter.systemPropertiesArgs does not have that effect
+    // We read from gradle.startParameter since Gradle 7.0.2 and earlier cannot reliably read system properties
+    // using System.getProperty from init scripts.
+    return System.getProperty(name) ?: gradle.startParameter.systemPropertiesArgs[name] ?: System.getenv(envVarName)
 }
 
 def isTopLevelBuild = !gradle.parent
@@ -123,7 +131,7 @@ void enableDevelocityInjection() {
     def DEVELOCITY_PLUGIN_ID = 'com.gradle.develocity'
     def DEVELOCITY_PLUGIN_CLASS = 'com.gradle.develocity.agent.gradle.DevelocityPlugin'
 
-    def CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = 'CI auto injection'
+    def CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = 'CIAutoInjection'
     def CCUD_PLUGIN_ID = 'com.gradle.common-custom-user-data-gradle-plugin'
     def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
