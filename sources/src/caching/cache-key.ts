@@ -63,7 +63,32 @@ export function generateCacheKey(cacheName: string, config: CacheConfig): CacheK
         return new CacheKey(cacheKey, [cacheKeyForJobContext])
     }
 
-    return new CacheKey(cacheKey, [cacheKeyForJobContext, cacheKeyForJob, cacheKeyForEnvironment])
+    const restoreKeys = [cacheKeyForJobContext]
+
+    // Prefer cache from base/previous commit if available
+    const baseSha = getBaseCommitSha()
+    if (baseSha) {
+        restoreKeys.push(`${cacheKeyForJobContext}-${baseSha}`)
+    }
+
+    restoreKeys.push(cacheKeyForJob, cacheKeyForEnvironment)
+
+    return new CacheKey(cacheKey, restoreKeys)
+}
+
+// Git uses all-zeros SHA to represent "no commit" (e.g., when creating a new branch)
+// See: https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
+const GIT_NULL_SHA = '0000000000000000000000000000000000000000'
+
+function getBaseCommitSha(): string | null {
+    const payload = github.context.payload
+    // PR events (pull_request, pull_request_target): use base branch SHA
+    const prBaseSha = payload?.pull_request?.base?.sha
+    if (prBaseSha) return prBaseSha
+    // Push events: use previous commit SHA (before is null SHA for new branches)
+    const beforeSha = payload?.before
+    if (beforeSha && beforeSha !== GIT_NULL_SHA) return beforeSha
+    return null
 }
 
 export function getCacheKeyBase(cacheName: string, cacheProtocolVersion: string): string {
