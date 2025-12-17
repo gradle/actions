@@ -35,8 +35,8 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@actions/artifact": "5.0.1",
-    "@actions/cache": "5.0.1",
+    "@actions/artifact": "4.0.0",
+    "@actions/cache": "4.0.5",
     "@actions/core": "2.0.1",
     "@actions/exec": "2.0.0",
     "@actions/github": "6.0.1",
