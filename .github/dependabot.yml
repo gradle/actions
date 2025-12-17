@@ -16,10 +16,10 @@ updates:
         patterns:
         - "*"
     ignore:
+      # Keep actions/cache and actions/artifact major aligned and force actions/cache version to match patch
       - dependency-name: "*actions/cache*"
-        versions: ["5.x"]
       - dependency-name: "*actions/artifact*"
-        versions: ["5.x"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: "github-actions"
     # github-actions with directory: "/" only monitors .github/workflows
