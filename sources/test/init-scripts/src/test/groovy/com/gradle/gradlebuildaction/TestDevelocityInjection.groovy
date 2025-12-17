@@ -7,7 +7,7 @@ import spock.lang.Requires
 import static org.junit.Assume.assumeTrue
 
 class TestDevelocityInjection extends BaseInitScriptTest {
-    static final List<TestGradleVersion> CCUD_COMPATIBLE_VERSIONS = ALL_VERSIONS - [GRADLE_3_X]
+    static final List<TestGradleVersion> CCUD_COMPATIBLE_VERSIONS = ALL_VERSIONS
 
     def initScript = 'gradle-actions.inject-develocity.init.gradle'
 
