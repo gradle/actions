@@ -1,0 +1,171 @@
+# Type descriptors based on https://github.com/typesafegithub/github-actions-typing
+inputs:
+  gradle-version:
+    type: string
+
+  # Cache configuration
+  cache-disabled:
+    type: boolean
+
+  cache-read-only:
+    type: boolean
+
+  cache-write-only:
+    type: boolean
+
+  cache-overwrite-existing:
+    type: boolean
+
+  cache-encryption-key:
+    type: string
+
+  cache-cleanup:
+    type: enum
+    allowed-values:
+      - never
+      - on-success
+      - always
+
+  gradle-home-cache-cleanup:
+    type: boolean
+
+  gradle-home-cache-includes:
+    type: list
+    separator: '\n'
+    list-item:
+      type: string
+
+  gradle-home-cache-excludes:
+    type: list
+    separator: '\n'
+    list-item:
+      type: string
+
+  # Job summary configuration
+  add-job-summary:
+    type: enum
+    allowed-values:
+      - never
+      - always
+      - on-failure
+
+  add-job-summary-as-pr-comment:
+    type: enum
+    allowed-values:
+      - never
+      - always
+      - on-failure
+
+  # Dependency Graph configuration
+  dependency-graph:
+    type: enum
+    allowed-values:
+      - disabled
+      - generate
+      - generate-and-submit
+      - generate-and-upload
+      - download-and-submit
+
+  dependency-graph-report-dir:
+    type: string
+
+  dependency-graph-continue-on-failure:
+    type: boolean
+
+  dependency-graph-exclude-projects:
+    type: string
+
+  dependency-graph-include-projects:
+    type: string
+
+  dependency-graph-exclude-configurations:
+    type: string
+
+  dependency-graph-include-configurations:
+    type: string
+
+  artifact-retention-days:
+    type: integer
+
+  # Build Scan configuration
+  build-scan-publish:
+    type: boolean
+
+  build-scan-terms-of-use-url:
+    type: enum
+    allowed-values:
+      - https://gradle.com/terms-of-service
+      - https://gradle.com/help/legal-terms-of-use
+
+  build-scan-terms-of-use-agree:
+    type: enum
+    allowed-values:
+      - 'yes'
+
+  develocity-access-key:
+    type: string
+
+  develocity-token-expiry:
+    type: integer
+
+  develocity-injection-enabled:
+    type: boolean
+
+  develocity-url:
+    type: string
+
+  develocity-allow-untrusted-server:
+    type: boolean
+
+  develocity-capture-file-fingerprints:
+    type: boolean
+
+  develocity-enforce-url:
+    type: boolean
+
+  develocity-plugin-version:
+    type: string
+
+  develocity-ccud-plugin-version:
+    type: string
+
+  gradle-plugin-repository-url:
+    type: string
+
+  gradle-plugin-repository-username:
+    type: string
+
+  gradle-plugin-repository-password:
+    type: string
+
+  # Wrapper validation configuration
+  validate-wrappers:
+    type: boolean
+
+  allow-snapshot-wrappers:
+    type: boolean
+
+  # Deprecated action inputs
+  arguments:
+    type: string
+
+  # Experimental action inputs
+  gradle-home-cache-strict-match:
+    type: boolean
+
+  # Internal action inputs
+  workflow-job-context:
+    type: string
+
+  github-token:
+    type: string
+
+outputs:
+  build-scan-url:
+    type: string
+
+  dependency-graph-file:
+    type: string
+
+  gradle-version:
+    type: string
