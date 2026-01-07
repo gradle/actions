@@ -293,6 +293,26 @@ Note that configuration exclusion applies to the configuration in which the depe
 the configuration where the dependency is _declared_. For example if you decare a dependency as `implementation` in
 a Java project, that dependency will be resolved in `compileClasspath`, `runtimeClasspath` and possibly other configurations.
 
+### Selecting Gradle projects that will be included as runtime dependencies
+
+The GitHub dependency graph allows a scope to be assigned to each reported dependency. The only permissible values for scope are `runtime` and `development`. This is specially useful for consumers of your Dependency Graph, such as Dependabot or the Dependency Review Action.
+
+By default, all dependencies reported by the `dependency-submission` action are not assigned any scope. However, you can specify which Gradle projects should be considered as `runtime` or `development` dependencies. 
+
+To restrict which Gradle projects contribute to the report, specify which projects to exclude or include via a regular expression. You can use the `dependency-graph-runtime-include-projects` and `dependency-graph-runtime-exclude-projects` input parameters for this purpose.
+
+Once you define which projects are considered `runtime`, all dependencies resolved by these projects will be assigned the `runtime` scope in the generated dependency graph. All other dependencies will be assigned the `development` scope.
+
+### Selecting Gradle configurations that will be included as runtime dependencies
+
+Similarly to Gradle projects, it is possible to exclude or include a set of dependency configurations from being considered as `runtime` dependencies, so that only dependencies resolved by the included configurations are reported as `runtime` dependencies.
+
+By default, all dependencies reported by the `dependency-submission` action are not assigned any scope. However, you can specify which Gradle configurations should be considered as `runtime` or `development` dependencies. 
+
+To restrict which Gradle configurations contribute to the report, specify which configurations to exclude or include via a regular expression. You can use the `dependency-graph-runtime-exclude-configurations` and `dependency-graph-runtime-include-configurations` input parameters for this purpose.
+
+Once you define which configurations are considered `runtime`, all dependencies resolved by these configurations will be assigned the `runtime` scope in the generated dependency graph. All other dependencies will be assigned the `development` scope.
+
 ### Example of project and configuration filtering
 
 For example, if you want to exclude dependencies resolved by the `buildSrc` project, and exclude dependencies from the `testCompileClasspath` and `testRuntimeClasspath` configurations, you would use the following configuration:
@@ -305,6 +325,20 @@ For example, if you want to exclude dependencies resolved by the `buildSrc` proj
         dependency-graph-exclude-projects: ':buildSrc'
         # Exclude dependencies that are only resolved in test classpaths
         dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'
+```
+
+### Example of project and configuration scoping
+
+Analogously, if you want to only map dependencies from the `app` project to the `runtime` scope, and only map the `runtimeClasspath` configuration to the `runtime` scope, you would use the following configuration:
+
+```yaml
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@v5
+      with:
+        # Only include the 'app' project in runtime scope
+        dependency-graph-runtime-include-projects: ':app'
+        # Only include runtimeClasspath configuration in runtime scope
+        dependency-graph-runtime-include-configurations: 'runtimeClasspath'
 ```
 
 # Advance usage scenarios
