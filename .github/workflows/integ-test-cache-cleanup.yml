@@ -46,6 +46,8 @@ jobs:
 
   # Second build will use the cache from the first build, but cleanup should remove unused artifacts
   cache-cleanup-assemble-build:
+    env:
+      GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_1
     needs: cache-cleanup-full-build
     strategy:
       max-parallel: 1
@@ -69,6 +71,8 @@ jobs:
       run: ./gradlew --no-daemon --build-cache -Dcommons_math3_version="3.1.1" build
 
   cache-cleanup-check-clean-cache:
+    env:
+      GRADLE_BUILD_ACTION_CACHE_KEY_JOB_EXECUTION: ${{github.sha}}_2
     needs: cache-cleanup-assemble-build
     strategy:
       max-parallel: 1
