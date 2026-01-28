@@ -17,6 +17,7 @@ env:
   SKIP_DIST: ${{ inputs.skip-dist }}
   # Requires a fresh cache entry each run
   GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: cache-cleanup-${{ inputs.cache-key-prefix }}-${{github.run_number}}
+  GRADLE_BUILD_ACTION_CACHE_KEY_JOB: cache-cleanup
 
 permissions:
   contents: read
