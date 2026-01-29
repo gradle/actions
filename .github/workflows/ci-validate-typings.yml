@@ -1,0 +1,19 @@
+name: ci-validate-typings.yml
+on:
+  push:
+    branches:
+    - 'main'
+    - 'release/**'
+    paths-ignore:
+    - 'dist/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-typings:
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v6
+    - uses: typesafegithub/github-actions-typing@v2
