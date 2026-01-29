@@ -338,6 +338,41 @@ jobs:
             exit 1
         fi
 
+  dependency-submission-with-runtime-scope:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Generate and submit dependencies with runtime scope
+      id: dependency-submission
+      uses: ./dependency-submission
+      with:
+        build-root-directory: .github/workflow-samples/groovy-dsl
+        dependency-graph-runtime-include-projects: 'included-project'
+        dependency-graph-runtime-exclude-projects: 'excluded-project'
+        dependency-graph-runtime-include-configurations: 'included-configuration'
+        dependency-graph-runtime-exclude-configurations: 'excluded-configuration'
+    - name: Check generated dependency graph and env vars
+      shell: bash
+      run: |
+        if [ ! -e "${{ steps.dependency-submission.outputs.dependency-graph-file }}" ]; then
+            echo "Did not find generated dependency graph file"
+            exit 1
+        fi
+
+        if [ "$DEPENDENCY_GRAPH_RUNTIME_EXCLUDE_PROJECTS" != "excluded-project" ] || 
+           [ "$DEPENDENCY_GRAPH_RUNTIME_INCLUDE_PROJECTS" != "included-project" ] || 
+           [ "$DEPENDENCY_GRAPH_RUNTIME_EXCLUDE_CONFIGURATIONS" != "excluded-configuration" ] || 
+           [ "$DEPENDENCY_GRAPH_RUNTIME_INCLUDE_CONFIGURATIONS" != "included-configuration" ]; then
+            echo "Did not set expected environment variables"
+            exit 1
+        fi
+  
 
   dependency-submission-custom-report-dir-submit:
     permissions:
