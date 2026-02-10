@@ -32,10 +32,17 @@ jobs:
       with:
         gradle-version: '8.14.2'
 
+    - name: Install Develocity npm agent
+      run: |
+        npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
+
     - name: Install npm dependencies
       run: |
         npm clean-install
       working-directory: sources
+      env:
+        NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Check formatting and compile
       run: |
@@ -44,7 +51,6 @@ jobs:
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
-        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Run unit tests
@@ -53,5 +59,4 @@ jobs:
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
-        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
