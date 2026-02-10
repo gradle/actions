@@ -1,9 +1,11 @@
 import path from 'path'
 import fs from 'fs'
+import {fileURLToPath} from 'url'
 
 export function readResourceFileAsString(...paths: string[]): string {
     // Resolving relative to __dirname will allow node to find the resource at runtime
-    const absolutePath = path.resolve(__dirname, '..', '..', '..', 'sources', 'src', 'resources', ...paths)
+    const moduleDir = path.dirname(fileURLToPath(import.meta.url))
+    const absolutePath = path.resolve(moduleDir, '..', '..', '..', 'sources', 'src', 'resources', ...paths)
     return fs.readFileSync(absolutePath, 'utf8')
 }
 
