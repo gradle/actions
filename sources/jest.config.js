@@ -1,3 +1,5 @@
+const develocityReporter = require.resolve('@gradle-tech/develocity-agent/jest-reporter');
+
 module.exports = {
   clearMocks: true,
   moduleFileExtensions: ['js', 'ts', 'json'],
@@ -8,7 +10,7 @@ module.exports = {
   },
   reporters: [
       'default',
-      '@gradle-tech/develocity-agent/jest-reporter',
+      develocityReporter
   ],
   verbose: true
 }
