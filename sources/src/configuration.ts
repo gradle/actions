@@ -2,11 +2,11 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as cache from '@actions/cache'
 import * as deprecator from './deprecation-collector'
-import {SUMMARY_ENV_VAR} from '@actions/core/lib/summary'
 
-import path from 'path'
+import * as path from 'path'
 
 const ACTION_ID_VAR = 'GRADLE_ACTION_ID'
+const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 
 export const ACTION_METADATA_DIR = '.setup-gradle'
 
