@@ -34,10 +34,17 @@ jobs:
         cache: npm
         cache-dependency-path: sources/package-lock.json
 
+    - name: Install Develocity npm agent
+      run: |
+        npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
+
     - name: Install npm dependencies
       run: |
         npm clean-install
       working-directory: sources
+      env:
+        NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Build distribution
       run: |
