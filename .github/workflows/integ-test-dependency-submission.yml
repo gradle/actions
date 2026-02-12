@@ -394,7 +394,7 @@ jobs:
         dependency-graph-report-dir: '${{ github.workspace }}/custom/report-dir'
         build-root-directory: .github/workflow-samples/groovy-dsl
 
-  custom-report-dir-download-and-submit:
+  dependency-submission-custom-report-dir-download-and-submit:
     permissions:
       contents: write
     needs: [dependency-submission-custom-report-dir-upload]
