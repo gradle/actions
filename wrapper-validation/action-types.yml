@@ -1,0 +1,17 @@
+# Type descriptors based on https://github.com/typesafegithub/github-actions-typing
+inputs:
+  min-wrapper-count:
+    type: integer
+
+  allow-snapshots:
+    type: boolean
+
+  allow-checksums:
+    type: list
+    separator: ','
+    list-item:
+      type: string
+
+outputs:
+  failed-wrapper:
+    type: string
