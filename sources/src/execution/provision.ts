@@ -120,7 +120,7 @@ export async function provisionGradleWithVersionAtLeast(
     candidates: string[] = []
 ): Promise<string> {
     const gradleOnPath = await findGradleExecutableOnPath()
-    const allCandidates = gradleOnPath ? [gradleOnPath, ...candidates] : candidates
+    const allCandidates = gradleOnPath ? [...candidates, gradleOnPath] : candidates
 
     return core.group(`Provision Gradle >= ${minimumVersion}`, async () => {
         for (const candidate of allCandidates) {
