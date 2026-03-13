@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {versionIsAtLeast} from './execution/gradle'
 
 export interface BuildResult {
     get rootProjectName(): string
@@ -14,47 +13,14 @@ export interface BuildResult {
     get buildScanFailed(): boolean
 }
 
-export class BuildResults {
-    results: BuildResult[]
-
-    constructor(results: BuildResult[]) {
-        this.results = results
-    }
-
-    anyFailed(): boolean {
-        return this.results.some(result => result.buildFailed)
-    }
-
-    anyConfigCacheHit(): boolean {
-        return this.results.some(result => result.configCacheHit)
-    }
-
-    uniqueGradleHomes(): string[] {
-        const allHomes = this.results.map(buildResult => buildResult.gradleHomeDir)
-        return Array.from(new Set(allHomes))
-    }
-
-    highestGradleVersion(): string | null {
-        if (this.results.length === 0) {
-            return null
-        }
-        return this.results
-            .map(result => result.gradleVersion)
-            .reduce((maxVersion: string, currentVersion: string) => {
-                if (!maxVersion) return currentVersion
-                return versionIsAtLeast(currentVersion, maxVersion) ? currentVersion : maxVersion
-            })
-    }
-}
-
-export function loadBuildResults(): BuildResults {
+export function loadBuildResults(): BuildResult[] {
     const results = getUnprocessedResults().map(filePath => {
         const content = fs.readFileSync(filePath, 'utf8')
         const buildResult = JSON.parse(content) as BuildResult
         addScanResults(filePath, buildResult)
         return buildResult
     })
-    return new BuildResults(results)
+    return results
 }
 
 export function markBuildResultsProcessed(): void {

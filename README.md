@@ -1,8 +1,19 @@
 # GitHub Actions for Gradle builds
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/gradle/actions/badge)](https://scorecard.dev/viewer/?uri=github.com/gradle/actions)
-
 This repository contains a set of GitHub Actions that are useful for building Gradle projects on GitHub.
+
+> [!IMPORTANT]
+> ## Licensing notice
+>
+> The software in this repository is licensed under the [MIT License](LICENSE).
+>
+> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
+> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
+>
+> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
+>
+> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
+> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
 
 ## The `setup-gradle` action
 

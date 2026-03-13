@@ -2,6 +2,19 @@
 
 This GitHub Action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.
 
+> [!IMPORTANT]
+> ## Licensing notice
+>
+> The software in this repository is licensed under the [MIT License](LICENSE).
+>
+> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
+> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
+>
+> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
+>
+> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
+> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
+
 ## Why use the `setup-gradle` action?
 
 It is possible to directly invoke Gradle in your workflow, and the `actions/setup-java@v4` action provides a simple way to cache Gradle dependencies.
@@ -933,4 +946,3 @@ Each of the plugins is signed by Gradle, and you can simply add the following sn
    </trusted-key>
 </trusted-keys>
 ```
-
