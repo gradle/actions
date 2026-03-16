@@ -8,6 +8,10 @@
     "checksum": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
   },
   {
+    "version": "9.5.0-milestone-6",
+    "checksum": "7ef3d73bd95c047814d76ec8324f72deefb96593eb9ce87aa06ecdcdaba7ffe8"
+  },
+  {
     "version": "9.5.0-milestone-5",
     "checksum": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
   },
