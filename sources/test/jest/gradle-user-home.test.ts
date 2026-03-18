@@ -2,8 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import {describe, expect, it} from '@jest/globals'
 
-import {GradleUserHomeCache} from "../../src/caching/gradle-user-home-cache"
-import {CacheConfig} from "../../src/configuration"
+import {configureInfoLogLevel} from '../../src/gradle-user-home'
 
 const testTmp = 'test/jest/tmp'
 fs.rmSync(testTmp, {recursive: true, force: true})
@@ -14,8 +13,7 @@ describe("--info and --stacktrace", () => {
             const emptyGradleHome = `${testTmp}/empty-gradle-home`
             fs.mkdirSync(emptyGradleHome, {recursive: true})
 
-            const stateCache = new GradleUserHomeCache("ignored", emptyGradleHome, new CacheConfig())
-            stateCache.configureInfoLogLevel()
+            configureInfoLogLevel(emptyGradleHome)
 
             expect(fs.readFileSync(path.resolve(emptyGradleHome, "gradle.properties"), 'utf-8'))
                 .toBe("org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n")
@@ -27,8 +25,7 @@ describe("--info and --stacktrace", () => {
             fs.mkdirSync(existingGradleHome, {recursive: true})
             fs.writeFileSync(path.resolve(existingGradleHome, "gradle.properties"), "org.gradle.logging.level=debug\n")
 
-            const stateCache = new GradleUserHomeCache("ignored", existingGradleHome, new CacheConfig())
-            stateCache.configureInfoLogLevel()
+            configureInfoLogLevel(existingGradleHome)
 
             expect(fs.readFileSync(path.resolve(existingGradleHome, "gradle.properties"), 'utf-8'))
                 .toBe("org.gradle.logging.level=info\norg.gradle.logging.stacktrace=all\n\norg.gradle.logging.level=debug\n")

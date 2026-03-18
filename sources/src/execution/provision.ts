@@ -6,9 +6,8 @@ import * as core from '@actions/core'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 
-import {determineGradleVersion, findGradleExecutableOnPath, versionIsAtLeast} from './gradle'
+import {determineGradleVersion, findGradleExecutableOnPath} from './gradle'
 import * as gradlew from './gradlew'
-import {handleCacheFailure} from '../caching/cache-utils'
 import {CacheConfig} from '../configuration'
 
 const gradleVersionsBaseUrl = 'https://services.gradle.org/versions'
@@ -109,34 +108,6 @@ async function installGradleVersion(versionInfo: GradleVersionInfo): Promise<str
     })
 }
 
-/**
- * Find (or install) a Gradle executable that meets the specified version requirement.
- * The Gradle version on PATH and all candidates are first checked for version compatibility.
- * If no existing Gradle version meets the requirement, the required version is installed.
- * @return Gradle executable with at least the required version.
- */
-export async function provisionGradleWithVersionAtLeast(
-    minimumVersion: string,
-    candidates: string[] = []
-): Promise<string> {
-    const gradleOnPath = await findGradleExecutableOnPath()
-    const allCandidates = gradleOnPath ? [gradleOnPath, ...candidates] : candidates
-
-    return core.group(`Provision Gradle >= ${minimumVersion}`, async () => {
-        for (const candidate of allCandidates) {
-            const candidateVersion = await determineGradleVersion(candidate)
-            if (candidateVersion && versionIsAtLeast(candidateVersion, minimumVersion)) {
-                core.info(
-                    `Gradle version ${candidateVersion} is available at ${candidate} and >= ${minimumVersion}. Not installing.`
-                )
-                return candidate
-            }
-        }
-
-        return locateGradleAndDownloadIfRequired(await gradleRelease(minimumVersion))
-    })
-}
-
 async function locateGradleAndDownloadIfRequired(versionInfo: GradleVersionInfo): Promise<string> {
     const installsDir = path.join(getProvisionDir(), 'installs')
     const installDir = path.join(installsDir, `gradle-${versionInfo.version}`)
@@ -221,4 +192,21 @@ async function httpGetString(url: string): Promise<string> {
 interface GradleVersionInfo {
     version: string
     downloadUrl: string
+}
+
+function handleCacheFailure(error: unknown, message: string): void {
+    if (error instanceof cache.ValidationError) {
+        // Fail on cache validation errors
+        throw error
+    }
+    if (error instanceof cache.ReserveCacheError) {
+        // Reserve cache errors are expected if the artifact has been previously cached
+        core.info(`${message}: ${error}`)
+    } else {
+        // Warn on all other errors
+        core.warning(`${message}: ${error}`)
+        if (error instanceof Error && error.stack) {
+            core.info(error.stack)
+        }
+    }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "gradle-actions-caching",
+  "version": "0.1.2",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "license": "Gradle Inc",
+  "_note": "VENDORED BUILD - DO NOT EDIT"
+}

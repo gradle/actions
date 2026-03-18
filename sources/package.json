@@ -5,7 +5,6 @@
   "type": "module",
   "description": "Execute Gradle Build",
   "scripts": {
-    "postinstall": "patch-package",
     "prettier-write": "prettier --write 'src/**/*.ts'",
     "prettier-check": "prettier --check 'src/**/*.ts'",
     "lint": "eslint 'src/**/*.ts'",
@@ -37,7 +36,7 @@
   },
   "dependencies": {
     "@actions/artifact": "6.1.0",
-    "@actions/cache": "4.0.5",
+    "@actions/cache": "6.0.0",
     "@actions/core": "3.0.0",
     "@actions/exec": "3.0.0",
     "@actions/github": "9.0.0",
@@ -66,7 +65,6 @@
     "jest": "30.3.0",
     "nock": "15.0.0",
     "npm-run-all": "4.1.5",
-    "patch-package": "8.0.1",
     "prettier": "3.8.1",
     "ts-jest": "29.4.6",
     "typescript": "5.9.3"

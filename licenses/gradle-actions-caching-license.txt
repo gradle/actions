@@ -1,0 +1,27 @@
+Software License Agreement Copyright (c) 2026 Gradle, Inc. All rights
+reserved.
+
+1. PROPRIETARY AND CONFIDENTIAL. This software and its source code are the
+proprietary and confidential property of Gradle, Inc.
+
+2. LICENSE GRANT AND TERMS OF USE. Subject to your compliance with the Terms
+of Use referenced below, Gradle, Inc. grants you a non-exclusive,
+non-transferable license to use this library solely for internal CI/CD
+purposes. Your use, installation, and distribution of this software are
+strictly governed by the Gradle, Inc. Terms of Use, which can be found at the
+following URL: https://gradle.com/legal/terms-of-use/. By downloading,
+installing, or using this software, you agree to be bound by the terms and
+conditions set forth in the link above.
+
+3. RESTRICTIONS. Unless expressly permitted in the Terms of Use referenced
+above, you may not: (a) Modify, decompile, or reverse engineer this software.
+(b) Redistribute the source code or binaries without prior written consent.
+(c) Use this software for any purpose not authorized by the Terms of Use.
+
+4. NO WARRANTY. AS SET FORTH IN THE GRADLE, INC. TERMS OF USE, THIS SOFTWARE IS
+PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
