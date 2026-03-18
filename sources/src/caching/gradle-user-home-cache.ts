@@ -8,7 +8,7 @@ import {generateCacheKey} from './cache-key'
 import {CacheListener} from './cache-reporting'
 import {saveCache, restoreCache, cacheDebug, isCacheDebuggingEnabled, tryDelete} from './cache-utils'
 import {CacheConfig, ACTION_METADATA_DIR} from '../configuration'
-import {GradleHomeEntryExtractor, ConfigurationCacheEntryExtractor} from './gradle-home-extry-extractor'
+import {GradleHomeEntryExtractor} from './gradle-home-extry-extractor'
 import {getPredefinedToolchains, mergeToolchainContent, readResourceFileAsString} from './gradle-user-home-utils'
 
 const RESTORED_CACHE_KEY_KEY = 'restored-cache-key'
@@ -82,7 +82,6 @@ export class GradleUserHomeCache {
     async afterRestore(listener: CacheListener): Promise<void> {
         await this.debugReportGradleUserHomeSize('as restored from cache')
         await new GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener)
-        await new ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).restore(listener)
         await this.deleteExcludedPaths()
         await this.debugReportGradleUserHomeSize('after restoring common artifacts')
     }
@@ -130,10 +129,7 @@ export class GradleUserHomeCache {
     async beforeSave(listener: CacheListener): Promise<void> {
         await this.debugReportGradleUserHomeSize('before saving common artifacts')
         await this.deleteExcludedPaths()
-        await Promise.all([
-            new GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener),
-            new ConfigurationCacheEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
-        ])
+        await new GradleHomeEntryExtractor(this.gradleUserHome, this.cacheConfig).extract(listener)
         await this.debugReportGradleUserHomeSize(
             "after extracting common artifacts (only 'caches' and 'notifications' will be stored)"
         )
