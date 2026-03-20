@@ -8,7 +8,7 @@ on:
     - 'bot/gradle-actions-caching'
     paths:
     - 'dist/**'
-    - 'src/vendor/gradle-actions-caching/**'
+    - 'sources/vendor/gradle-actions-caching/**'
 
 permissions:
   contents: read
