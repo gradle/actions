@@ -5,8 +5,7 @@ on:
   push:
     branches:
     - 'main'
-    - 'bot/test-gradle-actions-caching'
-    - 'bot/release-gradle-actions-caching'
+    - 'bot/gradle-actions-caching'
     paths:
     - 'dist/**'
     - 'src/vendor/gradle-actions-caching/**'
