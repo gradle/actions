@@ -11,10 +11,6 @@ on:
     paths-ignore:
     - 'dist/**'
 
-concurrency:
-  group: integ-test
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
@@ -31,6 +27,9 @@ jobs:
   caching-integ-tests:
     needs: build-distribution
     uses: ./.github/workflows/suite-integ-test-caching.yml
+    concurrency:
+      group: CI-integ-test
+      cancel-in-progress: false
     with:
       skip-dist: false
     secrets: inherit
@@ -40,6 +39,9 @@ jobs:
       contents: write
     needs: build-distribution
     uses: ./.github/workflows/suite-integ-test-other.yml
+    concurrency:
+      group: CI-integ-test
+      cancel-in-progress: false
     with:
       skip-dist: false
     secrets: inherit
