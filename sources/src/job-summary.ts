@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 
 import {BuildResult} from './build-results'
-import {SummaryConfig, getActionId, getGithubToken} from './configuration'
+import {SummaryConfig, getActionId, getGithubToken, DependencyGraphConfig, getJobMatrix} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
 
 export async function generateJobSummary(
@@ -48,7 +48,11 @@ async function addPRComment(jobSummary: string): Promise<void> {
     const pull_request_number = context.payload.pull_request.number
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
-    const prComment = `<h3>Job Summary for Gradle</h3>
+    const jobCorrelator = DependencyGraphConfig.constructJobCorrelator(context.workflow, context.job, getJobMatrix())
+    const marker = `<!-- gradle-job-summary: ${jobCorrelator} -->`
+
+    const prComment = `${marker}
+<h3>Job Summary for Gradle</h3>
 <a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
 </a>
