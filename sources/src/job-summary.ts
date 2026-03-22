@@ -1,5 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import {GitHub} from '@actions/github/lib/utils'
+import {Repository} from '@octokit/graphql-schema'
 
 import {BuildResult} from './build-results'
 import {SummaryConfig, getActionId, getGithubToken, DependencyGraphConfig, getJobMatrix} from './configuration'
@@ -61,6 +63,8 @@ ${jobSummary}`
 
     const github_token = getGithubToken()
     const octokit = github.getOctokit(github_token)
+    await minimizeComments(octokit, pull_request_number, marker)
+
     try {
         await octokit.rest.issues.createComment({
             ...context.repo,
@@ -203,5 +207,45 @@ function truncateString(str: string, maxLength: number): string {
         return `<div title='${str}'>${str.slice(0, maxLength - 1)}…</div>`
     } else {
         return str
+    }
+}
+
+async function minimizeComments(octokit: InstanceType<typeof GitHub>, prNumber: number, marker: string): Promise<void> {
+    const {owner, repo} = github.context.repo
+
+    const query = `
+    query($owner: String!, $repo: String!, $prNumber: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $prNumber) {
+          comments(last: 100) {
+            nodes { id body isMinimized url }
+          }
+        }
+      }
+    }
+  `
+
+    const mutation = `
+    mutation($id: ID!) {
+      minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+        clientMutationId
+      }
+    }
+  `
+
+    try {
+        const {repository} = await octokit.graphql<{repository: Repository}>(query, {owner, repo, prNumber})
+        const commentsToMinimize = (repository.pullRequest?.comments?.nodes ?? [])
+            .filter((c): c is NonNullable<typeof c> => c !== null)
+            .filter(c => !c.isMinimized && c.body.includes(marker))
+            .map(async c =>
+                octokit
+                    .graphql(mutation, {id: c.id})
+                    .then(() => core.info(`Successfully minimized (id:${c.id}, url:${c.url})`))
+                    .catch(e => core.warning(`Failed to minimize (id:${c.id}, url:${c.url}, error:${e?.message || e})`))
+            )
+        await Promise.allSettled(commentsToMinimize)
+    } catch (error) {
+        core.warning(`Failed to minimize obsolete comments: ${error}`)
     }
 }
