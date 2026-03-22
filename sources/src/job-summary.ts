@@ -4,7 +4,7 @@ import {GitHub} from '@actions/github/lib/utils'
 import {Repository} from '@octokit/graphql-schema'
 
 import {BuildResult} from './build-results'
-import {SummaryConfig, getActionId, getGithubToken, DependencyGraphConfig, getJobMatrix} from './configuration'
+import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
 
 export async function generateJobSummary(
@@ -224,6 +224,13 @@ async function minimizeComments(octokit: InstanceType<typeof GitHub>, prNumber: 
       }
     }
   `
+    let comments
+    try {
+        const {repository} = await octokit.graphql<{repository: Repository}>(query, {owner, repo, prNumber})
+        comments = repository.pullRequest?.comments?.nodes?.filter((c): c is NonNullable<typeof c> => c !== null) ?? []
+    } catch (error) {
+        return core.warning(`Failed to fetch comments: ${error}`)
+    }
 
     const mutation = `
     mutation($id: ID!) {
@@ -233,19 +240,13 @@ async function minimizeComments(octokit: InstanceType<typeof GitHub>, prNumber: 
     }
   `
 
-    try {
-        const {repository} = await octokit.graphql<{repository: Repository}>(query, {owner, repo, prNumber})
-        const commentsToMinimize = (repository.pullRequest?.comments?.nodes ?? [])
-            .filter((c): c is NonNullable<typeof c> => c !== null)
-            .filter(c => !c.isMinimized && c.body.includes(marker))
-            .map(async c =>
-                octokit
-                    .graphql(mutation, {id: c.id})
-                    .then(() => core.info(`Successfully minimized (id:${c.id}, url:${c.url})`))
-                    .catch(e => core.warning(`Failed to minimize (id:${c.id}, url:${c.url}, error:${e?.message || e})`))
-            )
-        await Promise.allSettled(commentsToMinimize)
-    } catch (error) {
-        core.warning(`Failed to minimize obsolete comments: ${error}`)
-    }
+    const commentsToMinimize = comments
+        .filter(c => !c.isMinimized && c.body.includes(marker))
+        .map(async c =>
+            octokit
+                .graphql(mutation, {id: c.id})
+                .then(() => core.info(`Successfully minimized (id:${c.id}, url:${c.url})`))
+                .catch(e => core.warning(`Failed to minimize (id:${c.id}, url:${c.url}, error:${e?.message || e})`))
+        )
+    await Promise.allSettled(commentsToMinimize)
 }
