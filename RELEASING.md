@@ -20,8 +20,9 @@
   - Include a Full changelog link in the format https://github.com/gradle/actions/compare/v2.12.0...v3.0.0
 - Publish the release.
 - Force push the `v5` tag (or current major version) to point to the new release. It is conventional for users to bind to a major release version using this tag.
-  - From CLI: `git tag -f -s -a -m "v5.0.0" v5 v5.0.0 && git push -f --tags`
+  - From CLI: `git tag -f -s -a -m "v5.0.0" v5 && git push -f --tags`
   - Note that we sign the tag and set the commit message for the tag to the newly released version.
+  - Your HEAD must point at the commit to be tagged.
 
 ## Post release steps
 
