@@ -6,8 +6,9 @@ import {CacheConfig} from './configuration'
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheService} from './cache-service'
 
-const NOOP_CACHING_REPORT =
-    '[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching). Gradle User Home was not restored from or saved to the cache.'
+const NOOP_CACHING_REPORT = `
+[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching). Gradle User Home was not restored from or saved to the cache.
+`
 
 const CACHE_LICENSE_WARNING = `
 ***********************************************************
