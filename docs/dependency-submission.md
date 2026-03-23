@@ -463,7 +463,7 @@ jobs:
 # Gradle version compatibility
 
 Dependency-graph generation is compatible with most versions of Gradle >= `5.2`, and is tested regularly against 
-Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1` and `7.6.3`, as well as all patched versions of Gradle 8.x.
+Gradle versions `5.2.1`, `5.6.4`, `6.0.1`, `6.9.4`, `7.1.1`, `7.6.6`, `8.0.2` and `8.14.4`, as well as all patched versions of Gradle 9.x.
 
 A known exception to this is that Gradle `7.0`, `7.0.1` and `7.0.2` are not supported.
 
