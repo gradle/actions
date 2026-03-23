@@ -15,6 +15,7 @@ import {
 } from '../../configuration'
 import {saveDeprecationState} from '../../deprecation-collector'
 import {handleMainActionError} from '../../errors'
+import {forceExit} from '../../force-exit'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -67,7 +68,7 @@ export async function run(): Promise<void> {
     }
 
     // Explicit process.exit() to prevent waiting for hanging promises.
-    process.exit()
+    await forceExit()
 }
 
 run()

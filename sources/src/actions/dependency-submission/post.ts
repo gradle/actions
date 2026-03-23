@@ -2,6 +2,7 @@ import * as setupGradle from '../../setup-gradle'
 
 import {CacheConfig, SummaryConfig} from '../../configuration'
 import {handlePostActionError} from '../../errors'
+import {forceExit} from '../../force-exit'
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
@@ -19,7 +20,7 @@ export async function run(): Promise<void> {
     }
 
     // Explicit process.exit() to prevent waiting for promises left hanging by `@actions/cache` on save.
-    process.exit()
+    await forceExit()
 }
 
 run()
