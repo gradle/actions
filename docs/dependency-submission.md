@@ -15,6 +15,19 @@ for vulnerable dependencies, as well as to populate the
 
 If you're confused by the behaviour you're seeing or have specific questions, please check out [the FAQ](dependency-submission-faq.md) before raising an issue.
 
+> [!IMPORTANT]
+> ## Licensing notice
+>
+> The software in this repository is licensed under the [MIT License](LICENSE).
+>
+> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
+> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
+>
+> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
+>
+> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
+> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
+
 ## General usage
 
 The following workflow will generate a dependency graph for a Gradle project and submit it immediately to the repository via the
@@ -36,8 +49,8 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -59,6 +72,13 @@ on the command-line will be used.
 
 The action provides the ability to override the Gradle version and task to execute, as well as provide 
 additional arguments that will be passed to Gradle on the command-line. See [Configuration Parameters](#configuration-parameters) below.
+
+### Disabling caching
+
+Caching is enabled by default. You can disable caching for the action as follows:
+```yaml
+cache-disabled: true
+```
 
 ### Publishing a Develocity Build Scan® from your dependency submission workflow
 
@@ -343,8 +363,8 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -405,8 +425,8 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -454,4 +474,3 @@ See [here](https://github.com/gradle/github-dependency-graph-gradle-plugin?tab=r
 - Dependency Submission Demo repository: https://github.com/gradle/github-dependency-submission-demo
 - GitHub Dependency Graph Gradle Plugin: https://github.com/gradle/github-dependency-graph-gradle-plugin
 - Webinar - Gradle at Scale with GitHub and GitHub Actions at Allegro: https://www.youtube.com/watch?v=gV94I28FPos
-

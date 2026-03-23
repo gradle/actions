@@ -26,14 +26,6 @@ jobs:
       runner-os: '${{ inputs.runner-os }}'
       skip-dist: ${{ inputs.skip-dist }}
 
-  restore-configuration-cache:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
-    with:
-      skip-dist: ${{ inputs.skip-dist }}
-    secrets:
-      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
   restore-containerized-gradle-home:
     uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
     with:

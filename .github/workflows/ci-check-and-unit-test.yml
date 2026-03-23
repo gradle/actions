@@ -18,24 +18,31 @@ jobs:
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
       with:
         node-version: 20
         cache: npm
         cache-dependency-path: sources/package-lock.json
     - name: Setup Gradle
       # Use a released version to avoid breakages
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+      uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
       with:
         gradle-version: '8.14.2'
 
+    - name: Install Develocity npm agent
+      run: |
+        npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
+
     - name: Install npm dependencies
       run: |
         npm clean-install
       working-directory: sources
+      env:
+        NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Check formatting and compile
       run: |
@@ -44,7 +51,6 @@ jobs:
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
-        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Run unit tests
@@ -53,5 +59,4 @@ jobs:
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
-        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'

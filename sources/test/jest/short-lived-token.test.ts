@@ -31,30 +31,6 @@ describe('short lived tokens', () => {
         expect(develocityAccessCredentials?.raw()).toBe('host1=key1;host2=key2')
     })
 
-    it('get short lived token fails when cannot connect', async () => {
-        nock('http://localhost:3333')
-            .post('/api/auth/token')
-            .times(3)
-            .replyWithError({
-                message: 'connect ECONNREFUSED 127.0.0.1:3333',
-                code: 'ECONNREFUSED'
-            })
-        await expect(getToken('localhost=key0', false, ''))
-            .resolves
-            .toBeNull()
-    })
-
-    it('get short lived token is null when request fails', async () => {
-        nock('http://dev:3333')
-            .post('/api/auth/token')
-            .times(3)
-            .reply(500, 'Internal error')
-        expect.assertions(1)
-        await expect(getToken('dev=xyz', false, ''))
-            .resolves
-            .toBeNull()
-    })
-
     it('get short lived token returns null when access key is empty', async () => {
         expect.assertions(1)
         await expect(getToken('', false, ''))
@@ -125,5 +101,36 @@ describe('short lived tokens', () => {
         await expect(getToken('dev=key1', false, '4'))
             .resolves
             .toEqual({"keys": [{"hostname": "dev", "key": "token"}]})
+    })
+})
+
+describe('short lived tokens with retry', () => {
+    afterEach(() => {
+        nock.cleanAll()
+        nock.restore()
+    })
+
+    it('get short lived token fails when cannot connect', async () => {
+        nock('http://localhost:3333')
+            .post('/api/auth/token')
+            .times(3)
+            .replyWithError({
+                message: 'connect ECONNREFUSED 127.0.0.1:3333',
+                code: 'ECONNREFUSED'
+            })
+        await expect(getToken('localhost=key0', false, ''))
+            .resolves
+            .toBeNull()
+    })
+
+    it('get short lived token is null when request fails', async () => {
+        nock('http://dev:3333')
+            .post('/api/auth/token')
+            .times(3)
+            .reply(500, 'Internal error')
+        expect.assertions(1)
+        await expect(getToken('dev=xyz', false, ''))
+            .resolves
+            .toBeNull()
     })
 })

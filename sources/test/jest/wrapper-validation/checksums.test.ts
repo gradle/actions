@@ -58,6 +58,7 @@ test('fetches wrapper jar checksums for snapshots', async () => {
 describe('retry', () => {
   afterEach(() => {
     nock.cleanAll()
+    nock.restore()
   })
 
   describe('for /versions/all API', () => {

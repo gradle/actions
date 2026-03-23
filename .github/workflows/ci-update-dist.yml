@@ -23,21 +23,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
     - name: Set up Node.js
-      uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+      uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
       with:
         node-version: 20
         cache: npm
         cache-dependency-path: sources/package-lock.json
 
+    - name: Install Develocity npm agent
+      run: |
+        npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
+
     - name: Install npm dependencies
       run: |
         npm clean-install
       working-directory: sources
+      env:
+        NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
+        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Build distribution
       run: |
@@ -54,7 +61,7 @@ jobs:
         cp -r sources/dist .
 
     - name: Import GPG key to sign commits
-      uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
+      uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
       with:
         gpg_private_key: ${{ secrets.GH_BOT_PGP_PRIVATE_KEY }}
         passphrase: ${{ secrets.GH_BOT_PGP_PASSPHRASE }}

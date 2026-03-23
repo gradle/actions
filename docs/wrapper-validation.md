@@ -72,7 +72,7 @@ jobs:
     name: "Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: gradle/actions/wrapper-validation@v5
 ```
 
@@ -120,7 +120,7 @@ restore these Jars on checkout. Without this, only a pointer to the Wrapper Jar 
 
 ```
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: true  # gradle-wrapper.jar verification will fail without this
 ```

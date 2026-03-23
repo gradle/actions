@@ -2,9 +2,22 @@
 
 This GitHub Action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.
 
+> [!IMPORTANT]
+> ## Licensing notice
+>
+> The software in this repository is licensed under the [MIT License](LICENSE).
+>
+> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
+> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
+>
+> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
+>
+> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
+> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
+
 ## Why use the `setup-gradle` action?
 
-It is possible to directly invoke Gradle in your workflow, and the `actions/setup-java@v4` action provides a simple way to cache Gradle dependencies.
+It is possible to directly invoke Gradle in your workflow, and the `actions/setup-java@v5` action provides a simple way to cache Gradle dependencies.
 
 However, the `setup-gradle` action offers a several advantages over this approach:
 
@@ -38,8 +51,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -90,8 +103,8 @@ jobs:
   gradle-rc:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -212,8 +225,8 @@ jobs:
   gradle-with-configuration-cache:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -465,8 +478,8 @@ jobs:
   run-gradle-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -502,8 +515,8 @@ jobs:
   gradle:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -610,8 +623,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -662,8 +675,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -692,8 +705,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: 17
@@ -847,7 +860,7 @@ Here's a minimal example:
       run: ./gradlew build
 ```
 
-This configuration will automatically apply `v4.3` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
+This configuration will automatically apply `v4.3.2` of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/), and publish build scans to https://develocity.your-server.com.
 
 This example assumes that the `develocity.your-server.com` server allows anonymous publishing of build scans.
 In the likely scenario that your Develocity server requires authentication, you will also need to pass a valid [Develocity access key](https://docs.gradle.com/develocity/gradle-plugin/#via_environment_variable) taken from a secret:
@@ -933,4 +946,3 @@ Each of the plugins is signed by Gradle, and you can simply add the following sn
    </trusted-key>
 </trusted-keys>
 ```
-

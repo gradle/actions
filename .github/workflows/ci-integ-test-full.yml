@@ -5,12 +5,10 @@ on:
   push:
     branches:
     - 'main'
+    - 'bot/gradle-actions-caching'
     paths:
     - 'dist/**'
-
-concurrency:
-  group: integ-test
-  cancel-in-progress: false
+    - 'sources/vendor/gradle-actions-caching/**'
 
 permissions:
   contents: read

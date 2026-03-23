@@ -3,13 +3,12 @@ import * as exec from '@actions/exec'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
-import * as caches from './caching/caches'
 import * as jobSummary from './job-summary'
 import * as buildScan from './develocity/build-scan'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
-import {CacheListener, generateCachingReport} from './caching/cache-reporting'
-import {DaemonController} from './daemon-controller'
+import {getCacheService} from './cache-service-loader'
+import {CacheOptions} from './cache-service'
 import {
     BuildScanConfig,
     CacheConfig,
@@ -18,11 +17,10 @@ import {
     getWorkspaceDirectory
 } from './configuration'
 import * as wrapperValidator from './wrapper-validation/wrapper-validator'
+import {initializeGradleUserHome} from './gradle-user-home'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
-const USER_HOME = 'USER_HOME'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
-const CACHE_LISTENER = 'CACHE_LISTENER'
 
 export async function setup(
     cacheConfig: CacheConfig,
@@ -37,19 +35,17 @@ export async function setup(
         core.info('Gradle setup only performed on first gradle/actions step in workflow.')
         return false
     }
-    // Record setup complete: visible to all subsequent actions and prevents duplicate setup
+    // Record setup complete: visible to subsequent actions and prevents duplicate setup
     core.exportVariable(GRADLE_SETUP_VAR, true)
     // Record setup complete: visible in post-action, to control action completion
     core.saveState(GRADLE_SETUP_VAR, true)
-
-    // Save the User Home and Gradle User Home for use in the post-action step.
-    core.saveState(USER_HOME, userHome)
+    // Save the Gradle User Home for use in the post-action step.
     core.saveState(GRADLE_USER_HOME, gradleUserHome)
 
-    const cacheListener = new CacheListener()
-    await caches.restore(userHome, gradleUserHome, cacheListener, cacheConfig)
+    initializeGradleUserHome(userHome, gradleUserHome, cacheConfig.getCacheEncryptionKey())
 
-    core.saveState(CACHE_LISTENER, cacheListener.stringify())
+    const cacheService = await getCacheService(cacheConfig)
+    await cacheService.restore(gradleUserHome, cacheOptionsFrom(cacheConfig))
 
     await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory(), gradleUserHome)
 
@@ -67,14 +63,9 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
 
     const buildResults = loadBuildResults()
 
-    const userHome = core.getState(USER_HOME)
     const gradleUserHome = core.getState(GRADLE_USER_HOME)
-    const cacheListener: CacheListener = CacheListener.rehydrate(core.getState(CACHE_LISTENER))
-
-    const daemonController = new DaemonController(buildResults)
-    await caches.save(userHome, gradleUserHome, cacheListener, daemonController, buildResults, cacheConfig)
-
-    const cachingReport = generateCachingReport(cacheListener)
+    const cacheService = await getCacheService(cacheConfig)
+    const cachingReport = await cacheService.save(gradleUserHome, buildResults, cacheOptionsFrom(cacheConfig))
     await jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig)
 
     markBuildResultsProcessed()
@@ -82,6 +73,20 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
     core.info('Completed post-action step')
 
     return true
+}
+
+function cacheOptionsFrom(config: CacheConfig): CacheOptions {
+    return {
+        disabled: config.isCacheDisabled(),
+        readOnly: config.isCacheReadOnly(),
+        writeOnly: config.isCacheWriteOnly(),
+        overwriteExisting: config.isCacheOverwriteExisting(),
+        strictMatch: config.isCacheStrictMatch(),
+        cleanup: config.getCacheCleanupOption(),
+        encryptionKey: config.getCacheEncryptionKey() || undefined,
+        includes: config.getCacheIncludes(),
+        excludes: config.getCacheExcludes()
+    }
 }
 
 async function determineGradleUserHome(): Promise<string> {
