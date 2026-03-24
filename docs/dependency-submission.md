@@ -28,6 +28,9 @@ If you're confused by the behaviour you're seeing or have specific questions, pl
 > Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
 > If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
 
+This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
+either [accept the terms of use](setup-gradle.md#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](setup-gradle.md#managing-develocity-access-keys).
+
 ## General usage
 
 The following workflow will generate a dependency graph for a Gradle project and submit it immediately to the repository via the
