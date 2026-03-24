@@ -10,7 +10,7 @@ import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {getCacheService} from './cache-service-loader'
 import {CacheOptions} from './cache-service'
 import {
-    BuildScanConfig,
+    DevelocityConfig,
     CacheConfig,
     SummaryConfig,
     WrapperValidationConfig,
@@ -24,7 +24,7 @@ const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
 
 export async function setup(
     cacheConfig: CacheConfig,
-    buildScanConfig: BuildScanConfig,
+    develocityConfig: DevelocityConfig,
     wrapperValidationConfig: WrapperValidationConfig
 ): Promise<boolean> {
     const userHome = await determineUserHome()
@@ -49,7 +49,7 @@ export async function setup(
 
     await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory(), gradleUserHome)
 
-    await buildScan.setup(buildScanConfig)
+    await buildScan.setup(develocityConfig)
 
     return true
 }

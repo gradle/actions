@@ -5,7 +5,7 @@ import * as dependencyGraph from '../../dependency-graph'
 
 import {parseArgsStringToArgv} from 'string-argv'
 import {
-    BuildScanConfig,
+    DevelocityConfig,
     CacheConfig,
     DependencyGraphConfig,
     DependencyGraphOption,
@@ -25,7 +25,7 @@ export async function run(): Promise<void> {
         setActionId('gradle/actions/dependency-submission')
 
         // Configure Gradle environment (Gradle User Home)
-        await setupGradle.setup(new CacheConfig(), new BuildScanConfig(), new WrapperValidationConfig())
+        await setupGradle.setup(new CacheConfig(), new DevelocityConfig(), new WrapperValidationConfig())
 
         // Capture the enabled state of dependency-graph
         const originallyEnabled = process.env['GITHUB_DEPENDENCY_GRAPH_ENABLED']
