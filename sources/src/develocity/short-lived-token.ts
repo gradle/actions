@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as httpm from '@actions/http-client'
-import {BuildScanConfig} from '../configuration'
+import {DevelocityConfig} from '../configuration'
 import {recordDeprecation} from '../deprecation-collector'
 
 export async function setupToken(
@@ -28,7 +28,7 @@ export async function setupToken(
 }
 
 function exportAccessKeyEnvVars(value: string): void {
-    ;[BuildScanConfig.DevelocityAccessKeyEnvVar, BuildScanConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key =>
+    ;[DevelocityConfig.DevelocityAccessKeyEnvVar, DevelocityConfig.GradleEnterpriseAccessKeyEnvVar].forEach(key =>
         core.exportVariable(key, value)
     )
 }
@@ -36,12 +36,14 @@ function exportAccessKeyEnvVars(value: string): void {
 function handleMissingAccessToken(): void {
     core.warning(`Failed to fetch short-lived token for Develocity`)
 
-    if (process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar]) {
+    if (process.env[DevelocityConfig.GradleEnterpriseAccessKeyEnvVar]) {
         // We do not clear the GRADLE_ENTERPRISE_ACCESS_KEY env var in v3, to let the users upgrade to DV 2024.1
-        recordDeprecation(`The ${BuildScanConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
+        recordDeprecation(`The ${DevelocityConfig.GradleEnterpriseAccessKeyEnvVar} env var is deprecated`)
     }
-    if (process.env[BuildScanConfig.DevelocityAccessKeyEnvVar]) {
-        core.warning(`The ${BuildScanConfig.DevelocityAccessKeyEnvVar} env var should be mapped to a short-lived token`)
+    if (process.env[DevelocityConfig.DevelocityAccessKeyEnvVar]) {
+        core.warning(
+            `The ${DevelocityConfig.DevelocityAccessKeyEnvVar} env var should be mapped to a short-lived token`
+        )
     }
 }
 

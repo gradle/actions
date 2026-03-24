@@ -68,8 +68,14 @@ export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheSe
     if (cacheConfig.isCacheDisabled()) {
         return new NoOpCacheService()
     }
+
+    const cacheService = await loadVendoredCacheService()
+    if (cacheConfig.isCacheLicenseAccepted()) {
+        return cacheService
+    }
+
     await logCacheLicenseWarning()
-    return new LicenseWarningCacheService(await loadVendoredCacheService())
+    return new LicenseWarningCacheService(cacheService)
 }
 
 export async function loadVendoredCacheService(): Promise<CacheService> {
@@ -90,5 +96,5 @@ function findVendoredLibraryPath(): string {
 }
 
 export async function logCacheLicenseWarning(): Promise<void> {
-    console.warn(CACHE_LICENSE_WARNING)
+    console.info(CACHE_LICENSE_WARNING)
 }
