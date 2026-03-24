@@ -21,6 +21,8 @@ The \`gradle-actions-caching\` component is used only when caching is enabled an
 
 Use of the \`gradle-actions-caching\` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
 If you do not agree to these license terms, do not use the \`gradle-actions-caching\` component.
+
+You can suppress this message by accepting the terms in your action configuration: see https://github.com/gradle/actions/blob/main/README.md
 ***********************************************************
 `
 
@@ -35,6 +37,8 @@ const CACHE_LICENSE_SUMMARY = `
 >
 > Use of the \`gradle-actions-caching\` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
 > If you do not agree to these license terms, do not use the \`gradle-actions-caching\` component.
+>
+>You can suppress this message by [accepting the terms in your action configuration](https://github.com/gradle/actions/blob/main/README.md).
 `
 
 class NoOpCacheService implements CacheService {
