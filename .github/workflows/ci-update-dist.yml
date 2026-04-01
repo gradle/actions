@@ -38,6 +38,12 @@ jobs:
       run: |
         npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
 
+    - name: Build legacy caching module
+      run: |
+        npm clean-install
+        npm run build
+      working-directory: sources/legacy-caching
+
     - name: Install npm dependencies
       run: |
         npm clean-install
@@ -58,6 +64,8 @@ jobs:
 
     - name: Copy the generated sources/dist directory to the top-level dist
       run: |
+        mkdir -p sources/dist/legacy-caching
+        cp sources/legacy-caching/dist/index.js sources/dist/legacy-caching/
         cp -r sources/dist .
 
     - name: Import GPG key to sign commits

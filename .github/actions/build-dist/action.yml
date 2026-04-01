@@ -8,6 +8,13 @@ runs:
         node-version: 24
         cache: npm
         cache-dependency-path: sources/package-lock.json
+    - name: Build legacy caching module
+      shell: bash
+      run: |
+        npm install
+        npm run build
+      working-directory: sources/legacy-caching
+
     - name: Build distribution
       shell: bash
       run: |
@@ -20,6 +27,8 @@ runs:
     - name: Copy the generated sources/dist directory to the top-level dist
       shell: bash
       run: |
+        mkdir -p sources/dist/legacy-caching
+        cp sources/legacy-caching/dist/index.js sources/dist/legacy-caching/
         cp -r sources/dist .
 
     - name: Upload distribution

@@ -6,6 +6,9 @@ build_legacy_caching() {
     npm clean-install
     npm run build
     cd ../..
+    # Copy legacy caching bundle into sources/dist so the CI bot picks it up
+    mkdir -p sources/dist/legacy-caching
+    cp sources/legacy-caching/dist/index.js sources/dist/legacy-caching/
 }
 
 cd sources

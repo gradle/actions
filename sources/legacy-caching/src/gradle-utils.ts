@@ -90,16 +90,6 @@ export function findGradleExecutableForCleanup(buildResults: BuildResults): stri
         }
     }
 
-    // Try the Gradle installation directory as a fallback
-    for (const result of buildResults.results) {
-        if (versionIsAtLeast(result.gradleVersion, '8.11')) {
-            const executable = path.resolve(result.gradleHomeDir, 'bin', IS_WINDOWS ? 'gradle.bat' : 'gradle')
-            if (fs.existsSync(executable)) {
-                return executable
-            }
-        }
-    }
-
     core.info('Could not locate a Gradle >= 8.11 executable for cache cleanup.')
     return null
 }

@@ -75,7 +75,7 @@ export async function loadVendoredCacheService(): Promise<CacheService> {
 }
 
 export async function loadLegacyCacheService(): Promise<CacheService> {
-    const legacyLibraryPath = findLibraryPath('sources/legacy-caching/dist/index.js')
+    const legacyLibraryPath = findLibraryPath('dist/legacy-caching/index.js')
     const moduleUrl = pathToFileURL(legacyLibraryPath).href
     return (await import(moduleUrl)) as CacheService
 }
