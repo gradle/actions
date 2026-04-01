@@ -7,7 +7,6 @@ import {BuildResults} from './build-results-adapter'
 import {versionIsAtLeast, provisionGradleWithVersionAtLeast} from './gradle-utils'
 
 const MINIMUM_CLEANUP_GRADLE_VERSION = '8.11'
-const DEFAULT_CLEANUP_GRADLE_VERSION = '9.4.1'
 
 export class CacheCleaner {
     private readonly gradleUserHome: string
@@ -37,19 +36,12 @@ export class CacheCleaner {
      * This will avoid the need to provision a Gradle version for the cleanup when not necessary.
      */
     private async gradleExecutableForCleanup(buildResults: BuildResults): Promise<string> {
-        const preferredVersion = buildResults.highestGradleVersion()
-        if (preferredVersion && versionIsAtLeast(preferredVersion, MINIMUM_CLEANUP_GRADLE_VERSION)) {
-            try {
-                return await provisionGradleWithVersionAtLeast(preferredVersion)
-            } catch (e) {
-                core.info(
-                    `Failed to provision Gradle ${preferredVersion} for cache cleanup. Falling back to default version.`
-                )
-            }
-        }
-
-        // Fallback to the default version for cache-cleanup
-        return await provisionGradleWithVersionAtLeast(DEFAULT_CLEANUP_GRADLE_VERSION)
+        const highestVersion = buildResults.highestGradleVersion()
+        const version =
+            highestVersion && versionIsAtLeast(highestVersion, MINIMUM_CLEANUP_GRADLE_VERSION)
+                ? highestVersion
+                : MINIMUM_CLEANUP_GRADLE_VERSION
+        return await provisionGradleWithVersionAtLeast(version)
     }
 
     // Visible for testing
