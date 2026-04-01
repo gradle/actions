@@ -34,6 +34,9 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
+    - name: Use legacy caching module
+      shell: bash
+      run: echo "GRADLE_ACTIONS_CACHE_USE_VENDORED=false" >> "$GITHUB_ENV"
 
     - name: Setup Gradle
       uses: ./setup-gradle
@@ -56,6 +59,9 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
+    - name: Use legacy caching module
+      shell: bash
+      run: echo "GRADLE_ACTIONS_CACHE_USE_VENDORED=false" >> "$GITHUB_ENV"
 
     - name: Setup Gradle
       uses: ./setup-gradle
