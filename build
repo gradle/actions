@@ -1,13 +1,27 @@
 #!/bin/bash
 
+build_legacy_caching() {
+    echo "Building legacy caching module..."
+    cd sources/legacy-caching
+    npm clean-install
+    npm run build
+    cd ../..
+}
+
 cd sources
 
 case "$1" in
     all)
+        cd ..
+        build_legacy_caching
+        cd sources
         npm run all
         ;;
     act)
         # Build and copy outputs to the dist directory
+        cd ..
+        build_legacy_caching
+        cd sources
         npm run build
         cd ..
         cp -r sources/dist .
@@ -17,6 +31,9 @@ case "$1" in
         git checkout -- dist
         ;;
     dist)
+        cd ..
+        build_legacy_caching
+        cd sources
         npm clean-install
         npm run build
         cd ..
@@ -27,6 +44,9 @@ case "$1" in
         ./gradlew check
         ;;
     install)
+        cd ..
+        build_legacy_caching
+        cd sources
         npm clean-install
         npm run build
         ;;
@@ -35,6 +55,9 @@ case "$1" in
         npm test -- $@
         ;;
     *)
+        cd ..
+        build_legacy_caching
+        cd sources
         npm run build
         ;;
 esac

@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as path from 'path'
 import {pathToFileURL} from 'url'
@@ -10,35 +11,15 @@ const NOOP_CACHING_REPORT = `
 [Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching). Gradle User Home was not restored from or saved to the cache.
 `
 
-const CACHE_LICENSE_WARNING = `
-***********************************************************
-LICENSING NOTICE
+const LEGACY_CACHE_LOG_MESSAGE = 'Cache module: built-in (legacy)'
+const VENDORED_CACHE_LOG_MESSAGE = 'Cache module: enhanced (vendored)'
 
-The caching functionality in \`gradle-actions\` has been extracted into \`gradle-actions-caching\`, a proprietary commercial component that is not covered by the MIT License. 
-The bundled \`gradle-actions-caching\` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
-
-The \`gradle-actions-caching\` component is used only when caching is enabled and is not loaded or used when caching is disabled.
-
-Use of the \`gradle-actions-caching\` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-If you do not agree to these license terms, do not use the \`gradle-actions-caching\` component.
-
-You can suppress this message by accepting the terms in your action configuration: see https://github.com/gradle/actions/blob/main/README.md
-***********************************************************
+const LEGACY_CACHE_REPORT_NOTICE = `
+> _Using the built-in open-source caching module._
 `
 
-const CACHE_LICENSE_SUMMARY = `
-> [!IMPORTANT]
-> #### Licensing notice
->
-> The caching functionality in \`gradle-actions\` has been extracted into \`gradle-actions-caching\`, a proprietary commercial component that is not covered by the MIT License. 
-> The bundled \`gradle-actions-caching\` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
->
-> The \`gradle-actions-caching\` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the \`gradle-actions-caching\` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the \`gradle-actions-caching\` component.
->
->You can suppress this message by [accepting the terms in your action configuration](https://github.com/gradle/actions/blob/main/README.md).
+const VENDORED_CACHE_REPORT_NOTICE = `
+> _Using the enhanced caching module._
 `
 
 class NoOpCacheService implements CacheService {
@@ -51,20 +32,25 @@ class NoOpCacheService implements CacheService {
     }
 }
 
-class LicenseWarningCacheService implements CacheService {
+class LoggingCacheService implements CacheService {
     private delegate: CacheService
+    private logMessage: string
+    private reportNotice: string
 
-    constructor(delegate: CacheService) {
+    constructor(delegate: CacheService, logMessage: string, reportNotice: string) {
         this.delegate = delegate
+        this.logMessage = logMessage
+        this.reportNotice = reportNotice
     }
 
     async restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void> {
+        core.info(this.logMessage)
         await this.delegate.restore(gradleUserHome, cacheOptions)
     }
 
     async save(gradleUserHome: string, buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string> {
         const cachingReport = await this.delegate.save(gradleUserHome, buildResults, cacheOptions)
-        return `${cachingReport}\n${CACHE_LICENSE_SUMMARY}`
+        return `${cachingReport}\n${this.reportNotice}`
     }
 }
 
@@ -73,32 +59,34 @@ export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheSe
         return new NoOpCacheService()
     }
 
-    const cacheService = await loadVendoredCacheService()
     if (cacheConfig.isCacheLicenseAccepted()) {
-        return cacheService
+        const vendoredService = await loadVendoredCacheService()
+        return new LoggingCacheService(vendoredService, VENDORED_CACHE_LOG_MESSAGE, VENDORED_CACHE_REPORT_NOTICE)
     }
 
-    await logCacheLicenseWarning()
-    return new LicenseWarningCacheService(cacheService)
+    const legacyService = await loadLegacyCacheService()
+    return new LoggingCacheService(legacyService, LEGACY_CACHE_LOG_MESSAGE, LEGACY_CACHE_REPORT_NOTICE)
 }
 
 export async function loadVendoredCacheService(): Promise<CacheService> {
-    const vendoredLibraryPath = findVendoredLibraryPath()
+    const vendoredLibraryPath = findLibraryPath('sources/vendor/gradle-actions-caching/index.js')
     const moduleUrl = pathToFileURL(vendoredLibraryPath).href
     return (await import(moduleUrl)) as CacheService
 }
 
-function findVendoredLibraryPath(): string {
+export async function loadLegacyCacheService(): Promise<CacheService> {
+    const legacyLibraryPath = findLibraryPath('sources/legacy-caching/dist/index.js')
+    const moduleUrl = pathToFileURL(legacyLibraryPath).href
+    return (await import(moduleUrl)) as CacheService
+}
+
+function findLibraryPath(relativePath: string): string {
     const moduleDir = import.meta.dirname
-    const absolutePath = path.resolve(moduleDir, '../../../sources/vendor/gradle-actions-caching/index.js')
+    const absolutePath = path.resolve(moduleDir, '../../..', relativePath)
 
     if (fs.existsSync(absolutePath)) {
         return absolutePath
     }
 
-    throw new Error(`Unable to locate vendored cache library at ${absolutePath}.`)
-}
-
-export async function logCacheLicenseWarning(): Promise<void> {
-    console.info(CACHE_LICENSE_WARNING)
+    throw new Error(`Unable to locate cache library at ${absolutePath}.`)
 }
