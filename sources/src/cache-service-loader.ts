@@ -11,15 +11,15 @@ const NOOP_CACHING_REPORT = `
 [Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching). Gradle User Home was not restored from or saved to the cache.
 `
 
-const LEGACY_CACHE_LOG_MESSAGE = 'Cache module: built-in (legacy)'
-const VENDORED_CACHE_LOG_MESSAGE = 'Cache module: enhanced (vendored)'
+const LEGACY_CACHE_LOG_MESSAGE = 'Using the legacy caching module'
+const VENDORED_CACHE_LOG_MESSAGE = 'Using the `gradle-actions-caching` caching module'
 
 const LEGACY_CACHE_REPORT_NOTICE = `
-> _Using the built-in open-source caching module._
+> _Using the legacy caching module._
 `
 
 const VENDORED_CACHE_REPORT_NOTICE = `
-> _Using the enhanced caching module._
+> _Using the 'gradle-actions-caching' caching module._
 `
 
 class NoOpCacheService implements CacheService {
