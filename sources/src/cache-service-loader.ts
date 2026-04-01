@@ -59,13 +59,17 @@ export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheSe
         return new NoOpCacheService()
     }
 
-    if (cacheConfig.isCacheLicenseAccepted()) {
+    if (useVendoredCacheModule() || cacheConfig.isCacheLicenseAccepted()) {
         const vendoredService = await loadVendoredCacheService()
         return new LoggingCacheService(vendoredService, VENDORED_CACHE_LOG_MESSAGE, VENDORED_CACHE_REPORT_NOTICE)
     }
 
     const legacyService = await loadLegacyCacheService()
     return new LoggingCacheService(legacyService, LEGACY_CACHE_LOG_MESSAGE, LEGACY_CACHE_REPORT_NOTICE)
+}
+
+function useVendoredCacheModule(): boolean {
+    return process.env['GRADLE_ACTIONS_CACHE_USE_VENDORED'] === 'true'
 }
 
 export async function loadVendoredCacheService(): Promise<CacheService> {

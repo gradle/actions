@@ -45,3 +45,8 @@ jobs:
     uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
     with:
       skip-dist: ${{ inputs.skip-dist }}
+
+  legacy-caching:
+    uses: ./.github/workflows/integ-test-legacy-caching.yml
+    with:
+      skip-dist: ${{ inputs.skip-dist }}
