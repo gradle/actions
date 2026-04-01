@@ -4,7 +4,10 @@ import * as exec from '@actions/exec'
 import fs from 'fs'
 import path from 'path'
 import {BuildResults} from './build-results-adapter'
-import {findGradleExecutableForCleanup} from './gradle-utils'
+import {versionIsAtLeast, provisionGradleWithVersionAtLeast} from './gradle-utils'
+
+const MINIMUM_CLEANUP_GRADLE_VERSION = '8.11'
+const DEFAULT_CLEANUP_GRADLE_VERSION = '9.4.1'
 
 export class CacheCleaner {
     private readonly gradleUserHome: string
@@ -23,13 +26,30 @@ export class CacheCleaner {
     }
 
     async forceCleanup(buildResults: BuildResults): Promise<void> {
-        const executable = findGradleExecutableForCleanup(buildResults)
-        if (!executable) {
-            core.warning('Cache cleanup skipped: no suitable Gradle >= 8.11 found in build results.')
-            return
-        }
+        const executable = await this.gradleExecutableForCleanup(buildResults)
         const cleanTimestamp = core.getState('clean-timestamp')
         await this.forceCleanupFilesOlderThan(cleanTimestamp, executable)
+    }
+
+    /**
+     * Attempt to use the newest Gradle version that was used to run a build, at least 8.11.
+     *
+     * This will avoid the need to provision a Gradle version for the cleanup when not necessary.
+     */
+    private async gradleExecutableForCleanup(buildResults: BuildResults): Promise<string> {
+        const preferredVersion = buildResults.highestGradleVersion()
+        if (preferredVersion && versionIsAtLeast(preferredVersion, MINIMUM_CLEANUP_GRADLE_VERSION)) {
+            try {
+                return await provisionGradleWithVersionAtLeast(preferredVersion)
+            } catch (e) {
+                core.info(
+                    `Failed to provision Gradle ${preferredVersion} for cache cleanup. Falling back to default version.`
+                )
+            }
+        }
+
+        // Fallback to the default version for cache-cleanup
+        return await provisionGradleWithVersionAtLeast(DEFAULT_CLEANUP_GRADLE_VERSION)
     }
 
     // Visible for testing

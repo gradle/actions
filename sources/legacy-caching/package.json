@@ -14,7 +14,10 @@
     "@actions/exec": "3.0.0",
     "@actions/github": "9.0.0",
     "@actions/glob": "0.6.1",
-    "semver": "7.7.4"
+    "@actions/http-client": "4.0.0",
+    "@actions/tool-cache": "4.0.0",
+    "semver": "7.7.4",
+    "which": "6.0.1"
   },
   "devDependencies": {
     "esbuild": "0.27.4",
