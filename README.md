@@ -14,8 +14,11 @@ This repository contains a set of GitHub Actions that are useful for building Gr
 >
 > Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
 > If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
+>
+> To use only MIT-licensed components, set `cache-provider: standard` in your workflow configuration.
+> See [DISTRIBUTION.md](DISTRIBUTION.md) for a full component map, usage tiers, and data privacy details.
 
-This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
+This license notice will be displayed in workflow logs and each job summary. To suppress this message,
 either [accept the terms of use](docs/setup-gradle.md#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](docs/setup-gradle.md#managing-develocity-access-keys).
 
 ## The `setup-gradle` action
