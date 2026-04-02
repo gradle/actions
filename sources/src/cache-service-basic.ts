@@ -1,15 +1,14 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
-import * as crypto from 'crypto'
-import * as fs from 'fs'
 import * as path from 'path'
 
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheService} from './cache-service'
 
+const PRIMARY_KEY_STATE = 'BASIC_CACHE_PRIMARY_KEY'
 const RESTORED_KEY_STATE = 'BASIC_CACHE_RESTORED_KEY'
-const CACHE_KEY_PREFIX = 'gradle-actions-basic'
+const CACHE_KEY_PREFIX = 'setup-java'
 
 const GRADLE_BUILD_FILE_PATTERNS = [
     '**/*.gradle*',
@@ -28,13 +27,15 @@ export class BasicCacheService implements CacheService {
 
         const cachePaths = getCachePaths(gradleUserHome)
         const primaryKey = await computeCacheKey()
-        const restoreKeys = [getRestoreKeyPrefix()]
+        core.saveState(PRIMARY_KEY_STATE, primaryKey)
 
+        // No "restoreKeys" is set, to start with a clear cache after dependency update
+        // See https://github.com/actions/setup-java/issues/269
         try {
-            const restoredKey = await cache.restoreCache(cachePaths, primaryKey, restoreKeys)
-            if (restoredKey) {
-                core.saveState(RESTORED_KEY_STATE, restoredKey)
-                core.info(`Gradle User Home restored from cache key: ${restoredKey}`)
+            const matchedKey = await cache.restoreCache(cachePaths, primaryKey)
+            if (matchedKey) {
+                core.saveState(RESTORED_KEY_STATE, matchedKey)
+                core.info(`Gradle User Home restored from cache key: ${matchedKey}`)
             } else {
                 core.info('Gradle User Home cache not found. Will start with empty state.')
             }
@@ -52,11 +53,17 @@ export class BasicCacheService implements CacheService {
             return 'Gradle User Home cache entry was not restored and was not saved (caching is read-only or disabled).'
         }
 
-        const primaryKey = await computeCacheKey()
-        const restoredKey = core.getState(RESTORED_KEY_STATE)
+        const matchedKey = core.getState(RESTORED_KEY_STATE)
 
-        if (restoredKey === primaryKey) {
-            core.info(`Gradle User Home cache hit with exact key ${primaryKey}. Save skipped.`)
+        // Inputs are re-evaluated before the post action, so we want the original key used for restore
+        let primaryKey = core.getState(PRIMARY_KEY_STATE)
+        if (!primaryKey) {
+            // Fallback: compute key if restore was not called (e.g. writeOnly mode)
+            primaryKey = await computeCacheKey()
+        }
+
+        if (matchedKey === primaryKey) {
+            core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`)
             return `Gradle User Home cache hit with exact key \`${primaryKey}\`. Save was skipped.`
         }
 
@@ -77,27 +84,12 @@ function getCachePaths(gradleUserHome: string): string[] {
     return [path.join(gradleUserHome, 'caches'), path.join(gradleUserHome, 'wrapper')]
 }
 
-function getRestoreKeyPrefix(): string {
-    return `${CACHE_KEY_PREFIX}-${process.env['RUNNER_OS'] || 'unknown'}-${process.arch}-gradle-`
-}
-
 async function computeCacheKey(): Promise<string> {
-    const fileHash = await hashGradleBuildFiles()
-    return `${getRestoreKeyPrefix()}${fileHash}`
-}
-
-async function hashGradleBuildFiles(): Promise<string> {
-    const hash = crypto.createHash('sha256')
-    const globber = await glob.create(GRADLE_BUILD_FILE_PATTERNS.join('\n'))
-    const files = (await globber.glob()).sort()
-
-    for (const file of files) {
-        const stat = fs.statSync(file)
-        if (stat.isFile()) {
-            const content = fs.readFileSync(file)
-            hash.update(content)
-        }
+    const fileHash = await glob.hashFiles(GRADLE_BUILD_FILE_PATTERNS.join('\n'))
+    if (!fileHash) {
+        throw new Error(
+            `No file in ${process.cwd()} matched to [${GRADLE_BUILD_FILE_PATTERNS}], make sure you have checked out the target repository`
+        )
     }
-
-    return hash.digest('hex').substring(0, 32)
+    return `${CACHE_KEY_PREFIX}-${process.env['RUNNER_OS']}-${process.arch}-gradle-${fileHash}`
 }

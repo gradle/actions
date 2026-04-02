@@ -21,25 +21,15 @@ jest.unstable_mockModule('@actions/core', () => ({
 }))
 
 // Mock @actions/glob
-const mockGlob = jest.fn<() => Promise<string[]>>()
+const mockHashFiles = jest.fn<(pattern: string) => Promise<string>>()
 jest.unstable_mockModule('@actions/glob', () => ({
-    create: jest.fn<() => Promise<{glob: typeof mockGlob}>>().mockImplementation(async () => ({
-        glob: mockGlob
-    }))
-}))
-
-// Mock fs
-const mockReadFileSync = jest.fn()
-const mockStatSync = jest.fn()
-jest.unstable_mockModule('fs', () => ({
-    readFileSync: mockReadFileSync,
-    statSync: mockStatSync,
-    default: {readFileSync: mockReadFileSync, statSync: mockStatSync}
+    hashFiles: mockHashFiles
 }))
 
 const {BasicCacheService} = await import('../../src/cache-service-basic')
 
-const KEY_PREFIX = `gradle-actions-basic-Linux-${process.arch}-gradle-`
+const HASH = 'abc123def456'
+const PRIMARY_KEY = `setup-java-Linux-${process.arch}-gradle-${HASH}`
 
 describe('BasicCacheService', () => {
     let service: InstanceType<typeof BasicCacheService>
@@ -48,7 +38,7 @@ describe('BasicCacheService', () => {
         jest.clearAllMocks()
         service = new BasicCacheService()
         process.env['RUNNER_OS'] = 'Linux'
-        mockGlob.mockResolvedValue([])
+        mockHashFiles.mockResolvedValue(HASH)
     })
 
     describe('restore', () => {
@@ -82,8 +72,8 @@ describe('BasicCacheService', () => {
             expect(mockRestoreCache).not.toHaveBeenCalled()
         })
 
-        it('restores cache and saves state on hit', async () => {
-            mockRestoreCache.mockResolvedValue(`${KEY_PREFIX}abc123`)
+        it('restores cache without restoreKeys and saves both keys to state', async () => {
+            mockRestoreCache.mockResolvedValue(PRIMARY_KEY)
 
             await service.restore('/home/.gradle', {
                 disabled: false,
@@ -96,15 +86,13 @@ describe('BasicCacheService', () => {
                 excludes: []
             })
 
+            // No restoreKeys parameter — exact match only (setup-java#269)
             expect(mockRestoreCache).toHaveBeenCalledWith(
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
-                expect.stringContaining(KEY_PREFIX),
-                [KEY_PREFIX]
+                PRIMARY_KEY
             )
-            expect(mockSaveState).toHaveBeenCalledWith(
-                'BASIC_CACHE_RESTORED_KEY',
-                `${KEY_PREFIX}abc123`
-            )
+            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_PRIMARY_KEY', PRIMARY_KEY)
+            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_RESTORED_KEY', PRIMARY_KEY)
         })
 
         it('handles cache miss gracefully', async () => {
@@ -121,7 +109,10 @@ describe('BasicCacheService', () => {
                 excludes: []
             })
 
-            expect(mockSaveState).not.toHaveBeenCalled()
+            // Primary key should still be saved to state even on miss
+            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_PRIMARY_KEY', PRIMARY_KEY)
+            // Restored key should NOT be saved
+            expect(mockSaveState).not.toHaveBeenCalledWith('BASIC_CACHE_RESTORED_KEY', expect.anything())
             expect(mockInfo).toHaveBeenCalledWith(
                 expect.stringContaining('not found')
             )
@@ -145,6 +136,23 @@ describe('BasicCacheService', () => {
                 expect.stringContaining('Failed to restore')
             )
         })
+
+        it('throws when no build files are found', async () => {
+            mockHashFiles.mockResolvedValue('')
+
+            await expect(
+                service.restore('/home/.gradle', {
+                    disabled: false,
+                    readOnly: false,
+                    writeOnly: false,
+                    overwriteExisting: false,
+                    strictMatch: false,
+                    cleanup: 'never',
+                    includes: [],
+                    excludes: []
+                })
+            ).rejects.toThrow('No file in')
+        })
     })
 
     describe('save', () => {
@@ -166,7 +174,10 @@ describe('BasicCacheService', () => {
         })
 
         it('skips save when readOnly and reports restored key', async () => {
-            mockGetState.mockReturnValue(`${KEY_PREFIX}abc123`)
+            mockGetState.mockImplementation((name: string) => {
+                if (name === 'BASIC_CACHE_RESTORED_KEY') return PRIMARY_KEY
+                return ''
+            })
             const report = await service.save('/home/.gradle', [], {
                 disabled: false,
                 readOnly: true,
@@ -180,7 +191,7 @@ describe('BasicCacheService', () => {
 
             expect(mockSaveCache).not.toHaveBeenCalled()
             expect(report).toContain('restored from cache key')
-            expect(report).toContain(`${KEY_PREFIX}abc123`)
+            expect(report).toContain(PRIMARY_KEY)
             expect(report).toContain('read-only')
         })
 
@@ -201,7 +212,55 @@ describe('BasicCacheService', () => {
             expect(report).toContain('not restored')
         })
 
-        it('saves cache and returns report on success', async () => {
+        it('skips save when matched key equals primary key', async () => {
+            mockGetState.mockImplementation((name: string) => {
+                if (name === 'BASIC_CACHE_RESTORED_KEY') return PRIMARY_KEY
+                if (name === 'BASIC_CACHE_PRIMARY_KEY') return PRIMARY_KEY
+                return ''
+            })
+
+            const report = await service.save('/home/.gradle', [], {
+                disabled: false,
+                readOnly: false,
+                writeOnly: false,
+                overwriteExisting: false,
+                strictMatch: false,
+                cleanup: 'never',
+                includes: [],
+                excludes: []
+            })
+
+            expect(mockSaveCache).not.toHaveBeenCalled()
+            expect(report).toContain('Save was skipped')
+        })
+
+        it('uses primary key from state, not recomputed', async () => {
+            const stateKey = `setup-java-Linux-${process.arch}-gradle-statedhash`
+            mockGetState.mockImplementation((name: string) => {
+                if (name === 'BASIC_CACHE_PRIMARY_KEY') return stateKey
+                return ''
+            })
+            mockSaveCache.mockResolvedValue(0)
+
+            const report = await service.save('/home/.gradle', [], {
+                disabled: false,
+                readOnly: false,
+                writeOnly: false,
+                overwriteExisting: false,
+                strictMatch: false,
+                cleanup: 'never',
+                includes: [],
+                excludes: []
+            })
+
+            expect(mockSaveCache).toHaveBeenCalledWith(
+                ['/home/.gradle/caches', '/home/.gradle/wrapper'],
+                stateKey
+            )
+            expect(report).toContain(stateKey)
+        })
+
+        it('computes key as fallback when primary key not in state', async () => {
             mockGetState.mockReturnValue('')
             mockSaveCache.mockResolvedValue(0)
 
@@ -218,7 +277,7 @@ describe('BasicCacheService', () => {
 
             expect(mockSaveCache).toHaveBeenCalledWith(
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
-                expect.stringContaining(KEY_PREFIX)
+                PRIMARY_KEY
             )
             expect(report).toContain('saved to cache')
         })
