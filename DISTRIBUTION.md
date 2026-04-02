@@ -34,21 +34,15 @@ We believe in user autonomy. If you do not wish to use proprietary code or accep
 - uses: gradle/actions/setup-gradle@v6
   with:
     cache-provider: basic # Switches to the MIT-licensed open-source implementation
+```
 
-## 5. Licensing notice
 > [!IMPORTANT]
 > ## Licensing notice
 >
-> The software in this repository is licensed under the [MIT License](LICENSE).
+> The software in this repository, except for the bundled `gradle-actions-caching` component, is licensed under the [MIT License](LICENSE).
 >
 > The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
-> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
 >
-> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
->
-> To use only MIT-licensed components, set `cache-provider: standard` in your workflow configuration.
-> See [DISTRIBUTION.md](DISTRIBUTION.md) for a full component map, usage tiers, and data privacy details.
-
+> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/.
+> 
+> The `gradle-actions-caching` component is used only when enhanced caching is enabled and is not loaded or used with basic caching or when caching is disabled.
