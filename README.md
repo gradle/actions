@@ -4,7 +4,7 @@ This repository contains a set of GitHub Actions that are useful for building Gr
 
 > [!NOTE]
 > ### ⚡️ Choice of caching providers in v6
-> To provide the fastest possible build experience, this action includes **Gradle Caching**, an optimized provider powered by proprietary technology. This feature is free for all public repositories. 
+> To provide the fastest possible build experience this action includes **Enhanced Caching** via `gradle-actions-caching`, an optimized provider powered by proprietary technology. This feature is free for all public repositories. 
 >
 > **Prefer a 100% Open Source (MIT) path?**
 > We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. You can switch at any time by setting `cache-provider: basic`.
