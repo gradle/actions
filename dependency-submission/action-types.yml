@@ -18,7 +18,7 @@ inputs:
     type: enum
     allowed-values:
       - basic
-      - premium
+      - enhanced
 
   cache-disabled:
     type: boolean

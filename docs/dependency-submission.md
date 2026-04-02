@@ -71,7 +71,7 @@ additional arguments that will be passed to Gradle on the command-line. See [Con
 
 ### Selecting a cache provider
 
-See [Selecting a cache provider](setup-gradle.md#selecting-a-cache-provider) for details on choosing between the `premium` (default) and `basic` cache providers via the `cache-provider` input.
+See [Selecting a cache provider](setup-gradle.md#selecting-a-cache-provider) for details on choosing between the `enhanced` (default) and `basic` cache providers via the `cache-provider` input.
 
 ### Disabling caching
 

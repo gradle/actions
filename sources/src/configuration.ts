@@ -177,17 +177,17 @@ export class CacheConfig {
         switch (val.toLowerCase().trim()) {
             case 'basic':
                 return CacheProvider.Basic
-            case 'premium':
+            case 'enhanced':
             case '':
-                return CacheProvider.Premium
+                return CacheProvider.Enhanced
         }
-        throw TypeError(`The value '${val}' is not valid for 'cache-provider'. Valid values are: [basic, premium].`)
+        throw TypeError(`The value '${val}' is not valid for 'cache-provider'. Valid values are: [basic, enhanced].`)
     }
 }
 
 export enum CacheProvider {
     Basic = 'basic',
-    Premium = 'premium'
+    Enhanced = 'enhanced'
 }
 
 export enum CacheCleanupOption {

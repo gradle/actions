@@ -128,9 +128,12 @@ The state will be restored from the cache during the first `setup-gradle` step f
 
 ### Selecting a cache provider
 
-The `setup-gradle` action offers two caching implementations, selected via the `cache-provider` input:
+The `setup-gradle` action offers two caching implementations, offered under different license terms and with different features.
+See [DISTRIBUTION.md](../DISTRIBUTION.md) for more details.
 
-- **`premium`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries and intelligent cache cleanup. Subject to the [licensing terms](https://gradle.com/legal/terms-of-use/) described above.
+You choose a cache implementation via the `cache-provider` input:
+
+- **`enhanced`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries and intelligent cache cleanup.
 - **`basic`**: A fully open-source caching implementation built on the standard GitHub Actions cache (`@actions/cache`). Caches the `~/.gradle/caches` and `~/.gradle/wrapper` directories using a cache key based on your Gradle build files (same strategy as `actions/setup-java` with `cache: gradle`).
 
 ```yaml

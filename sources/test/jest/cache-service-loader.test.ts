@@ -12,7 +12,7 @@ describe('getCacheService selection logic', () => {
         const {getCacheService} = await import('../../src/cache-service-loader')
         const mockConfig = {
             isCacheDisabled: () => true,
-            getCacheProvider: () => CacheProvider.Premium,
+            getCacheProvider: () => CacheProvider.Enhanced,
             isCacheLicenseAccepted: () => true
         } as unknown as CacheConfig
 
