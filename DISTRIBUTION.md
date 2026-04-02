@@ -25,7 +25,9 @@ To support the development of high-performance CI tooling, we offer the followin
     * Both **Basic** and **Enhanced** caching are free forever. We are committed to supporting the open-source ecosystem at no cost.
 * **Private Repositories:** 
     * **Basic Caching** is free forever under the MIT license.
-    * **Enhanced Caching** is currently in a **Free Preview** phase. We plan to introduce usage-based tiers for large-scale commercial organizations in the future.
+    * **Enhanced Caching** is currently in a **Free Preview** phase. We plan to introduce usage-based pricing for large-scale commercial organizations in the future.
+ 
+While we haven't finalized specific usage thresholds yet, our intent is to keep Enhanced Caching free for individual developers and small teams. We are currently in a learning phase to ensure that future restrictions are focused on large-scale commercial users of the product. No matter how these limits evolve, the open-source Basic Caching provider will always remain a free, functional alternative for everyone.
 
 ## 4. Your Choice: Basic vs. Enhanced
 We believe in user autonomy. If you do not wish to use proprietary code or accept the Gradle Technologies Terms of Use, you can opt-out of enhanced caching with a single line of configuration:
