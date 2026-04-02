@@ -6,7 +6,6 @@ import * as path from 'path'
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheService} from './cache-service'
 
-const PRIMARY_KEY_STATE = 'BASIC_CACHE_PRIMARY_KEY'
 const RESTORED_KEY_STATE = 'BASIC_CACHE_RESTORED_KEY'
 const CACHE_KEY_PREFIX = 'setup-java'
 
@@ -27,7 +26,6 @@ export class BasicCacheService implements CacheService {
 
         const cachePaths = getCachePaths(gradleUserHome)
         const primaryKey = await computeCacheKey()
-        core.saveState(PRIMARY_KEY_STATE, primaryKey)
 
         // No "restoreKeys" is set, to start with a clear cache after dependency update
         // See https://github.com/actions/setup-java/issues/269
@@ -35,47 +33,44 @@ export class BasicCacheService implements CacheService {
             const matchedKey = await cache.restoreCache(cachePaths, primaryKey)
             if (matchedKey) {
                 core.saveState(RESTORED_KEY_STATE, matchedKey)
-                core.info(`Gradle User Home restored from cache key: ${matchedKey}`)
+                core.info(`Basic caching restored from cache key: ${matchedKey}`)
             } else {
-                core.info('Gradle User Home cache not found. Will start with empty state.')
+                core.info('Basic caching did not find an entry to restore. Will start with empty state.')
             }
         } catch (error) {
-            core.warning(`Failed to restore Gradle User Home from cache: ${error}`)
+            core.warning(`Basic caching failed to restore from cache: ${error}`)
         }
     }
 
     async save(gradleUserHome: string, _buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string> {
-        if (cacheOptions.disabled || cacheOptions.readOnly) {
+        if (cacheOptions.disabled) {
+            return 'Basic caching was disabled.'
+        }
+        if (cacheOptions.readOnly) {
             const restoredKey = core.getState(RESTORED_KEY_STATE)
             if (restoredKey) {
-                return `Gradle User Home was restored from cache key \`${restoredKey}\`. Cache was read-only, so entries were not saved.`
+                return `Basic caching was read-only. Restored from cache key \`${restoredKey}\`.`
             }
-            return 'Gradle User Home cache entry was not restored and was not saved (caching is read-only or disabled).'
+            return 'Basic caching was read-only. No cache entry was found to restore.'
         }
 
+        const primaryKey = await computeCacheKey()
         const matchedKey = core.getState(RESTORED_KEY_STATE)
 
-        // Inputs are re-evaluated before the post action, so we want the original key used for restore
-        let primaryKey = core.getState(PRIMARY_KEY_STATE)
-        if (!primaryKey) {
-            // Fallback: compute key if restore was not called (e.g. writeOnly mode)
-            primaryKey = await computeCacheKey()
-        }
-
         if (matchedKey === primaryKey) {
-            core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`)
-            return `Gradle User Home cache hit with exact key \`${primaryKey}\`. Save was skipped.`
+            core.info(`Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.`)
+            return `Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.`
         }
 
         const cachePaths = getCachePaths(gradleUserHome)
 
         try {
             await cache.saveCache(cachePaths, primaryKey)
-            core.info(`Gradle User Home saved to cache with key: ${primaryKey}`)
-            return `Gradle User Home saved to cache with key \`${primaryKey}\`.`
+            core.info(`Basic caching saved entry with key: ${primaryKey}`)
+            return `Basic caching saved entry with key \`${primaryKey}\`.`
         } catch (error) {
-            core.warning(`Failed to save Gradle User Home to cache: ${error}`)
-            return `Gradle User Home cache save failed: ${error}`
+            core.warning(`Basic caching failed to save entry with key \`${primaryKey}\`: ${error}`)
+            return `Basic caching save failed: ${error}`
         }
     }
 }

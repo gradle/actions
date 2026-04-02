@@ -72,7 +72,7 @@ describe('BasicCacheService', () => {
             expect(mockRestoreCache).not.toHaveBeenCalled()
         })
 
-        it('restores cache without restoreKeys and saves both keys to state', async () => {
+        it('restores cache without restoreKeys and saves matched key to state', async () => {
             mockRestoreCache.mockResolvedValue(PRIMARY_KEY)
 
             await service.restore('/home/.gradle', {
@@ -91,7 +91,6 @@ describe('BasicCacheService', () => {
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
                 PRIMARY_KEY
             )
-            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_PRIMARY_KEY', PRIMARY_KEY)
             expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_RESTORED_KEY', PRIMARY_KEY)
         })
 
@@ -109,12 +108,9 @@ describe('BasicCacheService', () => {
                 excludes: []
             })
 
-            // Primary key should still be saved to state even on miss
-            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_PRIMARY_KEY', PRIMARY_KEY)
-            // Restored key should NOT be saved
-            expect(mockSaveState).not.toHaveBeenCalledWith('BASIC_CACHE_RESTORED_KEY', expect.anything())
+            expect(mockSaveState).not.toHaveBeenCalled()
             expect(mockInfo).toHaveBeenCalledWith(
-                expect.stringContaining('not found')
+                expect.stringContaining('did not find')
             )
         })
 
@@ -133,7 +129,7 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockWarning).toHaveBeenCalledWith(
-                expect.stringContaining('Failed to restore')
+                expect.stringContaining('failed to restore')
             )
         })
 
@@ -156,8 +152,7 @@ describe('BasicCacheService', () => {
     })
 
     describe('save', () => {
-        it('skips save when disabled', async () => {
-            mockGetState.mockReturnValue('')
+        it('reports disabled when caching is disabled', async () => {
             const report = await service.save('/home/.gradle', [], {
                 disabled: true,
                 readOnly: false,
@@ -170,14 +165,11 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('not restored')
+            expect(report).toContain('disabled')
         })
 
-        it('skips save when readOnly and reports restored key', async () => {
-            mockGetState.mockImplementation((name: string) => {
-                if (name === 'BASIC_CACHE_RESTORED_KEY') return PRIMARY_KEY
-                return ''
-            })
+        it('reports readOnly with restored key when cache was hit', async () => {
+            mockGetState.mockReturnValue(PRIMARY_KEY)
             const report = await service.save('/home/.gradle', [], {
                 disabled: false,
                 readOnly: true,
@@ -190,12 +182,11 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('restored from cache key')
-            expect(report).toContain(PRIMARY_KEY)
             expect(report).toContain('read-only')
+            expect(report).toContain(PRIMARY_KEY)
         })
 
-        it('skips save when readOnly and no restore', async () => {
+        it('reports readOnly with no restore when cache was missed', async () => {
             mockGetState.mockReturnValue('')
             const report = await service.save('/home/.gradle', [], {
                 disabled: false,
@@ -209,15 +200,12 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('not restored')
+            expect(report).toContain('read-only')
+            expect(report).toContain('No cache entry')
         })
 
         it('skips save when matched key equals primary key', async () => {
-            mockGetState.mockImplementation((name: string) => {
-                if (name === 'BASIC_CACHE_RESTORED_KEY') return PRIMARY_KEY
-                if (name === 'BASIC_CACHE_PRIMARY_KEY') return PRIMARY_KEY
-                return ''
-            })
+            mockGetState.mockReturnValue(PRIMARY_KEY)
 
             const report = await service.save('/home/.gradle', [], {
                 disabled: false,
@@ -234,33 +222,7 @@ describe('BasicCacheService', () => {
             expect(report).toContain('Save was skipped')
         })
 
-        it('uses primary key from state, not recomputed', async () => {
-            const stateKey = `setup-java-Linux-${process.arch}-gradle-statedhash`
-            mockGetState.mockImplementation((name: string) => {
-                if (name === 'BASIC_CACHE_PRIMARY_KEY') return stateKey
-                return ''
-            })
-            mockSaveCache.mockResolvedValue(0)
-
-            const report = await service.save('/home/.gradle', [], {
-                disabled: false,
-                readOnly: false,
-                writeOnly: false,
-                overwriteExisting: false,
-                strictMatch: false,
-                cleanup: 'never',
-                includes: [],
-                excludes: []
-            })
-
-            expect(mockSaveCache).toHaveBeenCalledWith(
-                ['/home/.gradle/caches', '/home/.gradle/wrapper'],
-                stateKey
-            )
-            expect(report).toContain(stateKey)
-        })
-
-        it('computes key as fallback when primary key not in state', async () => {
+        it('saves cache and returns report on success', async () => {
             mockGetState.mockReturnValue('')
             mockSaveCache.mockResolvedValue(0)
 
@@ -279,7 +241,7 @@ describe('BasicCacheService', () => {
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
                 PRIMARY_KEY
             )
-            expect(report).toContain('saved to cache')
+            expect(report).toContain('saved entry with key')
         })
 
         it('warns on save failure instead of throwing', async () => {
@@ -298,7 +260,7 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockWarning).toHaveBeenCalledWith(
-                expect.stringContaining('Failed to save')
+                expect.stringContaining('failed to save')
             )
             expect(report).toContain('failed')
         })
