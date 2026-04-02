@@ -34,6 +34,16 @@ jobs:
       skip-dist: false
     secrets: inherit
 
+  dependency-submission-integ-tests:
+    needs: build-distribution
+    uses: ./.github/workflows/suite-integ-test-dependency-submission.yml
+    concurrency:
+      group: CI-integ-test
+      cancel-in-progress: false
+    with:
+      skip-dist: false
+    secrets: inherit
+
   other-integ-tests:
     permissions:
       contents: write

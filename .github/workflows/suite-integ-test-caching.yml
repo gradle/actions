@@ -46,6 +46,18 @@ jobs:
     with:
       skip-dist: ${{ inputs.skip-dist }}
 
+  sample-kotlin-dsl:
+    uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  sample-gradle-plugin:
+    uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
   basic-cache-provider:
     uses: ./.github/workflows/integ-test-basic-cache-provider.yml
     with:
