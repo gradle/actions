@@ -15,8 +15,8 @@ const ENHANCED_CACHE_MESSAGE = `Enhanced Caching: This build is using the propri
 
 const ENHANCED_CACHE_SUMMARY = `
 > [!NOTE]
-> ### ⚡️ Enhanced Caching
-> This build loads loads the proprietary **gradle-actions-caching** provider for optimized caching support. 
+> ### ⚡️ Enhanced Caching enabled
+> This build provides optimized caching support via the proprietary **gradle-actions-caching** provider. 
 > See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for terms of use and opt-out instructions.
 `
 
@@ -24,7 +24,7 @@ const BASIC_CACHE_MESSAGE = `Basic Caching: This build uses the open-source cach
 
 const BASIC_CACHE_SUMMARY = `
 > [!NOTE]
-> ### 🛡️ Basic Caching
+> ### 🛡️ Basic Caching enabled
 > This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. 
 > 
 > **Upgrade Available:** For faster builds and advanced features, consider switching to the **Enhanced Caching** provider. 

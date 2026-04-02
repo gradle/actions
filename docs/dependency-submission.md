@@ -24,9 +24,6 @@ If you're confused by the behaviour you're seeing or have specific questions, pl
 >
 > For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
-This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
-either [accept the terms of use](setup-gradle.md#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](setup-gradle.md#managing-develocity-access-keys).
-
 ## General usage
 
 The following workflow will generate a dependency graph for a Gradle project and submit it immediately to the repository via the

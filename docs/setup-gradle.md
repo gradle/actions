@@ -11,9 +11,6 @@ This GitHub Action can be used to configure Gradle for optimal execution on any 
 >
 > For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
-This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
-either [accept the terms of use](#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](#managing-develocity-access-keys).
-
 ## Why use the `setup-gradle` action?
 
 It is possible to directly invoke Gradle in your workflow, and the `actions/setup-java@v5` action provides a simple way to cache Gradle dependencies.
