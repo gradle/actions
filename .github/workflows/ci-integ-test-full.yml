@@ -25,7 +25,6 @@ jobs:
     secrets: inherit
 
   dependency-submission-integ-tests:
-    needs: build-distribution
     uses: ./.github/workflows/suite-integ-test-dependency-submission.yml
     concurrency:
       group: CI-integ-test-full
