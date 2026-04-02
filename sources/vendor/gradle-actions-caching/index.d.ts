@@ -18,7 +18,7 @@ export declare interface CacheOptions {
     writeOnly: boolean;
     overwriteExisting: boolean;
     strictMatch: boolean;
-    cleanup: 'always' | 'on-success' | 'never';
+    cleanup: string;
     encryptionKey?: string;
     includes: string[];
     excludes: string[];
