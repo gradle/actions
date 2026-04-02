@@ -18,23 +18,21 @@ jobs:
   build-distribution:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo foo
-        run: echo "FOO"
-    # - name: Checkout sources
-    #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    # - name: Build and upload distribution
-    #   if: ${{ needs.determine-suite.outputs.suite != 'full' }}
-    #   uses: ./.github/actions/build-dist
+    - name: Checkout sources
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Build and upload distribution
+      if: ${{ needs.determine-suite.outputs.suite != 'full' }}
+      uses: ./.github/actions/build-dist
 
-  # caching-integ-tests:
-  #   needs: build-distribution
-  #   uses: ./.github/workflows/suite-integ-test-caching.yml
-  #   concurrency:
-  #     group: CI-integ-test
-  #     cancel-in-progress: false
-  #   with:
-  #     skip-dist: false
-  #   secrets: inherit
+  caching-integ-tests:
+    needs: build-distribution
+    uses: ./.github/workflows/suite-integ-test-caching.yml
+    concurrency:
+      group: CI-integ-test
+      cancel-in-progress: false
+    with:
+      skip-dist: false
+    secrets: inherit
 
   # dependency-submission-integ-tests:
   #   needs: build-distribution
@@ -46,14 +44,14 @@ jobs:
   #     skip-dist: false
   #   secrets: inherit
 
-  # other-integ-tests:
-  #   permissions:
-  #     contents: write
-  #   needs: build-distribution
-  #   uses: ./.github/workflows/suite-integ-test-other.yml
-  #   concurrency:
-  #     group: CI-integ-test
-  #     cancel-in-progress: false
-  #   with:
-  #     skip-dist: false
-  #   secrets: inherit
+  other-integ-tests:
+    permissions:
+      contents: write
+    needs: build-distribution
+    uses: ./.github/workflows/suite-integ-test-other.yml
+    concurrency:
+      group: CI-integ-test
+      cancel-in-progress: false
+    with:
+      skip-dist: false
+    secrets: inherit
