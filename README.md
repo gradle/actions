@@ -14,6 +14,12 @@ This repository contains a set of GitHub Actions that are useful for building Gr
 This license notice will be displayed in workflow logs and each job summary. To suppress this message,
 either [accept the terms of use](docs/setup-gradle.md#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](docs/setup-gradle.md#managing-develocity-access-keys).
 
+Alternatively, you can use the open-source `basic` cache provider which does not use the commercial `gradle-actions-caching` component:
+```yaml
+cache-provider: basic
+```
+See the [cache provider documentation](docs/setup-gradle.md#selecting-a-cache-provider) for details.
+
 ## The `setup-gradle` action
 
 The `setup-gradle` action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.

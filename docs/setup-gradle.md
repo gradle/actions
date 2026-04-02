@@ -129,6 +129,18 @@ To reduce the space required for caching, this action attempts to reduce duplica
 
 The state will be restored from the cache during the first `setup-gradle` step for any workflow job, and cache entries will be written back to the cache at the end of the job after all Gradle executions have been completed.
 
+### Selecting a cache provider
+
+The `setup-gradle` action offers two caching implementations, selected via the `cache-provider` input:
+
+- **`premium`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries and intelligent cache cleanup. Subject to the [licensing terms](https://gradle.com/legal/terms-of-use/) described above.
+- **`basic`**: A fully open-source caching implementation built on the standard GitHub Actions cache (`@actions/cache`). Caches the `~/.gradle/caches` and `~/.gradle/wrapper` directories using a cache key based on your Gradle build files (same strategy as `actions/setup-java` with `cache: gradle`).
+
+```yaml
+# Use the open-source basic cache provider
+cache-provider: basic
+```
+
 ### Disabling caching
 
 Caching is enabled by default. You can disable caching for the action as follows:

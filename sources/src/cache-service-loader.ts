@@ -2,7 +2,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {pathToFileURL} from 'url'
 
-import {CacheConfig} from './configuration'
+import {CacheConfig, CacheProvider} from './configuration'
+import {BasicCacheService} from './cache-service-basic'
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheService} from './cache-service'
 
@@ -71,6 +72,10 @@ class LicenseWarningCacheService implements CacheService {
 export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheService> {
     if (cacheConfig.isCacheDisabled()) {
         return new NoOpCacheService()
+    }
+
+    if (cacheConfig.getCacheProvider() === CacheProvider.Basic) {
+        return new BasicCacheService()
     }
 
     const cacheService = await loadVendoredCacheService()

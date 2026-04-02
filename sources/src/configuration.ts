@@ -171,6 +171,23 @@ export class CacheConfig {
         const dvConfig = new DevelocityConfig()
         return dvConfig.getDevelocityAccessKey() !== '' || dvConfig.hasTermsOfUseAgreement()
     }
+
+    getCacheProvider(): CacheProvider {
+        const val = core.getInput('cache-provider')
+        switch (val.toLowerCase().trim()) {
+            case 'basic':
+                return CacheProvider.Basic
+            case 'premium':
+            case '':
+                return CacheProvider.Premium
+        }
+        throw TypeError(`The value '${val}' is not valid for 'cache-provider'. Valid values are: [basic, premium].`)
+    }
+}
+
+export enum CacheProvider {
+    Basic = 'basic',
+    Premium = 'premium'
 }
 
 export enum CacheCleanupOption {
