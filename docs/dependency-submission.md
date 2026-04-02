@@ -76,6 +76,10 @@ on the command-line will be used.
 The action provides the ability to override the Gradle version and task to execute, as well as provide 
 additional arguments that will be passed to Gradle on the command-line. See [Configuration Parameters](#configuration-parameters) below.
 
+### Selecting a cache provider
+
+See [Selecting a cache provider](setup-gradle.md#selecting-a-cache-provider) for details on choosing between the `premium` (default) and `basic` cache providers via the `cache-provider` input.
+
 ### Disabling caching
 
 Caching is enabled by default. You can disable caching for the action as follows:
