@@ -209,47 +209,6 @@ If you want to override the default and have the caches of the `setup-gradle` ac
 cache-overwrite-existing: true
 ```
 
-### Saving configuration-cache data
-
-When Gradle is executed with the [configuration-cache](https://docs.gradle.org/current/userguide/configuration_cache.html) enabled, the configuration-cache data is stored
-in the project directory, at `<project-dir>/.gradle/configuration-cache`. Due to the way the configuration-cache works, [this file may contain stored credentials and other
-secrets](https://docs.gradle.org/release-nightly/userguide/configuration_cache.html#config_cache:secrets), and this data needs to be encrypted to be safely stored in the GitHub Actions cache.
-
-> [!IMPORTANT]
-> To avoid potentially leaking secrets in the configuration-cache entry, the action will only save or restore configuration-cache data if the `cache-encryption-key` parameter is set.
-
-To benefit from configuration caching in your GitHub Actions workflow, you must:
-- Execute your build with Gradle 8.6 or newer. This can be achieved directly or via the Gradle Wrapper.
-- Enable the configuration cache for your build.
-- Generate a [valid Gradle encryption key](https://docs.gradle.org/8.6/userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) and save it as a [GitHub Actions secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions).
-- Provide the secret key via the `cache-encryption-key` action parameter.
-
-```yaml
-jobs:
-  gradle-with-configuration-cache:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-java@v5
-      with:
-        distribution: temurin
-        java-version: 17
-
-    - uses: gradle/actions/setup-gradle@v5
-      with:
-        gradle-version: '8.6'
-        cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-    - run: gradle build --configuration-cache
-```
-
-Even with everything correctly configured, you may find that the configuration-cache entry is not reused in your workflow.
-This is often due to a known issue: [Included builds containing build logic prevent configuration-cache reuse](https://github.com/gradle/actions/issues/21). Refer to the issue for more details.
-
-> [!NOTE]
-> The configuration cache cannot be saved or restored in workflows triggered by a pull requests from a repository fork.
-> This is because [GitHub secrets are not passed to workflows triggered by PRs from forks](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#using-secrets-in-a-workflow).
-> This prevents a malicious PR from reading the configuration-cache data, which may encode secrets read by Gradle.
-
 ### Incompatibility with other caching mechanisms
 
 When using `setup-gradle` we recommend that you avoid using other mechanisms to save and restore the Gradle User Home.

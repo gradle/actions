@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as cache from '@actions/cache'
-import * as deprecator from './deprecation-collector'
+import * as de  cator from './deprecation-collector'
 
 import * as path from 'path'
 
