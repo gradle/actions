@@ -4,6 +4,12 @@ inputs:
     type: string
 
   # Cache configuration
+  cache-provider:
+    type: enum
+    allowed-values:
+      - basic
+      - premium
+
   cache-disabled:
     type: boolean
 

@@ -39,6 +39,8 @@ jest.unstable_mockModule('fs', () => ({
 
 const {BasicCacheService} = await import('../../src/cache-service-basic')
 
+const KEY_PREFIX = `gradle-actions-basic-Linux-${process.arch}-gradle-`
+
 describe('BasicCacheService', () => {
     let service: InstanceType<typeof BasicCacheService>
 
@@ -81,7 +83,7 @@ describe('BasicCacheService', () => {
         })
 
         it('restores cache and saves state on hit', async () => {
-            mockRestoreCache.mockResolvedValue('gradle-actions-basic-Linux-arm64-gradle-abc123')
+            mockRestoreCache.mockResolvedValue(`${KEY_PREFIX}abc123`)
 
             await service.restore('/home/.gradle', {
                 disabled: false,
@@ -96,12 +98,12 @@ describe('BasicCacheService', () => {
 
             expect(mockRestoreCache).toHaveBeenCalledWith(
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
-                expect.stringContaining('gradle-actions-basic-Linux-arm64-gradle-'),
-                ['gradle-actions-basic-Linux-arm64-gradle-']
+                expect.stringContaining(KEY_PREFIX),
+                [KEY_PREFIX]
             )
             expect(mockSaveState).toHaveBeenCalledWith(
                 'BASIC_CACHE_RESTORED_KEY',
-                'gradle-actions-basic-Linux-arm64-gradle-abc123'
+                `${KEY_PREFIX}abc123`
             )
         })
 
@@ -164,7 +166,7 @@ describe('BasicCacheService', () => {
         })
 
         it('skips save when readOnly and reports restored key', async () => {
-            mockGetState.mockReturnValue('gradle-actions-basic-Linux-arm64-gradle-abc123')
+            mockGetState.mockReturnValue(`${KEY_PREFIX}abc123`)
             const report = await service.save('/home/.gradle', [], {
                 disabled: false,
                 readOnly: true,
@@ -178,7 +180,7 @@ describe('BasicCacheService', () => {
 
             expect(mockSaveCache).not.toHaveBeenCalled()
             expect(report).toContain('restored from cache key')
-            expect(report).toContain('gradle-actions-basic-Linux-arm64-gradle-abc123')
+            expect(report).toContain(`${KEY_PREFIX}abc123`)
             expect(report).toContain('read-only')
         })
 
@@ -216,7 +218,7 @@ describe('BasicCacheService', () => {
 
             expect(mockSaveCache).toHaveBeenCalledWith(
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
-                expect.stringContaining('gradle-actions-basic-Linux-arm64-gradle-')
+                expect.stringContaining(KEY_PREFIX)
             )
             expect(report).toContain('saved to cache')
         })
