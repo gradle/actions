@@ -7,18 +7,12 @@ This repository contains a set of GitHub Actions that are useful for building Gr
 > To provide the fastest possible build experience, this action includes **Gradle Caching**, an optimized provider powered by proprietary technology. This feature is free for all public repositories. 
 >
 > **Prefer a 100% Open Source (MIT) path?**
-> We also provide a **Basic Caching** provider built on the same logic as `setup-java` with `cache: gradle`. You can switch at any time by setting `cache-provider: basic`.
+> We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. You can switch at any time by setting `cache-provider: basic`.
 >
 > For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
 This license notice will be displayed in workflow logs and each job summary. To suppress this message,
 either [accept the terms of use](docs/setup-gradle.md#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](docs/setup-gradle.md#managing-develocity-access-keys).
-
-Alternatively, you can use the open-source `basic` cache provider which does not use the commercial `gradle-actions-caching` component:
-```yaml
-cache-provider: basic
-```
-See the [cache provider documentation](docs/setup-gradle.md#selecting-a-cache-provider) for details.
 
 ## The `setup-gradle` action
 

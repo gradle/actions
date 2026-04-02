@@ -11,6 +11,8 @@ The `gradle/actions` project consists of three primary components:
 | **Basic Caching** | **[MIT](LICENSE)** | Open | Configures basic Gradle User Home caching using 'actions/cache'. |
 | **Enhanced Caching** | **[Proprietary](NOTICE)** | Closed | Uses the 'gradle-actions-caching' library to provide fine-grained caching of Gradle User Home, intelligent cache cleanup and other advanced features. |
 
+By default, **Enhanced Caching** is enabled to provide the best experience.
+
 ## 2. The "Safe Harbor" Clause (Data Privacy)
 The proprietary components of this action are governed by the **[Gradle Technologies Terms of Use](https://gradle.com/legal/gradle-technologies-terms-of-use/)**. We have updated these terms to include a specific safe harbor for users of `gradle-actions-caching`.
 
