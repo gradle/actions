@@ -61,20 +61,21 @@ class LicenseWarningCacheService implements CacheService {
 
 export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheService> {
     if (cacheConfig.isCacheDisabled()) {
+        logCacheMessage('Cache is disabled: will not restore state from previous builds.')
         return new NoOpCacheService()
     }
 
     if (cacheConfig.getCacheProvider() === CacheProvider.Basic) {
-        logCacheLicenseWarning(BASIC_CACHE_MESSAGE)
+        logCacheMessage(BASIC_CACHE_MESSAGE)
         return new LicenseWarningCacheService(new BasicCacheService(), BASIC_CACHE_SUMMARY)
     }
 
+    logCacheMessage(ENHANCED_CACHE_MESSAGE)
     const cacheService = await loadVendoredCacheService()
     if (cacheConfig.isCacheLicenseAccepted()) {
         return cacheService
     }
 
-    logCacheLicenseWarning(ENHANCED_CACHE_MESSAGE)
     return new LicenseWarningCacheService(cacheService, ENHANCED_CACHE_SUMMARY)
 }
 
@@ -95,6 +96,6 @@ function findVendoredLibraryPath(): string {
     throw new Error(`Unable to locate vendored cache library at ${absolutePath}.`)
 }
 
-export function logCacheLicenseWarning(message: string): void {
+export function logCacheMessage(message: string): void {
     console.info(message)
 }

@@ -20,11 +20,7 @@ const GRADLE_BUILD_FILE_PATTERNS = [
 ]
 
 export class BasicCacheService implements CacheService {
-    async restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void> {
-        if (cacheOptions.disabled) {
-            return
-        }
-
+    async restore(gradleUserHome: string, _cacheOptions: CacheOptions): Promise<void> {
         const cachePaths = getCachePaths(gradleUserHome)
         const primaryKey = await computeCacheKey()
         core.saveState(PRIMARY_KEY_STATE, primaryKey)
@@ -45,9 +41,6 @@ export class BasicCacheService implements CacheService {
     }
 
     async save(gradleUserHome: string, _buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string> {
-        if (cacheOptions.disabled) {
-            return 'Basic caching was disabled.'
-        }
         if (cacheOptions.readOnly) {
             const restoredKey = core.getState(RESTORED_KEY_STATE)
             if (restoredKey) {

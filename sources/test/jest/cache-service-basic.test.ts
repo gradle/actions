@@ -42,21 +42,6 @@ describe('BasicCacheService', () => {
     })
 
     describe('restore', () => {
-        it('skips restore when disabled', async () => {
-            await service.restore('/home/.gradle', {
-                disabled: true,
-                readOnly: false,
-                writeOnly: false,
-                overwriteExisting: false,
-                strictMatch: false,
-                cleanup: 'never',
-                includes: [],
-                excludes: []
-            })
-
-            expect(mockRestoreCache).not.toHaveBeenCalled()
-        })
-
         it('restores cache without restoreKeys and saves both keys to state', async () => {
             mockRestoreCache.mockResolvedValue(PRIMARY_KEY)
 
@@ -139,22 +124,6 @@ describe('BasicCacheService', () => {
     })
 
     describe('save', () => {
-        it('reports disabled when caching is disabled', async () => {
-            const report = await service.save('/home/.gradle', [], {
-                disabled: true,
-                readOnly: false,
-                writeOnly: false,
-                overwriteExisting: false,
-                strictMatch: false,
-                cleanup: 'never',
-                includes: [],
-                excludes: []
-            })
-
-            expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('disabled')
-        })
-
         it('reports readOnly with restored key when cache was hit', async () => {
             mockGetState.mockReturnValue(PRIMARY_KEY)
             const report = await service.save('/home/.gradle', [], {
