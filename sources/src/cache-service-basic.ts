@@ -6,6 +6,7 @@ import * as path from 'path'
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheService} from './cache-service'
 
+const PRIMARY_KEY_STATE = 'BASIC_CACHE_PRIMARY_KEY'
 const RESTORED_KEY_STATE = 'BASIC_CACHE_RESTORED_KEY'
 const CACHE_KEY_PREFIX = 'setup-java'
 
@@ -20,20 +21,21 @@ const GRADLE_BUILD_FILE_PATTERNS = [
 
 export class BasicCacheService implements CacheService {
     async restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void> {
-        if (cacheOptions.disabled || cacheOptions.writeOnly) {
+        if (cacheOptions.disabled) {
             return
         }
 
         const cachePaths = getCachePaths(gradleUserHome)
         const primaryKey = await computeCacheKey()
+        core.saveState(PRIMARY_KEY_STATE, primaryKey)
 
         // No "restoreKeys" is set, to start with a clear cache after dependency update
         // See https://github.com/actions/setup-java/issues/269
         try {
-            const matchedKey = await cache.restoreCache(cachePaths, primaryKey)
-            if (matchedKey) {
-                core.saveState(RESTORED_KEY_STATE, matchedKey)
-                core.info(`Basic caching restored from cache key: ${matchedKey}`)
+            const restoredKey = await cache.restoreCache(cachePaths, primaryKey)
+            if (restoredKey) {
+                core.saveState(RESTORED_KEY_STATE, restoredKey)
+                core.info(`Basic caching restored from cache key: ${restoredKey}`)
             } else {
                 core.info('Basic caching did not find an entry to restore. Will start with empty state.')
             }
@@ -54,10 +56,10 @@ export class BasicCacheService implements CacheService {
             return 'Basic caching was read-only. No cache entry was found to restore.'
         }
 
-        const primaryKey = await computeCacheKey()
-        const matchedKey = core.getState(RESTORED_KEY_STATE)
+        const primaryKey = core.getState(PRIMARY_KEY_STATE)
+        const restoredKey = core.getState(RESTORED_KEY_STATE)
 
-        if (matchedKey === primaryKey) {
+        if (restoredKey === primaryKey) {
             core.info(`Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.`)
             return `Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.`
         }

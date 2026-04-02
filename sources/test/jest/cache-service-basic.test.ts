@@ -57,22 +57,7 @@ describe('BasicCacheService', () => {
             expect(mockRestoreCache).not.toHaveBeenCalled()
         })
 
-        it('skips restore when writeOnly', async () => {
-            await service.restore('/home/.gradle', {
-                disabled: false,
-                readOnly: false,
-                writeOnly: true,
-                overwriteExisting: false,
-                strictMatch: false,
-                cleanup: 'never',
-                includes: [],
-                excludes: []
-            })
-
-            expect(mockRestoreCache).not.toHaveBeenCalled()
-        })
-
-        it('restores cache without restoreKeys and saves matched key to state', async () => {
+        it('restores cache without restoreKeys and saves both keys to state', async () => {
             mockRestoreCache.mockResolvedValue(PRIMARY_KEY)
 
             await service.restore('/home/.gradle', {
@@ -91,10 +76,11 @@ describe('BasicCacheService', () => {
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
                 PRIMARY_KEY
             )
+            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_PRIMARY_KEY', PRIMARY_KEY)
             expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_RESTORED_KEY', PRIMARY_KEY)
         })
 
-        it('handles cache miss gracefully', async () => {
+        it('saves primary key to state even on cache miss', async () => {
             mockRestoreCache.mockResolvedValue(undefined)
 
             await service.restore('/home/.gradle', {
@@ -108,7 +94,8 @@ describe('BasicCacheService', () => {
                 excludes: []
             })
 
-            expect(mockSaveState).not.toHaveBeenCalled()
+            expect(mockSaveState).toHaveBeenCalledWith('BASIC_CACHE_PRIMARY_KEY', PRIMARY_KEY)
+            expect(mockSaveState).not.toHaveBeenCalledWith('BASIC_CACHE_RESTORED_KEY', expect.anything())
             expect(mockInfo).toHaveBeenCalledWith(
                 expect.stringContaining('did not find')
             )
@@ -204,8 +191,12 @@ describe('BasicCacheService', () => {
             expect(report).toContain('No cache entry')
         })
 
-        it('skips save when matched key equals primary key', async () => {
-            mockGetState.mockReturnValue(PRIMARY_KEY)
+        it('skips save when restored key equals primary key', async () => {
+            mockGetState.mockImplementation((name: string) => {
+                if (name === 'BASIC_CACHE_PRIMARY_KEY') return PRIMARY_KEY
+                if (name === 'BASIC_CACHE_RESTORED_KEY') return PRIMARY_KEY
+                return ''
+            })
 
             const report = await service.save('/home/.gradle', [], {
                 disabled: false,
@@ -223,7 +214,10 @@ describe('BasicCacheService', () => {
         })
 
         it('saves cache and returns report on success', async () => {
-            mockGetState.mockReturnValue('')
+            mockGetState.mockImplementation((name: string) => {
+                if (name === 'BASIC_CACHE_PRIMARY_KEY') return PRIMARY_KEY
+                return ''
+            })
             mockSaveCache.mockResolvedValue(0)
 
             const report = await service.save('/home/.gradle', [], {
@@ -245,7 +239,10 @@ describe('BasicCacheService', () => {
         })
 
         it('warns on save failure instead of throwing', async () => {
-            mockGetState.mockReturnValue('')
+            mockGetState.mockImplementation((name: string) => {
+                if (name === 'BASIC_CACHE_PRIMARY_KEY') return PRIMARY_KEY
+                return ''
+            })
             mockSaveCache.mockRejectedValue(new Error('Storage full'))
 
             const report = await service.save('/home/.gradle', [], {
