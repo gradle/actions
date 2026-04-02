@@ -2,18 +2,14 @@
 
 This GitHub Action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.
 
-> [!IMPORTANT]
-> ## Licensing notice
+> [!NOTE]
+> ### ⚡️ Choice of caching providers in v6
+> To provide the fastest possible build experience, this action includes **Gradle Caching**, an optimized provider powered by proprietary technology. This feature is free for all public repositories. 
 >
-> The software in this repository is licensed under the [MIT License](LICENSE).
+> **Prefer a 100% Open Source (MIT) path?**
+> We also provide a **Basic Caching** provider built on the same logic as `setup-java` with `cache: gradle`. You can switch at any time by setting `cache-provider: basic`.
 >
-> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
-> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
->
-> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
+> For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
 This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
 either [accept the terms of use](#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](#managing-develocity-access-keys).
