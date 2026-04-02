@@ -27,7 +27,7 @@ To support the development of high-performance CI tooling, we offer the followin
     * **Basic Caching** is free forever under the MIT license.
     * **Enhanced Caching** is currently in a **Free Preview** phase. We plan to introduce usage-based tiers for large-scale commercial organizations in the future.
 
-## 4. Your Choice: Standard vs. Gradle
+## 4. Your Choice: Basic vs. Enhanced
 We believe in user autonomy. If you do not wish to use proprietary code or accept the Gradle Technologies Terms of Use, you can opt-out of enhanced caching with a single line of configuration:
 
 ```yaml

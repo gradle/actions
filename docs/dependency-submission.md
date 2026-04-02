@@ -17,10 +17,10 @@ If you're confused by the behaviour you're seeing or have specific questions, pl
 
 > [!NOTE]
 > ### ⚡️ Choice of caching providers in v6
-> For the fastest possible build experience this action provides **Enhanced Caching** via `gradle-actions-caching`, an optimized caching provider powered by proprietary technology. This feature is free for all public repositories. 
+> To provide the fastest possible build experience this action includes **Enhanced Caching** via `gradle-actions-caching`, an optimized provider powered by proprietary technology. This feature is **free for all public repositories** and is currently available as a **Free Preview** for private repositories. 
 >
 > **Prefer a 100% Open Source (MIT) path?**
-> We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. You can switch at any time by setting `cache-provider: basic`.
+> We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. This provider is **free for all repositories** (public and private) and can be enabled at any time by setting `cache-provider: basic`.
 >
 > For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
