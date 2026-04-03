@@ -6,6 +6,6 @@ The caching functionality in this project has been extracted into `gradle-action
 
 The `gradle-actions-caching` component is used only when enhanced caching is enabled and is not loaded or used with basic caching or when caching is disabled.
 
-Use the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
+Use the `gradle-actions-caching` component is subject to a separate license, available at license/gradle-actions-caching-license.txt. 
 
 For a detailed breakdown of components, licensing tiers, and data privacy terms, see DISTRIBUTION.md.
