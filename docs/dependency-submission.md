@@ -22,7 +22,7 @@ If you're confused by the behaviour you're seeing or have specific questions, pl
 > **Prefer a 100% Open Source (MIT) path?**
 > We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. This provider is **free for all repositories** (public and private) and can be enabled at any time by setting `cache-provider: basic`.
 >
-> For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
+> For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](../DISTRIBUTION.md).
 
 ## General usage
 
@@ -52,7 +52,7 @@ jobs:
         java-version: 17
 
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
 ```
 
 ### Gradle execution
@@ -88,7 +88,7 @@ Three input parameters are required, one to enable publishing and two more to ac
 
 ```yaml
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         build-scan-publish: true
         build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
@@ -103,7 +103,7 @@ In some cases, the default action configuration will not be sufficient, and addi
 
 ```yaml
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         # Use a particular Gradle version instead of the configured wrapper.
         gradle-version: '8.6'
@@ -150,7 +150,7 @@ To reduce storage costs for these artifacts, you can:
 
 ```yaml
     - name: Generate dependency graph but only store workflow artifacts for 1 day
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         artifact-retention-days: 1 # Default is 30 days or as configured for repository
 ```
@@ -159,7 +159,7 @@ To reduce storage costs for these artifacts, you can:
 
 ```yaml
     - name: Generate and submit dependency graph but do not store as workflow artifact
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         dependency-graph: 'generate-and-submit' # Default value is 'generate-submit-and-upload'
 ```
@@ -319,7 +319,7 @@ For example, if you want to exclude dependencies resolved by the `buildSrc` proj
 
 ```yaml
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         # Exclude all dependencies that originate solely in the 'buildSrc' project
         dependency-graph-exclude-projects: ':buildSrc'
@@ -370,7 +370,7 @@ jobs:
         java-version: 17
 
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
 ```
 
 #### 2. Add a dedicated Dependency Review workflow
@@ -432,7 +432,7 @@ jobs:
         java-version: 17
 
     - name: Generate and save dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         dependency-graph: generate-and-upload
 ```
@@ -455,7 +455,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
       with:
         dependency-graph: download-and-submit # Download saved dependency-graph and submit
 ```
