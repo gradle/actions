@@ -53,7 +53,7 @@
   "devDependencies": {
     "@jest/globals": "30.3.0",
     "@types/jest": "30.0.0",
-    "@types/node": "25.5.0",
+    "@types/node": "25.5.2",
     "@types/semver": "7.7.1",
     "@types/unzipper": "0.10.11",
     "@types/which": "3.0.4",
