@@ -15,21 +15,14 @@ for vulnerable dependencies, as well as to populate the
 
 If you're confused by the behaviour you're seeing or have specific questions, please check out [the FAQ](dependency-submission-faq.md) before raising an issue.
 
-> [!IMPORTANT]
-> ## Licensing notice
+> [!NOTE]
+> ### ⚡️ Choice of caching providers in v6
+> To provide the fastest possible build experience this action includes **Enhanced Caching** via `gradle-actions-caching`, an optimized provider powered by proprietary technology. This feature is **free for all public repositories** and is currently available as a **Free Preview** for private repositories. 
 >
-> The software in this repository is licensed under the [MIT License](LICENSE).
+> **Prefer a 100% Open Source (MIT) path?**
+> We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. This provider is **free for all repositories** (public and private) and can be enabled at any time by setting `cache-provider: basic`.
 >
-> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
-> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
->
-> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
-
-This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
-either [accept the terms of use](setup-gradle.md#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](setup-gradle.md#managing-develocity-access-keys).
+> For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
 ## General usage
 
@@ -75,6 +68,10 @@ on the command-line will be used.
 
 The action provides the ability to override the Gradle version and task to execute, as well as provide 
 additional arguments that will be passed to Gradle on the command-line. See [Configuration Parameters](#configuration-parameters) below.
+
+### Selecting a cache provider
+
+See [Selecting a cache provider](setup-gradle.md#selecting-a-cache-provider) for details on choosing between the `enhanced` (default) and `basic` cache providers via the `cache-provider` input.
 
 ### Disabling caching
 

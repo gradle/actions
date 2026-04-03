@@ -2,21 +2,14 @@
 
 This GitHub Action can be used to configure Gradle for optimal execution on any platform supported by GitHub Actions.
 
-> [!IMPORTANT]
-> ## Licensing notice
+> [!NOTE]
+> ### ⚡️ Choice of caching providers in v6
+> To provide the fastest possible build experience this action includes **Enhanced Caching** via `gradle-actions-caching`, an optimized provider powered by proprietary technology. This feature is **free for all public repositories** and is currently available as a **Free Preview** for private repositories. 
 >
-> The software in this repository is licensed under the [MIT License](LICENSE).
+> **Prefer a 100% Open Source (MIT) path?**
+> We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. This provider is **free for all repositories** (public and private) and can be enabled at any time by setting `cache-provider: basic`.
 >
-> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
-> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
->
-> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
-
-This license notice will be displayed in workflow logs and each job summary. To suppress this message, 
-either [accept the terms of use](#publishing-to-scansgradlecom) in your workflow, or [provide a Develocity access key](#managing-develocity-access-keys).
+> For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
 ## Why use the `setup-gradle` action?
 
@@ -132,6 +125,21 @@ The cached state includes:
 To reduce the space required for caching, this action attempts to reduce duplication in cache entries on a best effort basis.
 
 The state will be restored from the cache during the first `setup-gradle` step for any workflow job, and cache entries will be written back to the cache at the end of the job after all Gradle executions have been completed.
+
+### Selecting a cache provider
+
+The `setup-gradle` action offers two caching components, offered under different license terms and with different features.
+See [DISTRIBUTION.md](../DISTRIBUTION.md) for more details.
+
+You choose which cache to use via the `cache-provider` input:
+
+- **`enhanced`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries and intelligent cache cleanup.
+- **`basic`**: A fully open-source caching implementation built on the standard GitHub Actions cache (`@actions/cache`). Caches the `~/.gradle/caches` and `~/.gradle/wrapper` directories using a cache key based on your Gradle build files (same strategy as `actions/setup-java` with `cache: gradle`).
+
+```yaml
+# Use the open-source basic cache provider
+cache-provider: basic
+```
 
 ### Disabling caching
 
