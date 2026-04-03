@@ -9,7 +9,7 @@ The `gradle/actions` project consists of three primary components:
 | :--- | :--- | :--- | :--- |
 | **Action Runner** | **[MIT](LICENSE)** | Open | The core action logic: configures a local Gradle installation, performs wrapper validation, and reports on Gradle build execution. |
 | **Basic Caching** | **[MIT](LICENSE)** | Open | Configures basic Gradle User Home caching using 'actions/cache'. |
-| **Enhanced Caching** | **[Proprietary](NOTICE)** | Closed | Uses the 'gradle-actions-caching' library to provide fine-grained caching of Gradle User Home, intelligent cache cleanup and other advanced features. |
+| **Enhanced Caching** | **[Proprietary](licenses/gradle-actions-caching-license.txt)** | Closed | Uses the 'gradle-actions-caching' library to provide fine-grained caching of Gradle User Home, intelligent cache cleanup and other advanced features. |
 
 By default, **Enhanced Caching** is enabled to provide the best experience.
 
