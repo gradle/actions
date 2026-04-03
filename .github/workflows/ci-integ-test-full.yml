@@ -20,7 +20,7 @@ jobs:
       group: CI-integ-test-caching
       cancel-in-progress: false
     with:
-      skip-dist: false
+      skip-dist: true
     secrets: inherit
 
   other-integ-tests:
@@ -32,7 +32,7 @@ jobs:
       group: CI-integ-test-other
       cancel-in-progress: false
     with:
-      skip-dist: false
+      skip-dist: true
     secrets: inherit
 
   dependency-submission-integ-tests:
@@ -44,5 +44,5 @@ jobs:
       group: CI-integ-test-dependency-submission
       cancel-in-progress: false
     with:
-      skip-dist: false
+      skip-dist: true
     secrets: inherit
