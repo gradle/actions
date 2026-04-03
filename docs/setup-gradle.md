@@ -122,39 +122,41 @@ The cached state includes:
 - Any distributions downloaded to satisfy a `gradle-version` parameter.
 - A subset of the Gradle User Home directory, including downloaded dependencies, wrapper distributions, and the local build cache.
 
-To reduce the space required for caching, this action attempts to reduce duplication in cache entries on a best effort basis.
-
 The state will be restored from the cache during the first `setup-gradle` step for any workflow job, and cache entries will be written back to the cache at the end of the job after all Gradle executions have been completed.
 
 ### Selecting a cache provider
 
-The `setup-gradle` action offers two caching components, offered under different license terms and with different features.
+The `setup-gradle` action offers two caching providers, offered under different license terms and with different features.
 See [DISTRIBUTION.md](../DISTRIBUTION.md) for more details.
 
-You choose which cache to use via the `cache-provider` input:
+You choose which provider to use via the `cache-provider` input:
 
-- **`enhanced`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries and intelligent cache cleanup.
-- **`basic`**: A fully open-source caching implementation built on the standard GitHub Actions cache (`@actions/cache`). Caches the `~/.gradle/caches` and `~/.gradle/wrapper` directories using a cache key based on your Gradle build files (same strategy as `actions/setup-java` with `cache: gradle`).
+- **`enhanced`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries, intelligent cache cleanup, and deduplication. See [Enhanced Caching](#enhanced-caching) for details.
+- **`basic`**: A fully open-source (MIT) caching implementation built on the standard GitHub Actions cache (`@actions/cache`). Uses the same caching strategy as `actions/setup-java` with `cache: gradle`. See [Basic Caching](#basic-caching) for details.
 
 ```yaml
 # Use the open-source basic cache provider
 cache-provider: basic
 ```
 
-### Disabling caching
+### Common cache configuration
+
+The following options apply to both the `enhanced` and `basic` cache providers.
+
+#### Disabling caching
 
 Caching is enabled by default. You can disable caching for the action as follows:
 ```yaml
 cache-disabled: true
 ```
 
-### Using the cache read-only
+#### Using the cache read-only
 
 By default, The `setup-gradle` action will only write to the cache from Jobs on the default (`main`/`master`) branch.
 Jobs on other branches will read entries from the cache but will not write updated entries.
 
 This setup is designed around [GitHub imposed restrictions on cache access](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache) and should work well in most scenarios.
-See [Optimizing cache effectiveness](#select-which-branches-should-write-to-the-cache) for a more detailed explanation.
+See [Optimizing cache effectiveness](#optimizing-cache-effectiveness) for a more detailed explanation.
 
 In some circumstances, it makes sense to change this default and configure a workflow Job to read existing cache entries but not to write changes back.
 
@@ -172,52 +174,7 @@ You can also configure read-only caching only for certain branches:
 cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/release' }}
 ```
 
-### Using the cache write-only
-
-In certain circumstances it may be desirable to start with a clean Gradle User Home state, but to save the state at the end of a workflow Job:
-
-```yaml
-cache-write-only: true
-```
-
-### Configuring cache cleanup
-
-The Gradle User Home directory tends to grow over time. When you switch to a new Gradle wrapper version 
-or upgrade a dependency version the old files are not automatically and immediately removed. 
-While this can make sense in a local environment, in a GitHub Actions environment
-it can lead to ever-larger Gradle User Home cache entries being saved and restored.
-
-To avoid this situation, the `setup-gradle` and `dependency-submission` actions will perform "cache-cleanup", 
-purging any unused files from the Gradle User Home before saving it to the GitHub Actions cache. 
-Cache cleanup will attempt to remove any files that are initially restored to the Gradle User Home directory 
-but that are not used used by Gradle during the GitHub Actions Workflow.
-
-If a Gradle build fails when running the Job, then it is possible that some required files and dependencies 
-will not be touched during the Job. To prevent these files from being purged, the default behavior is for 
-cache cleanup to run only when all Gradle builds in the Job are successful.
-
-Gradle Home cache cleanup is enabled by default, and can be controlled by the `cache-cleanup` parameter as follows:
-- `cache-cleanup: always`: Always run cache cleanup, even when a Gradle build fails in the Job.
-- `cache-cleanup: on-success` (default): Run cache cleanup when the Job contains no failing Gradle builds.
-- `cache-cleanup: never`: Disable cache cleanup for the Job.
-
-Cache cleanup will never run when the cache is configured as read-only or disabled.
-
-### Overwriting an existing Gradle User Home
-
-When the action detects that the Gradle User Home caches directory already exists (`$GRADLE_USER_HOME/caches`), then by default it will not overwrite the existing content of this directory.
-This can occur when a prior action initializes this directory, or when using a self-hosted runner that retains this directory between uses.
-
-In this case, the Job Summary will display a message like:
-> Caching for Gradle actions was disabled due to pre-existing Gradle User Home
-
-If you want to override the default and have the caches of the `setup-gradle` action overwrite existing content in the Gradle User Home, you can set the `cache-overwrite-existing` parameter to `true`:
-
-```yaml
-cache-overwrite-existing: true
-```
-
-### Incompatibility with other caching mechanisms
+#### Incompatibility with other caching mechanisms
 
 When using `setup-gradle` we recommend that you avoid using other mechanisms to save and restore the Gradle User Home.
 
@@ -227,18 +184,22 @@ Specifically:
 
 Using either of these mechanisms may interfere with the caching provided by this action. If you choose to use a different mechanism to save and restore the Gradle User Home, you should disable the caching provided by this action, as described above.
 
-## How Gradle User Home caching works
+## Enhanced Caching
 
-### Properties of the GitHub Actions cache
+Enhanced Caching is the default cache provider. It uses the proprietary `gradle-actions-caching` library to provide advanced caching features including fine-grained cache entries, intelligent cache cleanup, and deduplication of cached content. This reduces cache storage requirements and improves restore times compared to basic caching.
+
+### How Enhanced Caching works
+
+#### Properties of the GitHub Actions cache
 
 The GitHub Actions cache has some properties that present problems for efficient caching of the Gradle User Home.
 - Immutable entries: once a cache entry is written for a key, it cannot be overwritten or changed.
 - Branch scope: cache entries written for a Git branch are not visible from actions running against different branches or tags. Entries written for the default branch are visible to all. https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
 - Restore keys: if no exact match is found, a set of partial keys can be provided that will match by cache key prefix. https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
-Each of these properties has influenced the design and implementation of the caching in `setup-gradle`, as described below.
+Each of these properties has influenced the design and implementation of Enhanced Caching, as described below.
 
-### Which content is cached
+#### Which content is cached
 
 Using experiments and observations, we have attempted to identify which Gradle User Home content is worth saving and restoring between build invocations. We considered both the respective size of the content and the impact this content has on build times. As well as the obvious candidates like downloaded dependencies, we saw that compiled build scripts, transformed Jar files, and other content can also have a significant impact.
 
@@ -250,9 +211,9 @@ In the end, we opted to save and restore as much content as is practical, includ
 - `caches/jars-9`: Jar files that have been processed/instrumented by Gradle
 - `caches/build-cache-1`: The local build cache
 
-In certain cases, a particular section of Gradle User Home will be too large to make caching effective. In these cases, particular subdirectories can be excluded from caching. See [Exclude content from Gradle User Home cache](#exclude-content-from-gradle-user-home-cache).
+In certain cases, a particular section of Gradle User Home will be too large to make caching effective. In these cases, particular subdirectories can be excluded from caching. See [Include/exclude content from Gradle User Home](#includeexclude-content-from-gradle-user-home).
 
-### Cache keys
+#### Cache keys
 
 The actual content of the Gradle User Home after a build is the result of many factors, including:
 - Core Gradle build files (`settings.gradle[.kts]`, `build.gradle[.kts]`, `gradle.properties`)
@@ -274,7 +235,7 @@ Specifically, the cache key is: `${cache-protocol}-gradle|${runner-os}|${job-id}
 As such, the cache key is likely to change on each subsequent run of GitHub actions.
 This allows the most recent state to always be available in the GitHub actions cache.
 
-### Finding a matching cache entry
+#### Finding a matching cache entry
 
 In most cases, no exact match will exist for the cache key. Instead, the Gradle User Home will be restored for the closest matching cache entry, using a set of "restore keys". The entries will be matched with the following precedence:
 - An exact match on OS, job id, workflow name, matrix, and Git SHA
@@ -288,9 +249,9 @@ After the Job is complete, the current Gradle User Home state will be collected 
 
 Note that while effective, this mechanism is not inherently efficient. It requires the entire Gradle User Home directory to be stored separately for each branch, for every OS+Job+Matrix combination. In addition, it writes a new cache entry on every GitHub Actions run.
 
-This inefficiency is effectively mitigated by [Deduplication of Gradle User Home cache entries](#deduplication-of-gradle-user-home-cache-entries) and can be further optimized for a workflow using the techniques described in [Optimizing cache effectiveness](#optimizing-cache-effectiveness).
+This inefficiency is effectively mitigated by [Deduplication of cache entries](#deduplication-of-cache-entries) and can be further optimized for a workflow using the techniques described in [Optimizing cache effectiveness](#optimizing-cache-effectiveness).
 
-### Deduplication of Gradle User Home cache entries
+#### Deduplication of cache entries
 
 To reduce duplication between cache entries, certain artifacts in Gradle User Home are extracted and cached independently based on their identity. This allows each Gradle User Home cache entry to be relatively small, sharing common elements between them without duplication.
 
@@ -302,53 +263,78 @@ Artifacts that are cached independently include:
 
 For example, this means that all jobs executing a particular version of the Gradle wrapper will share a single common entry for this wrapper distribution and one for each of the generated Gradle API jars.
 
-### Stopping the Gradle daemon
+#### Stopping the Gradle daemon
 
 By default, the action will stop all running Gradle daemons in the post-action step, before saving the Gradle User Home state.
 This allows for any Gradle User Home cleanup to occur, and avoid file-locking issues on Windows.
 
 If caching is disabled or the cache is in read-only mode, the daemon will not be stopped and will continue running after the job is completed.
 
-## Optimizing cache effectiveness
+### Enhanced Caching configuration options
 
-Cache storage space for GitHub actions is limited, and writing new cache entries can trigger the deletion of existing entries.
-Eviction of shared cache entries can reduce cache effectiveness, slowing down your `setup-gradle` steps.
+The following configuration options only apply when using the `enhanced` cache provider.
 
-There are a several actions you can take if your cache use is less effective due to entry eviction.
+#### Using the cache write-only
 
-At the end of a Job, The `setup-gradle` action will write a summary of the Gradle builds executed, together with a detailed report of the cache entries that were read and written during the Job. This report can provide valuable insights that may help to determine the right way to optimize the cache usage for your workflow.
+In certain circumstances it may be desirable to start with a clean Gradle User Home state, but to save the state at the end of a workflow Job:
 
-### Select which jobs should write to the cache
+```yaml
+cache-write-only: true
+```
 
-Consider a workflow that first runs a Job "compile-and-unit-test" to compile the code and run some basic unit tests, which is followed by a matrix of parallel "integration-test" jobs that each run a set of integration tests for the repository. Each "integration test" Job requires all of the dependencies required by "compile-and-unit-test", and possibly one or 2 additional dependencies.
+#### Overwriting an existing Gradle User Home
 
-By default, a new cache entry will be written on completion of each integration test job. If no additional dependencies were downloaded then this cache entry will share the "dependencies" entry with the "compile-and-unit-test" job, but if a single dependency was downloaded then an entirely new "dependencies" entry would be written. (The `setup-gradle` action does not _yet_ support a layered cache that could do this more efficiently). If each of these "integration-test" entries with their different "dependencies" entries is too large, then it could result in other important entries being evicted from the GitHub Actions cache.
+When the action detects that the Gradle User Home caches directory already exists (`$GRADLE_USER_HOME/caches`), then by default it will not overwrite the existing content of this directory.
+This can occur when a prior action initializes this directory, or when using a self-hosted runner that retains this directory between uses.
 
-Some techniques can be used to avoid/mitigate this issue:
-- Configure the "integration-test" jobs with `cache-read-only: true`, meaning that the Job will use the entry written by the "compile-and-unit-test" job. This will avoid the overhead of cache entries for each of these jobs, at the expense of re-downloading any additional dependencies required by "integration-test".
-- Add a step to the "compile-and-unit-test" job which downloads all dependencies required by the integration-test jobs but does not execute the tests. This will allow the "dependencies" entry for "compile-and-unit-test" to be shared among all cache entries for "integration-test". The resulting "integration-test" entries should be much smaller, reducing the potential for eviction.
-- Combine the above 2 techniques, so that no cache entry is written by "integration-test" jobs, but all required dependencies are already present from the restored "compile-and-unit-test" entry.
+In this case, the Job Summary will display a message like:
+> Caching for Gradle actions was disabled due to pre-existing Gradle User Home
 
-### Select which branches should write to the cache
+If you want to override the default and have the caches of the `setup-gradle` action overwrite existing content in the Gradle User Home, you can set the `cache-overwrite-existing` parameter to `true`:
 
-GitHub cache entries are not shared between builds on different branches or tags.
-Workflow runs can _only_ restore caches created in either the same branch or the default branch (usually `main`).
-This means that each branch will have its own Gradle User Home cache scope, and will not benefit from cache entries written for other (non-default) branches.
+```yaml
+cache-overwrite-existing: true
+```
 
-By default, The `setup-gradle` action will only _write_ to the cache for builds run on the default (`master`/`main`) branch.
-Jobs running on other branches will only read from the cache. In most cases, this is the desired behavior.
-This is because Jobs running on other branches will benefit from the cached Gradle User Home from `main`,
-without writing private cache entries which could lead to evicting these shared entries.
+#### Configuring cache cleanup
 
-If you have other long-lived development branches that would benefit from writing to the cache,
-you can configure this by disabling the `cache-read-only` action parameter for these branches.
-See [Using the cache read-only](#using-the-cache-read-only) for more details.
+The Gradle User Home directory tends to grow over time. When you switch to a new Gradle wrapper version
+or upgrade a dependency version the old files are not automatically and immediately removed.
+While this can make sense in a local environment, in a GitHub Actions environment
+it can lead to ever-larger Gradle User Home cache entries being saved and restored.
 
-Note there are some cases where writing cache entries is typically unhelpful (these are disabled by default):
-- For `pull_request` triggered runs, the cache scope is limited to the merge ref (`refs/pull/.../merge`) and can only be restored by re-runs of the same pull request.
-- For `merge_group` triggered runs, the cache scope is limited to a temporary branch with a special prefix created to validate pull request changes, and won't be available on subsequent Merge Queue executions.
+To avoid this situation, the `setup-gradle` and `dependency-submission` actions will perform "cache-cleanup",
+purging any unused files from the Gradle User Home before saving it to the GitHub Actions cache.
+Cache cleanup will attempt to remove any files that are initially restored to the Gradle User Home directory
+but that are not used by Gradle during the GitHub Actions Workflow.
 
-### Exclude content from Gradle User Home cache
+If a Gradle build fails when running the Job, then it is possible that some required files and dependencies
+will not be touched during the Job. To prevent these files from being purged, the default behavior is for
+cache cleanup to run only when all Gradle builds in the Job are successful.
+
+Gradle Home cache cleanup is enabled by default, and can be controlled by the `cache-cleanup` parameter as follows:
+- `cache-cleanup: always`: Always run cache cleanup, even when a Gradle build fails in the Job.
+- `cache-cleanup: on-success` (default): Run cache cleanup when the Job contains no failing Gradle builds.
+- `cache-cleanup: never`: Disable cache cleanup for the Job.
+
+Cache cleanup will never run when the cache is configured as read-only or disabled.
+
+#### Cache encryption key
+
+The `cache-encryption-key` parameter allows you to provide a base64-encoded AES key to encrypt configuration-cache data stored in the GitHub Actions cache. This is useful when your configuration-cache entries contain sensitive information.
+
+```yaml
+cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+```
+
+A suitable key can be generated with:
+```
+openssl rand -base64 16
+```
+
+The key is exported as the `GRADLE_ENCRYPTION_KEY` environment variable for use by subsequent steps.
+
+#### Include/exclude content from Gradle User Home
 
 As well as any wrapper distributions, the action will attempt to save and restore the `caches` and `notifications` directories from Gradle User Home.
 
@@ -371,7 +357,57 @@ gradle-home-cache-excludes: |
 You can specify any number of fixed paths or patterns to include or exclude.
 File pattern support is documented at https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#patterns-to-match-file-paths.
 
-### Disable local build-cache when remote build-cache is available
+#### Strict cache matching
+
+By default, the Enhanced Caching provider will attempt to restore the Gradle User Home from cache entries written by other Jobs in the same workflow (using restore keys). Setting `gradle-home-cache-strict-match` to `true` disables this behavior, so that cache entries are only restored from the same Job.
+
+```yaml
+gradle-home-cache-strict-match: true
+```
+
+> [!NOTE]
+> This is an experimental feature that may be useful if you find that cache entries from other Jobs are causing issues.
+
+### Optimizing cache effectiveness
+
+Cache storage space for GitHub actions is limited, and writing new cache entries can trigger the deletion of existing entries.
+Eviction of shared cache entries can reduce cache effectiveness, slowing down your `setup-gradle` steps.
+
+There are a several actions you can take if your cache use is less effective due to entry eviction.
+
+At the end of a Job, The `setup-gradle` action will write a summary of the Gradle builds executed, together with a detailed report of the cache entries that were read and written during the Job. This report can provide valuable insights that may help to determine the right way to optimize the cache usage for your workflow.
+
+#### Select which jobs should write to the cache
+
+Consider a workflow that first runs a Job "compile-and-unit-test" to compile the code and run some basic unit tests, which is followed by a matrix of parallel "integration-test" jobs that each run a set of integration tests for the repository. Each "integration test" Job requires all of the dependencies required by "compile-and-unit-test", and possibly one or 2 additional dependencies.
+
+By default, a new cache entry will be written on completion of each integration test job. If no additional dependencies were downloaded then this cache entry will share the "dependencies" entry with the "compile-and-unit-test" job, but if a single dependency was downloaded then an entirely new "dependencies" entry would be written. (The `setup-gradle` action does not _yet_ support a layered cache that could do this more efficiently). If each of these "integration-test" entries with their different "dependencies" entries is too large, then it could result in other important entries being evicted from the GitHub Actions cache.
+
+Some techniques can be used to avoid/mitigate this issue:
+- Configure the "integration-test" jobs with `cache-read-only: true`, meaning that the Job will use the entry written by the "compile-and-unit-test" job. This will avoid the overhead of cache entries for each of these jobs, at the expense of re-downloading any additional dependencies required by "integration-test".
+- Add a step to the "compile-and-unit-test" job which downloads all dependencies required by the integration-test jobs but does not execute the tests. This will allow the "dependencies" entry for "compile-and-unit-test" to be shared among all cache entries for "integration-test". The resulting "integration-test" entries should be much smaller, reducing the potential for eviction.
+- Combine the above 2 techniques, so that no cache entry is written by "integration-test" jobs, but all required dependencies are already present from the restored "compile-and-unit-test" entry.
+
+#### Select which branches should write to the cache
+
+GitHub cache entries are not shared between builds on different branches or tags.
+Workflow runs can _only_ restore caches created in either the same branch or the default branch (usually `main`).
+This means that each branch will have its own Gradle User Home cache scope, and will not benefit from cache entries written for other (non-default) branches.
+
+By default, The `setup-gradle` action will only _write_ to the cache for builds run on the default (`master`/`main`) branch.
+Jobs running on other branches will only read from the cache. In most cases, this is the desired behavior.
+This is because Jobs running on other branches will benefit from the cached Gradle User Home from `main`,
+without writing private cache entries which could lead to evicting these shared entries.
+
+If you have other long-lived development branches that would benefit from writing to the cache,
+you can configure this by disabling the `cache-read-only` action parameter for these branches.
+See [Using the cache read-only](#using-the-cache-read-only) for more details.
+
+Note there are some cases where writing cache entries is typically unhelpful (these are disabled by default):
+- For `pull_request` triggered runs, the cache scope is limited to the merge ref (`refs/pull/.../merge`) and can only be restored by re-runs of the same pull request.
+- For `merge_group` triggered runs, the cache scope is limited to a temporary branch with a special prefix created to validate pull request changes, and won't be available on subsequent Merge Queue executions.
+
+#### Disable local build-cache when remote build-cache is available
 
 If you have a remote build-cache available for your build, then it is recommended to do the following:
 - Enable [remote build-cache push](https://docs.gradle.org/current/userguide/build_cache.html#sec:build_cache_configure_use_cases) for your GitHub Actions builds
@@ -380,6 +416,52 @@ If you have a remote build-cache available for your build, then it is recommende
 As well as reducing the content that needs to be saved to the GitHub Actions cache,
 this setup will ensure that your CI builds populate the remote cache and keep the cache entries fresh by reading these entries.
 Local builds can then benefit from the remote cache.
+
+## Basic Caching
+
+Basic Caching is an open-source (MIT) alternative that uses `@actions/cache` to provide straightforward, path-based caching of Gradle dependencies. It uses the same caching strategy as `actions/setup-java` with `cache: gradle`.
+
+To enable Basic Caching:
+
+```yaml
+- uses: gradle/actions/setup-gradle@v6
+  with:
+    cache-provider: basic
+```
+
+### What Basic Caching stores
+
+The basic provider saves and restores two directories from the Gradle User Home:
+- `~/.gradle/caches` — downloaded dependencies, compiled build scripts, transforms, and the local build cache
+- `~/.gradle/wrapper` — wrapper distributions
+
+### Cache key strategy
+
+The cache key is computed from the contents of your Gradle build files, using the format:
+
+`setup-java-{RUNNER_OS}-{arch}-gradle-{hash}`
+
+The hash is derived from the following file patterns:
+- `**/*.gradle*`
+- `**/gradle-wrapper.properties`
+- `buildSrc/**/Versions.kt`
+- `buildSrc/**/Dependencies.kt`
+- `gradle/*.versions.toml`
+- `**/versions.properties`
+
+Unlike the Enhanced Caching provider, Basic Caching does not use restore keys. If no exact cache key match is found, the cache starts empty. This means that when you update a dependency or change a build file, the next build will re-download all dependencies and write a fresh cache entry.
+
+### Limitations
+
+The basic provider does not support the following Enhanced Caching features:
+- **Cache cleanup** (`cache-cleanup`): Stale entries are not automatically removed.
+- **Deduplication**: The entire `caches` and `wrapper` directories are stored as a single cache entry, without deduplication of individual artifacts.
+- **Include/exclude paths** (`gradle-home-cache-includes` / `gradle-home-cache-excludes`): The cached paths are fixed.
+- **Write-only mode** (`cache-write-only`): Not available with basic caching.
+- **Overwrite existing** (`cache-overwrite-existing`): Not available with basic caching.
+- **Strict cache matching** (`gradle-home-cache-strict-match`): Not applicable since restore keys are not used.
+
+If you need these features, switch to the default [Enhanced Caching](#enhanced-caching) provider.
 
 ## Debugging and Troubleshooting
 
