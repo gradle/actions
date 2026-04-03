@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   caching-integ-tests:
-    needs: build-distribution
     uses: ./.github/workflows/suite-integ-test-caching.yml
     concurrency:
       group: CI-integ-test-caching
