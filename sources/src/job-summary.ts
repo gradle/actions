@@ -1,8 +1,10 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import {GitHub} from '@actions/github/lib/utils'
+import {Repository} from '@octokit/graphql-schema'
 
 import {BuildResult} from './build-results'
-import {SummaryConfig, getActionId, getGithubToken} from './configuration'
+import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
 
 export async function generateJobSummary(
@@ -48,7 +50,11 @@ async function addPRComment(jobSummary: string): Promise<void> {
     const pull_request_number = context.payload.pull_request.number
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
-    const prComment = `<h3>Job Summary for Gradle</h3>
+    const jobCorrelator = DependencyGraphConfig.constructJobCorrelator(context.workflow, context.job, getJobMatrix())
+    const marker = `<!-- gradle-job-summary: ${jobCorrelator} -->`
+
+    const prComment = `${marker}
+<h3>Job Summary for Gradle</h3>
 <a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
 </a>
@@ -57,6 +63,8 @@ ${jobSummary}`
 
     const github_token = getGithubToken()
     const octokit = github.getOctokit(github_token)
+    await minimizeComments(octokit, pull_request_number, marker)
+
     try {
         await octokit.rest.issues.createComment({
             ...context.repo,
@@ -200,4 +208,45 @@ function truncateString(str: string, maxLength: number): string {
     } else {
         return str
     }
+}
+
+async function minimizeComments(octokit: InstanceType<typeof GitHub>, prNumber: number, marker: string): Promise<void> {
+    const {owner, repo} = github.context.repo
+
+    const query = `
+    query($owner: String!, $repo: String!, $prNumber: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $prNumber) {
+          comments(last: 100) {
+            nodes { id body isMinimized url }
+          }
+        }
+      }
+    }
+  `
+    let comments
+    try {
+        const {repository} = await octokit.graphql<{repository: Repository}>(query, {owner, repo, prNumber})
+        comments = repository.pullRequest?.comments?.nodes?.filter((c): c is NonNullable<typeof c> => c !== null) ?? []
+    } catch (error) {
+        return core.warning(`Failed to fetch comments: ${error}`)
+    }
+
+    const mutation = `
+    mutation($id: ID!) {
+      minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+        clientMutationId
+      }
+    }
+  `
+
+    const commentsToMinimize = comments
+        .filter(c => !c.isMinimized && c.body.includes(marker))
+        .map(async c =>
+            octokit
+                .graphql(mutation, {id: c.id})
+                .then(() => core.info(`Successfully minimized (id:${c.id}, url:${c.url})`))
+                .catch(e => core.warning(`Failed to minimize (id:${c.id}, url:${c.url}, error:${e?.message || e})`))
+        )
+    await Promise.allSettled(commentsToMinimize)
 }
