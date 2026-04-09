@@ -8,10 +8,16 @@ inputs:
     type: string
 
   dependency-resolution-task:
-    type: string
+    type: list
+    separator: ' '
+    list-item:
+      type: string
 
   additional-arguments:
-    type: string
+    type: list
+    separator: ' '
+    list-item:
+      type: string
 
   # Cache configuration
   cache-provider:
@@ -115,7 +121,7 @@ inputs:
   build-scan-terms-of-use-agree:
     type: enum
     allowed-values:
-      - 'yes'
+      - yes
 
   develocity-access-key:
     type: string

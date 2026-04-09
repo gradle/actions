@@ -69,6 +69,7 @@ inputs:
       - disabled
       - generate
       - generate-and-submit
+      - generate-submit-and-upload
       - generate-and-upload
       - download-and-submit
 
@@ -106,7 +107,7 @@ inputs:
   build-scan-terms-of-use-agree:
     type: enum
     allowed-values:
-      - 'yes'
+      - yes
 
   develocity-access-key:
     type: string
@@ -153,7 +154,10 @@ inputs:
 
   # Deprecated action inputs
   arguments:
-    type: string
+    type: list
+    separator: ' '
+    list-item:
+      type: string
 
   # Experimental action inputs
   gradle-home-cache-strict-match:
