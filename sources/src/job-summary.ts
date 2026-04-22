@@ -1,8 +1,9 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import {Repository} from '@octokit/graphql-schema'
 
 import {BuildResult} from './build-results'
-import {SummaryConfig, getActionId, getGithubToken} from './configuration'
+import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
 
 export async function generateJobSummary(
@@ -33,6 +34,10 @@ export async function generateJobSummary(
         core.info('============================')
     }
 
+    if (config.canAddPRComment()) {
+        await minimizeObsoletePRComments()
+    }
+
     if (config.shouldAddPRComment(hasFailure)) {
         await addPRComment(summaryTable)
     }
@@ -48,7 +53,8 @@ async function addPRComment(jobSummary: string): Promise<void> {
     const pull_request_number = context.payload.pull_request.number
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
-    const prComment = `<h3>Job Summary for Gradle</h3>
+    const prComment = `${jobMarker(context)}
+<h3>Job Summary for Gradle</h3>
 <a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
 </a>
@@ -57,6 +63,7 @@ ${jobSummary}`
 
     const github_token = getGithubToken()
     const octokit = github.getOctokit(github_token)
+
     try {
         await octokit.rest.issues.createComment({
             ...context.repo,
@@ -200,4 +207,61 @@ function truncateString(str: string, maxLength: number): string {
     } else {
         return str
     }
+}
+
+async function minimizeObsoletePRComments(): Promise<void> {
+    const context = github.context
+    if (context.payload.pull_request == null) {
+        core.info('No pull_request trigger detected: not minimizing obsolete PR comments')
+        return
+    }
+
+    const prNumber = context.payload.pull_request.number
+    core.info(`Minimizing obsolete Job Summary comments on PR #${prNumber}.`)
+
+    const marker = jobMarker(context)
+    const octokit = github.getOctokit(getGithubToken())
+    const {owner, repo} = context.repo
+
+    const query = `
+    query($owner: String!, $repo: String!, $prNumber: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $prNumber) {
+          comments(last: 100) {
+            nodes { id body isMinimized url }
+          }
+        }
+      }
+    }
+  `
+    let comments
+    try {
+        const {repository} = await octokit.graphql<{repository: Repository}>(query, {owner, repo, prNumber})
+        comments = repository.pullRequest?.comments?.nodes?.filter((c): c is NonNullable<typeof c> => c !== null) ?? []
+    } catch (error) {
+        return core.warning(`Failed to fetch comments: ${error}`)
+    }
+
+    const mutation = `
+    mutation($id: ID!) {
+      minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+        clientMutationId
+      }
+    }
+  `
+
+    const commentsToMinimize = comments
+        .filter(c => !c.isMinimized && c.body.includes(marker))
+        .map(async c =>
+            octokit
+                .graphql(mutation, {id: c.id})
+                .then(() => core.info(`Successfully minimized (id:${c.id}, url:${c.url})`))
+                .catch(e => core.warning(`Failed to minimize (id:${c.id}, url:${c.url}, error:${e?.message || e})`))
+        )
+    await Promise.allSettled(commentsToMinimize)
+}
+
+function jobMarker(context: typeof github.context): string {
+    const jobCorrelator = DependencyGraphConfig.constructJobCorrelator(context.workflow, context.job, getJobMatrix())
+    return `<!-- gradle-job-summary: ${jobCorrelator} -->`
 }

@@ -43,6 +43,7 @@
     "@actions/glob": "0.6.1",
     "@actions/http-client": "4.0.0",
     "@actions/tool-cache": "4.0.0",
+    "@octokit/graphql-schema": "15.26.1",
     "@octokit/webhooks-types": "7.6.1",
     "cheerio": "1.2.0",
     "semver": "7.7.4",

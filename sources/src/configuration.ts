@@ -206,6 +206,10 @@ export class SummaryConfig {
         return this.shouldAddJobSummary(this.getJobSummaryOption(), hasFailure)
     }
 
+    canAddPRComment(): boolean {
+        return this.getPRCommentOption() !== JobSummaryOption.Never
+    }
+
     shouldAddPRComment(hasFailure: boolean): boolean {
         return this.shouldAddJobSummary(this.getPRCommentOption(), hasFailure)
     }
