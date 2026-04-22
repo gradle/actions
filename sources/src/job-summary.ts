@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {GitHub} from '@actions/github/lib/utils'
 import {Repository} from '@octokit/graphql-schema'
 
 import {BuildResult} from './build-results'
@@ -35,6 +34,10 @@ export async function generateJobSummary(
         core.info('============================')
     }
 
+    if (config.canAddPRComment()) {
+        await minimizeObsoletePRComments()
+    }
+
     if (config.shouldAddPRComment(hasFailure)) {
         await addPRComment(summaryTable)
     }
@@ -50,10 +53,7 @@ async function addPRComment(jobSummary: string): Promise<void> {
     const pull_request_number = context.payload.pull_request.number
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
-    const jobCorrelator = DependencyGraphConfig.constructJobCorrelator(context.workflow, context.job, getJobMatrix())
-    const marker = `<!-- gradle-job-summary: ${jobCorrelator} -->`
-
-    const prComment = `${marker}
+    const prComment = `${jobMarker(context)}
 <h3>Job Summary for Gradle</h3>
 <a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
@@ -63,7 +63,6 @@ ${jobSummary}`
 
     const github_token = getGithubToken()
     const octokit = github.getOctokit(github_token)
-    await minimizeComments(octokit, pull_request_number, marker)
 
     try {
         await octokit.rest.issues.createComment({
@@ -210,8 +209,19 @@ function truncateString(str: string, maxLength: number): string {
     }
 }
 
-async function minimizeComments(octokit: InstanceType<typeof GitHub>, prNumber: number, marker: string): Promise<void> {
-    const {owner, repo} = github.context.repo
+async function minimizeObsoletePRComments(): Promise<void> {
+    const context = github.context
+    if (context.payload.pull_request == null) {
+        core.info('No pull_request trigger detected: not minimizing obsolete PR comments')
+        return
+    }
+
+    const prNumber = context.payload.pull_request.number
+    core.info(`Minimizing obsolete Job Summary comments on PR #${prNumber}.`)
+
+    const marker = jobMarker(context)
+    const octokit = github.getOctokit(getGithubToken())
+    const {owner, repo} = context.repo
 
     const query = `
     query($owner: String!, $repo: String!, $prNumber: Int!) {
@@ -249,4 +259,9 @@ async function minimizeComments(octokit: InstanceType<typeof GitHub>, prNumber: 
                 .catch(e => core.warning(`Failed to minimize (id:${c.id}, url:${c.url}, error:${e?.message || e})`))
         )
     await Promise.allSettled(commentsToMinimize)
+}
+
+function jobMarker(context: typeof github.context): string {
+    const jobCorrelator = DependencyGraphConfig.constructJobCorrelator(context.workflow, context.job, getJobMatrix())
+    return `<!-- gradle-job-summary: ${jobCorrelator} -->`
 }
