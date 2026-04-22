@@ -12,6 +12,7 @@ on:
 
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: wrapper-validation- # Avoid loading cache entries from other tests, that may have cached allowed wrapper checksums
 
 permissions:
   contents: read

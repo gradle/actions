@@ -166,6 +166,28 @@ export class CacheConfig {
     getCacheExcludes(): string[] {
         return core.getMultilineInput('gradle-home-cache-excludes')
     }
+
+    isCacheLicenseAccepted(): boolean {
+        const dvConfig = new DevelocityConfig()
+        return dvConfig.getDevelocityAccessKey() !== '' || dvConfig.hasTermsOfUseAgreement()
+    }
+
+    getCacheProvider(): CacheProvider {
+        const val = core.getInput('cache-provider')
+        switch (val.toLowerCase().trim()) {
+            case 'basic':
+                return CacheProvider.Basic
+            case 'enhanced':
+            case '':
+                return CacheProvider.Enhanced
+        }
+        throw TypeError(`The value '${val}' is not valid for 'cache-provider'. Valid values are: [basic, enhanced].`)
+    }
+}
+
+export enum CacheProvider {
+    Basic = 'basic',
+    Enhanced = 'enhanced'
 }
 
 export enum CacheCleanupOption {
@@ -233,7 +255,7 @@ export enum JobSummaryOption {
     OnFailure = 'on-failure'
 }
 
-export class BuildScanConfig {
+export class DevelocityConfig {
     static DevelocityAccessKeyEnvVar = 'DEVELOCITY_ACCESS_KEY'
     static GradleEnterpriseAccessKeyEnvVar = 'GRADLE_ENTERPRISE_ACCESS_KEY'
 
@@ -241,19 +263,19 @@ export class BuildScanConfig {
         return getBooleanInput('build-scan-publish') && this.verifyTermsOfUseAgreement()
     }
 
-    getBuildScanTermsOfUseUrl(): string {
+    getTermsOfUseUrl(): string {
         return core.getInput('build-scan-terms-of-use-url')
     }
 
-    getBuildScanTermsOfUseAgree(): string {
+    getTermsOfUseAgree(): string {
         return core.getInput('build-scan-terms-of-use-agree')
     }
 
     getDevelocityAccessKey(): string {
         return (
             core.getInput('develocity-access-key') ||
-            process.env[BuildScanConfig.DevelocityAccessKeyEnvVar] ||
-            process.env[BuildScanConfig.GradleEnterpriseAccessKeyEnvVar] ||
+            process.env[DevelocityConfig.DevelocityAccessKeyEnvVar] ||
+            process.env[DevelocityConfig.GradleEnterpriseAccessKeyEnvVar] ||
             ''
         )
     }
@@ -294,12 +316,17 @@ export class BuildScanConfig {
         return new PluginRepositoryConfig()
     }
 
+    hasTermsOfUseAgreement(): boolean {
+        const develocityAccessKeySet = this.getDevelocityAccessKey() !== ''
+        const termsUrlSet =
+            this.getTermsOfUseUrl() === 'https://gradle.com/terms-of-service' ||
+            this.getTermsOfUseUrl() === 'https://gradle.com/help/legal-terms-of-use'
+        const termsAgreed = this.getTermsOfUseAgree() === 'yes'
+        return develocityAccessKeySet || (termsUrlSet && termsAgreed)
+    }
+
     private verifyTermsOfUseAgreement(): boolean {
-        if (
-            (this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/terms-of-service' &&
-                this.getBuildScanTermsOfUseUrl() !== 'https://gradle.com/help/legal-terms-of-use') ||
-            this.getBuildScanTermsOfUseAgree() !== 'yes'
-        ) {
+        if (!this.hasTermsOfUseAgreement()) {
             core.warning(
                 `Terms of use at 'https://gradle.com/help/legal-terms-of-use' must be agreed in order to publish build scans.`
             )

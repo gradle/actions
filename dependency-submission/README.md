@@ -22,14 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: 17
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
 ```
 
 See the [full action documentation](../docs/dependency-submission.md) for more advanced usage scenarios.

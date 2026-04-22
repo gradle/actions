@@ -2,7 +2,7 @@ import * as setupGradle from '../../setup-gradle'
 import * as provisioner from '../../execution/provision'
 import * as dependencyGraph from '../../dependency-graph'
 import {
-    BuildScanConfig,
+    DevelocityConfig,
     CacheConfig,
     DependencyGraphConfig,
     GradleExecutionConfig,
@@ -12,6 +12,7 @@ import {
 } from '../../configuration'
 import {failOnUseOfRemovedFeature, saveDeprecationState} from '../../deprecation-collector'
 import {handleMainActionError} from '../../errors'
+import {forceExit} from '../../force-exit'
 
 /**
  * The main entry point for the action, called by Github Actions for the step.
@@ -27,7 +28,7 @@ export async function run(): Promise<void> {
         setActionId('gradle/actions/setup-gradle')
 
         // Configure Gradle environment (Gradle User Home)
-        await setupGradle.setup(new CacheConfig(), new BuildScanConfig(), new WrapperValidationConfig())
+        await setupGradle.setup(new CacheConfig(), new DevelocityConfig(), new WrapperValidationConfig())
 
         // Configure the dependency graph submission
         await dependencyGraph.setup(new DependencyGraphConfig())
@@ -42,7 +43,7 @@ export async function run(): Promise<void> {
     }
 
     // Explicit process.exit() to prevent waiting for hanging promises.
-    process.exit()
+    await forceExit()
 }
 
 run()

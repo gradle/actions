@@ -50,7 +50,7 @@ We created an example [Homoglyph attack PR here](https://github.com/JLLeitschuh/
 Simply add this action to your workflow **after** having checked out your source tree and **before** running any Gradle build:
 
 ```yaml
-uses: gradle/actions/wrapper-validation@v5
+uses: gradle/actions/wrapper-validation@v6
 ```
 
 This action step should precede any step using `gradle/gradle-build-action` or `gradle/actions/setup-gradle`.
@@ -72,8 +72,8 @@ jobs:
     name: "Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: gradle/actions/wrapper-validation@v5
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
 ```
 
 ## Contributing to an external GitHub Repository
@@ -120,7 +120,7 @@ restore these Jars on checkout. Without this, only a pointer to the Wrapper Jar 
 
 ```
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: true  # gradle-wrapper.jar verification will fail without this
 ```

@@ -2,18 +2,14 @@
 
 This repository contains a set of GitHub Actions that are useful for building Gradle projects on GitHub.
 
-> [!IMPORTANT]
-> ## Licensing notice
+> [!NOTE]
+> ### ⚡️ Choice of caching providers in v6
+> To provide the fastest possible build experience this action includes **Enhanced Caching** via `gradle-actions-caching`, an optimized provider powered by proprietary technology. This feature is **free for all public repositories** and is currently available as a **Free Preview** for private repositories. 
 >
-> The software in this repository is licensed under the [MIT License](LICENSE).
+> **Prefer a 100% Open Source (MIT) path?**
+> We also provide a **Basic Caching** provider as a thin wrapper over `actions/cache`. This provider is **free for all repositories** (public and private) and can be enabled at any time by setting `cache-provider: basic`.
 >
-> The caching functionality in this project has been extracted into `gradle-actions-caching`, a proprietary commercial component that is not covered by the MIT License for this repository. 
-> The bundled `gradle-actions-caching` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
->
-> The `gradle-actions-caching` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the `gradle-actions-caching` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the `gradle-actions-caching` component.
+> For a full breakdown of the components, usage tiers, and our **Safe Harbor** data privacy commitment, see our [Distribution & Licensing Guide](./DISTRIBUTION.md).
 
 ## The `setup-gradle` action
 
@@ -36,14 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: 17
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v5
+      uses: gradle/actions/setup-gradle@v6
     - name: Build with Gradle
       run: ./gradlew build
 ```
@@ -74,14 +70,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: 17
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
 ```
 
 See the [full action documentation](docs/dependency-submission.md) for more advanced usage scenarios.
@@ -109,8 +105,8 @@ jobs:
     name: "Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: gradle/actions/wrapper-validation@v5
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
 ```
 
 See the [full action documentation](docs/wrapper-validation.md) for more advanced usage scenarios.

@@ -1,0 +1,24 @@
+name: ci-validate-typings.yml
+on:
+  push:
+    branches:
+    - 'main'
+    - 'release/**'
+    paths-ignore:
+    - 'dist/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-typings:
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: typesafegithub/github-actions-typing@9ddf35b71a482be7d8922b28e8d00df16b77e315 # v2.2.2
+      with:
+        ignored-action-files: |
+          .github/actions/build-dist/action.yml
+          .github/actions/init-integ-test/action.yml
+          action.yml
