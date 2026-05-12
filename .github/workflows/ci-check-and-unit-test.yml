@@ -51,30 +51,39 @@ jobs:
           gradle-version: '8.14.2'
 
       - name: Install Develocity npm agent
+        if: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY != '' }}
         run: |
           npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
 
       - name: Install npm dependencies
         working-directory: sources
-        run: npm clean-install
+        run: |
+          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
+            export NODE_OPTIONS='-r @gradle-tech/develocity-agent/preload'
+          fi
+          npm clean-install
         env:
-          NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
       - name: Check formatting and compile
         working-directory: sources
         run: |
+          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
+            export NODE_OPTIONS='-r @gradle-tech/develocity-agent/preload'
+          fi
           npm run check
           npm run compile
         env:
-          NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
       - name: Run unit tests
         working-directory: sources
-        run: npm test
+        run: |
+          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
+            export NODE_OPTIONS='-r @gradle-tech/develocity-agent/preload'
+          fi
+          npm test
         env:
-          NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
       - name: Teardown Grafana Alloy
