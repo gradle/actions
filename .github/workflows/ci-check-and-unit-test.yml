@@ -18,74 +18,142 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: 20
+  GRADLE_VERSION: 8.14.2
+
 jobs:
   check-format-and-unit-test:
     runs-on: ubuntu-latest
 
+    timeout-minutes: 30
+
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      # ------------------------------------------------------------
+      # Checkout
+      # ------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # ------------------------------------------------------------
+      # Optional Observability
+      # ------------------------------------------------------------
       - name: Start Grafana Alloy
+        if: env.GRAFANA_ENABLED == 'true'
         uses: ./.github/actions/setup-alloy
         with:
           service-name: ci-check-and-unit-test
           grafana-endpoint: ${{ secrets.GRAFANA_CLOUD_OTLP_ENDPOINT }}
           grafana-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
+        env:
+          GRAFANA_ENABLED: ${{ secrets.GRAFANA_CLOUD_OTLP_ENDPOINT != '' && 'true' || 'false' }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+      # ------------------------------------------------------------
+      # Node
+      # ------------------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: sources/package-lock.json
 
+      # ------------------------------------------------------------
+      # Gradle
+      # ------------------------------------------------------------
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
-        env:
-          # ⚠️ Replace with real checksum in production
-          ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.14.2'
+          gradle-version: ${{ env.GRADLE_VERSION }}
 
-      - name: Install Develocity npm agent
-        if: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY != '' }}
+        env:
+          # 🔐 Replace with REAL checksum from:
+          # sha256sum gradle/wrapper/gradle-wrapper.jar
+          ALLOWED_GRADLE_WRAPPER_CHECKSUMS: REPLACE_WITH_REAL_SHA256
+
+      # ------------------------------------------------------------
+      # Configure Develocity
+      # ------------------------------------------------------------
+      - name: Configure Develocity
+        shell: bash
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
         run: |
-          npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
+          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
+            echo "DEVELOCITY_ENABLED=true" >> $GITHUB_ENV
+            echo "NODE_OPTIONS=-r @gradle-tech/develocity-agent/preload" >> $GITHUB_ENV
+          else
+            echo "DEVELOCITY_ENABLED=false" >> $GITHUB_ENV
+          fi
 
+      # ------------------------------------------------------------
+      # Install Develocity Agent
+      # ------------------------------------------------------------
+      - name: Install Develocity npm agent
+        if: env.DEVELOCITY_ENABLED == 'true'
+        run: |
+          mkdir -p ~/.node_libraries/@gradle-tech
+
+          npm exec -y -- \
+            pacote extract \
+            @gradle-tech/develocity-agent@3.0.1 \
+            ~/.node_libraries/@gradle-tech/develocity-agent
+
+      # ------------------------------------------------------------
+      # Install Dependencies
+      # ------------------------------------------------------------
       - name: Install npm dependencies
         working-directory: sources
-        run: |
-          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
-            export NODE_OPTIONS='-r @gradle-tech/develocity-agent/preload'
-          fi
-          npm clean-install
+        run: npm clean-install
         env:
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
-      - name: Check formatting and compile
+      # ------------------------------------------------------------
+      # Lint / Format / Compile
+      # ------------------------------------------------------------
+      - name: Check formatting
         working-directory: sources
-        run: |
-          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
-            export NODE_OPTIONS='-r @gradle-tech/develocity-agent/preload'
-          fi
-          npm run check
-          npm run compile
+        run: npm run check
         env:
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
+      - name: Compile project
+        working-directory: sources
+        run: npm run compile
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
+
+      # ------------------------------------------------------------
+      # Unit Tests
+      # ------------------------------------------------------------
       - name: Run unit tests
         working-directory: sources
-        run: |
-          if [ -n "${DEVELOCITY_ACCESS_KEY}" ]; then
-            export NODE_OPTIONS='-r @gradle-tech/develocity-agent/preload'
-          fi
-          npm test
+        run: npm test
         env:
+          CI: true
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
-      - name: Teardown Grafana Alloy
+      # ------------------------------------------------------------
+      # Upload Test Reports
+      # ------------------------------------------------------------
+      - name: Upload test artifacts
         if: always()
-        uses: ./.github/actions/teardown-alloy
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-test-results
+          path: |
+            sources/test-results
+            sources/coverage
+          if-no-files-found: ignore
+
+      # ------------------------------------------------------------
+      # Summary
+      # ------------------------------------------------------------
+      - name: CI Summary
+        if: always()
+        run: |
+          echo "✅ CI pipeline completed"
+          echo "Branch: $GITHUB_REF"
+          echo "Commit: $GITHUB_SHA"
