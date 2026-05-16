@@ -1,0 +1,2 @@
+# Optional dependency. If unavailable, scripts/dad_loader.py uses an internal fallback parser.
+PyYAML>=6.0
