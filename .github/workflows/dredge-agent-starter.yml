@@ -1,0 +1,111 @@
+name: DREDGE Agent Starter
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_role:
+        description: Agent role to execute
+        type: choice
+        options: [forge, gate, sentinel, replay, oracle]
+        default: forge
+      telemetry:
+        description: Emit telemetry artifacts
+        type: boolean
+        default: true
+      replay:
+        description: Emit replay ledger artifact
+        type: boolean
+        default: true
+      orion_emit:
+        description: Emit run payload to Orion gateway
+        type: boolean
+        default: false
+
+jobs:
+  dredge-agent:
+    runs-on: ubuntu-latest
+    outputs:
+      run-id:
+        value: ${{ steps.init.outputs.run_id }}
+      agent-role:
+        value: ${{ steps.init.outputs.agent_role }}
+    steps:
+      - name: Initialize run metadata
+        id: init
+        run: |
+          START_TS="$(date +%s%3N)"
+          echo "start_ts=${START_TS}" >> "$GITHUB_OUTPUT"
+          echo "run_id=run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+          echo "agent_role=${{ inputs.agent_role }}" >> "$GITHUB_OUTPUT"
+          mkdir -p out
+
+      - name: Build replay-ledger.json
+        if: ${{ inputs.replay }}
+        run: |
+          END_TS="$(date +%s%3N)"
+          DURATION=$((END_TS-${{ steps.init.outputs.start_ts }}))
+          cat > out/replay-ledger.json <<JSON
+          {
+            "run_id": "${{ steps.init.outputs.run_id }}",
+            "agent": "dredge-agent",
+            "task": "starter-run",
+            "repo": "${{ github.repository }}",
+            "status": "success",
+            "duration_ms": ${DURATION},
+            "artifacts": ["replay-ledger.json", "telemetry.json", "execution-graph.json"],
+            "errors": [],
+            "commit_sha": "${{ github.sha }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "retry_count": ${{ github.run_attempt }},
+            "startup_ms": 0,
+            "dependency_resolution_ms": 0
+          }
+          JSON
+
+      - name: Build telemetry + execution graph
+        if: ${{ inputs.telemetry }}
+        run: |
+          END_TS="$(date +%s%3N)"
+          DURATION=$((END_TS-${{ steps.init.outputs.start_ts }}))
+          cat > out/telemetry.json <<JSON
+          {
+            "run_id": "${{ steps.init.outputs.run_id }}",
+            "agent_role": "${{ steps.init.outputs.agent_role }}",
+            "startup_ms": 0,
+            "dependency_resolution_ms": 0,
+            "retry_count": ${{ github.run_attempt }},
+            "duration_ms": ${DURATION}
+          }
+          JSON
+          cat > out/execution-graph.json <<JSON
+          {
+            "nodes": ["init", "replay", "telemetry", "orion"],
+            "edges": [["init", "replay"], ["init", "telemetry"], ["replay", "orion"], ["telemetry", "orion"]],
+            "role": "${{ steps.init.outputs.agent_role }}"
+          }
+          JSON
+
+      - name: Emit payload to Orion gateway
+        if: ${{ inputs.orion_emit }}
+        env:
+          ORION_URL: ${{ vars.ORION_URL }}
+          ORION_TOKEN: ${{ secrets.ORION_TOKEN }}
+        run: |
+          test -n "$ORION_URL" || { echo "ORION_URL is required when orion_emit=true"; exit 1; }
+          jq -n \
+            --arg run_id "${{ steps.init.outputs.run_id }}" \
+            --arg repo "${{ github.repository }}" \
+            --arg role "${{ steps.init.outputs.agent_role }}" \
+            --arg sha "${{ github.sha }}" \
+            '{run_id:$run_id,repo:$repo,agent_role:$role,commit_sha:$sha,source:"github-actions"}' > out/orion-payload.json
+
+          curl -fsSL -X POST "$ORION_URL/runs" \
+            -H "Authorization: Bearer $ORION_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data @out/orion-payload.json
+
+      - name: Upload structured artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dredge-agent-${{ steps.init.outputs.run_id }}
+          path: out/
