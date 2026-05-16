@@ -1,7 +1,5 @@
 name: Thresh Agent
 
-# Self-healing pipeline agent
-
 on:
   pull_request:
 
@@ -11,17 +9,20 @@ on:
       - master
 
   workflow_run:
-    workflows: ["*"]
-    types: [completed]
+    workflows:
+      - CI
+      - Tests
+    types:
+      - completed
 
 jobs:
   thresh:
-    name: Run Thresh patches
-
-    # 🧠 Guard:
-    # - Always run on PR + push
-    # - Only run on workflow_run if NOT success
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'success' }}
+    if: >
+      github.actor != 'github-actions[bot]' &&
+      (
+        github.event_name != 'workflow_run' ||
+        github.event.workflow_run.conclusion != 'success'
+      )
 
     runs-on: ubuntu-latest
 
@@ -33,13 +34,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Run Thresh Agent
         uses: ./thresh
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-          # 🛑 Prevent commits from forks (security + permission safety)
           commit-fixes: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
