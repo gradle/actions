@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://queenfi703.github.io/actions/schemas/replay-ledger.schema.json",
+  "title": "Replay Ledger Entry",
+  "description": "Canonical event record emitted by agent workflows.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "agent",
+    "task",
+    "repo",
+    "status",
+    "duration_ms",
+    "artifacts",
+    "errors",
+    "commit_sha",
+    "timestamp"
+  ],
+  "properties": {
+    "run_id": { "type": "string", "minLength": 1 },
+    "agent": { "type": "string", "minLength": 1 },
+    "task": { "type": "string", "minLength": 1 },
+    "repo": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["queued", "running", "success", "failed", "cancelled", "timed_out"]
+    },
+    "duration_ms": { "type": "integer", "minimum": 0 },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{7,40}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "retry_count": { "type": "integer", "minimum": 0, "default": 0 },
+    "startup_ms": { "type": "integer", "minimum": 0 },
+    "dependency_resolution_ms": { "type": "integer", "minimum": 0 }
+  }
+}
