@@ -36,5 +36,6 @@ export async function validateWrappers(
         )
     }
 
+    // TODO: Should not be caching the ALLOWED_GRADLE_WRAPPER_CHECKSUMS as they should only apply to the present run
     checksumCache.save(result.valid.map(wrapper => wrapper.checksum))
 }

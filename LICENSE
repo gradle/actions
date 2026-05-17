@@ -1,3 +1,14 @@
+Note on Repository Contents:
+
+The software in this repository is primarily licensed under the MIT License (see below).
+However, this repository includes a vendor-included component, 'gradle-actions-caching',
+which is Proprietary and distributed under a different license: 
+see licenses/gradle-actions-caching-license.txt.
+
+For a detailed breakdown of which components are Open Source (MIT) and which are
+Proprietary, please refer to DISTRIBUTION.md and NOTICE.
+
+-------------------------------------------------------------------------
 
 The MIT License (MIT)
 

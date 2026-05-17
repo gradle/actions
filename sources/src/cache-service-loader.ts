@@ -2,7 +2,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {pathToFileURL} from 'url'
 
-import {CacheConfig} from './configuration'
+import {CacheConfig, CacheProvider} from './configuration'
+import {BasicCacheService} from './cache-service-basic'
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheService} from './cache-service'
 
@@ -10,36 +11,24 @@ const NOOP_CACHING_REPORT = `
 [Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching). Gradle User Home was not restored from or saved to the cache.
 `
 
-const CACHE_LICENSE_WARNING = `
-***********************************************************
-LICENSING NOTICE
+const ENHANCED_CACHE_MESSAGE = `Enhanced Caching: This build is using the proprietary 'gradle-actions-caching' provider for optimized caching support. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for terms of use and opt-out instructions.`
 
-The caching functionality in \`gradle-actions\` has been extracted into \`gradle-actions-caching\`, a proprietary commercial component that is not covered by the MIT License. 
-The bundled \`gradle-actions-caching\` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
-
-The \`gradle-actions-caching\` component is used only when caching is enabled and is not loaded or used when caching is disabled.
-
-Use of the \`gradle-actions-caching\` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-If you do not agree to these license terms, do not use the \`gradle-actions-caching\` component.
-
-You can suppress this message by accepting the terms in your action configuration: see https://github.com/gradle/actions/blob/main/README.md
-***********************************************************
+const ENHANCED_CACHE_SUMMARY = `
+> [!NOTE]
+> ### ⚡️ Enhanced Caching enabled
+> This build provides optimized caching support via the proprietary **gradle-actions-caching** provider. 
+> See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for terms of use and opt-out instructions.
 `
 
-const CACHE_LICENSE_SUMMARY = `
-> [!IMPORTANT]
-> #### Licensing notice
->
-> The caching functionality in \`gradle-actions\` has been extracted into \`gradle-actions-caching\`, a proprietary commercial component that is not covered by the MIT License. 
-> The bundled \`gradle-actions-caching\` component is licensed and governed by a separate license, available at https://gradle.com/legal/terms-of-use/.
->
-> The \`gradle-actions-caching\` component is used only when caching is enabled and is not loaded or used when caching is disabled.
->
-> Use of the \`gradle-actions-caching\` component is subject to a separate license, available at https://gradle.com/legal/terms-of-use/. 
-> If you do not agree to these license terms, do not use the \`gradle-actions-caching\` component.
->
->You can suppress this message by [accepting the terms in your action configuration](https://github.com/gradle/actions/blob/main/README.md).
-`
+const BASIC_CACHE_MESSAGE = `Basic Caching: This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. Upgrade available: for faster builds and advanced features, consider switching to the Enhanced Caching provider. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for details.`
+
+const BASIC_CACHE_SUMMARY = `
+> [!NOTE]
+> ### 🛡️ Basic Caching enabled
+> This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. 
+> 
+> **Upgrade Available:** For faster builds and advanced features, consider switching to the **Enhanced Caching** provider. 
+> See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for details.`
 
 class NoOpCacheService implements CacheService {
     async restore(_gradleUserHome: string, _cacheOptions: CacheOptions): Promise<void> {
@@ -53,9 +42,11 @@ class NoOpCacheService implements CacheService {
 
 class LicenseWarningCacheService implements CacheService {
     private delegate: CacheService
+    private summary: string
 
-    constructor(delegate: CacheService) {
+    constructor(delegate: CacheService, summary: string) {
         this.delegate = delegate
+        this.summary = summary
     }
 
     async restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void> {
@@ -64,22 +55,28 @@ class LicenseWarningCacheService implements CacheService {
 
     async save(gradleUserHome: string, buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string> {
         const cachingReport = await this.delegate.save(gradleUserHome, buildResults, cacheOptions)
-        return `${cachingReport}\n${CACHE_LICENSE_SUMMARY}`
+        return `${cachingReport}\n${this.summary}`
     }
 }
 
 export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheService> {
     if (cacheConfig.isCacheDisabled()) {
+        logCacheMessage('Cache is disabled: will not restore state from previous builds.')
         return new NoOpCacheService()
     }
 
+    if (cacheConfig.getCacheProvider() === CacheProvider.Basic) {
+        logCacheMessage(BASIC_CACHE_MESSAGE)
+        return new LicenseWarningCacheService(new BasicCacheService(), BASIC_CACHE_SUMMARY)
+    }
+
+    logCacheMessage(ENHANCED_CACHE_MESSAGE)
     const cacheService = await loadVendoredCacheService()
     if (cacheConfig.isCacheLicenseAccepted()) {
         return cacheService
     }
 
-    await logCacheLicenseWarning()
-    return new LicenseWarningCacheService(cacheService)
+    return new LicenseWarningCacheService(cacheService, ENHANCED_CACHE_SUMMARY)
 }
 
 export async function loadVendoredCacheService(): Promise<CacheService> {
@@ -99,6 +96,6 @@ function findVendoredLibraryPath(): string {
     throw new Error(`Unable to locate vendored cache library at ${absolutePath}.`)
 }
 
-export async function logCacheLicenseWarning(): Promise<void> {
-    console.info(CACHE_LICENSE_WARNING)
+export function logCacheMessage(message: string): void {
+    console.info(message)
 }

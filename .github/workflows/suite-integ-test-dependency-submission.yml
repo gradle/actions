@@ -1,0 +1,43 @@
+name: suite-integ-test-dependency-submission
+
+on:
+  workflow_call:
+    inputs:
+      runner-os:
+        type: string
+        default: '["ubuntu-latest"]'
+      skip-dist:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-graph:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-graph.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  dependency-submission:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-submission.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  dependency-submission-failures:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+

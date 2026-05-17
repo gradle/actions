@@ -17,6 +17,12 @@ Do not treat `actions/sources/vendor/gradle-actions-caching` as the source of tr
 
 ## Building
 
+Before running any build or npm commands, initialize the PATH:
+
+```sh
+source ~/.zshrc
+```
+
 To build this repository, run the `build` script at the root of that repository with no arguments:
 
 ```sh
