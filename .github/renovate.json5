@@ -1,0 +1,78 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    "github>gradle/renovate-agent//presets/dv-automerge-minor.json5",
+    ":disableDependencyDashboard",
+  ],
+  // Renovate is scoped narrowly here: only the Develocity Gradle plugin (custom regex)
+  // and the Gradle wrappers in selected sample directories.
+  // Everything else (npm, github-actions, Maven coordinates) is managed by Dependabot
+  // via .github/dependabot.yml.
+  enabledManagers: ["custom.regex", "gradle-wrapper"],
+  "gradle-wrapper": {
+    fileMatch: [
+      "^\\.github/workflow-samples/gradle-plugin/gradle/wrapper/gradle-wrapper\\.properties$",
+      "^\\.github/workflow-samples/groovy-dsl/gradle/wrapper/gradle-wrapper\\.properties$",
+      "^\\.github/workflow-samples/java-toolchain/gradle/wrapper/gradle-wrapper\\.properties$",
+      "^\\.github/workflow-samples/kotlin-dsl/gradle/wrapper/gradle-wrapper\\.properties$",
+      "^\\.github/workflow-samples/non-executable-wrapper/gradle/wrapper/gradle-wrapper\\.properties$",
+      "^sources/test/init-scripts/gradle/wrapper/gradle-wrapper\\.properties$",
+    ],
+  },
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Bump Develocity Gradle plugin references in files outside Dependabot's coverage",
+      fileMatch: [
+        "^\\.github/workflows/integ-test-inject-develocity\\.yml$",
+        "^sources/src/develocity/build-scan\\.ts$",
+        "^docs/setup-gradle\\.md$",
+        "(^|/)settings\\.gradle$",
+        "(^|/)settings\\.gradle\\.kts$",
+        "(^|/)build\\.gradle$",
+        "(^|/)build\\.gradle\\.kts$",
+        "^sources/test/init-scripts/src/test/groovy/com/gradle/gradlebuildaction/BaseInitScriptTest\\.groovy$",
+        "^sources/test/init-scripts/src/test/groovy/com/gradle/gradlebuildaction/TestBuildResultRecorder\\.groovy$",
+      ],
+      // Patterns capture any X.Y(.Z) version. The packageRules below filter to
+      // just the current 4.x line and skip the pinned 3.x legacy refs.
+      // When the plugin's major version changes, edit `matchCurrentVersion` and
+      // `allowedVersions` in the packageRules block below — no regex edits here.
+      matchStrings: [
+        "plugin-version:[^\\n]*'(?<currentValue>\\d+\\.\\d+(?:\\.\\d+)?)'",
+        "DEVELOCITY_PLUGIN_VERSION[^\\n]*'(?<currentValue>\\d+\\.\\d+(?:\\.\\d+)?)'",
+        "`v(?<currentValue>\\d+\\.\\d+(?:\\.\\d+)?)`\\s+of\\s+the\\s+\\[Develocity Gradle plugin",
+        "id\\s+['\"]com\\.gradle\\.develocity['\"]\\s+version\\s+['\"](?<currentValue>\\d+\\.\\d+(?:\\.\\d+)?)['\"]",
+        "id\\(['\"]com\\.gradle\\.develocity['\"]\\)\\s+version\\s+['\"](?<currentValue>\\d+\\.\\d+(?:\\.\\d+)?)['\"]",
+      ],
+      depNameTemplate: "com.gradle:develocity-gradle-plugin",
+      datasourceTemplate: "maven",
+      registryUrlTemplate: "https://plugins.gradle.org/m2",
+    },
+  ],
+  packageRules: [
+    {
+      // Skip the legacy 3.16.2 references that are intentionally pinned.
+      matchManagers: ["custom.regex"],
+      matchPackageNames: ["com.gradle:develocity-gradle-plugin"],
+      matchCurrentVersion: "<4.0.0",
+      enabled: false,
+    },
+    {
+      // Current 4.x line. To start tracking the next major (5.x), replace `5.0.0`
+      // with `6.0.0` in both fields below — no regex edits needed.
+      matchManagers: ["custom.regex"],
+      matchPackageNames: ["com.gradle:develocity-gradle-plugin"],
+      matchCurrentVersion: ">=4.0.0 <5.0.0",
+      allowedVersions: "<5.0.0",
+      groupName: "Develocity Gradle plugin",
+      groupSlug: "develocity-gradle-plugin",
+    },
+    {
+      matchManagers: ["gradle-wrapper"],
+      groupName: "Gradle wrappers",
+      groupSlug: "gradle-wrappers",
+    },
+  ],
+}
