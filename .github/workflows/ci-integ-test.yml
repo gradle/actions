@@ -30,6 +30,7 @@ jobs:
     concurrency:
       group: CI-integ-test-caching
       cancel-in-progress: false
+      queue: max
     with:
       skip-dist: false
     secrets: inherit
@@ -42,6 +43,7 @@ jobs:
     concurrency:
       group: CI-integ-test-other
       cancel-in-progress: false
+      queue: max
     with:
       skip-dist: false
     secrets: inherit
@@ -54,6 +56,7 @@ jobs:
     concurrency:
       group: CI-integ-test-dependency-submission
       cancel-in-progress: false
+      queue: max
     with:
       skip-dist: false
     secrets: inherit
