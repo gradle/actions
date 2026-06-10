@@ -14,21 +14,17 @@ const NOOP_CACHING_REPORT = `
 const ENHANCED_CACHE_MESSAGE = `Enhanced Caching: This build is using the proprietary 'gradle-actions-caching' provider for optimized caching support. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for terms of use and opt-out instructions.`
 
 const ENHANCED_CACHE_SUMMARY = `
-> [!NOTE]
-> ### ⚡️ Enhanced Caching enabled
-> This build provides optimized caching support via the proprietary **gradle-actions-caching** provider. 
+> **⚡️ [Enhanced Caching](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#enhanced-caching)** This build provides optimized caching support via the proprietary **gradle-actions-caching** provider.
 > See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for terms of use and opt-out instructions.
 `
 
-const BASIC_CACHE_MESSAGE = `Basic Caching: This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. Upgrade available: for faster builds and advanced features, consider switching to the Enhanced Caching provider. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for details.`
+const BASIC_CACHE_MESSAGE = `Basic Caching: This build uses the basic open-source caching provider. For faster builds and advanced features, consider switching to the Enhanced Caching provider. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for details.`
 
 const BASIC_CACHE_SUMMARY = `
-> [!NOTE]
-> ### 🛡️ Basic Caching enabled
-> This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. 
-> 
-> **Upgrade Available:** For faster builds and advanced features, consider switching to the **Enhanced Caching** provider. 
-> See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for details.`
+> **🛡️ [Basic Caching](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#basic-caching)** This build uses the basic open-source caching provider. 
+> For faster builds and advanced features, consider switching to the **[Enhanced Caching](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#enhanced-caching)** provider. 
+> See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for details.
+`
 
 class NoOpCacheService implements CacheService {
     async restore(_gradleUserHome: string, _cacheOptions: CacheOptions): Promise<void> {
