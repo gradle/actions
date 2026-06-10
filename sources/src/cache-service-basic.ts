@@ -44,9 +44,9 @@ export class BasicCacheService implements CacheService {
         if (cacheOptions.readOnly) {
             const restoredKey = core.getState(RESTORED_KEY_STATE)
             if (restoredKey) {
-                return `Basic caching was read-only. Restored from cache key \`${restoredKey}\`.\n`
+                return `\nBasic caching was read-only. Restored from cache key \`${restoredKey}\`.\n`
             }
-            return 'Basic caching was read-only. No cache entry was found to restore.\n'
+            return '\nBasic caching was read-only. No cache entry was found to restore.\n'
         }
 
         const primaryKey = core.getState(PRIMARY_KEY_STATE)
@@ -54,7 +54,7 @@ export class BasicCacheService implements CacheService {
 
         if (restoredKey === primaryKey) {
             core.info(`Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.`)
-            return `Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.\n`
+            return `\nBasic caching restored entry with key \`${primaryKey}\`. Save was skipped.\n`
         }
 
         const cachePaths = getCachePaths(gradleUserHome)
@@ -62,10 +62,10 @@ export class BasicCacheService implements CacheService {
         try {
             await cache.saveCache(cachePaths, primaryKey)
             core.info(`Basic caching saved entry with key: ${primaryKey}`)
-            return `Basic caching saved entry with key \`${primaryKey}\`.\n`
+            return `\nBasic caching saved entry with key \`${primaryKey}\`.\n`
         } catch (error) {
             core.warning(`Basic caching failed to save entry with key \`${primaryKey}\`: ${error}`)
-            return `Basic caching save failed: ${error}\n`
+            return `\nBasic caching save failed: ${error}\n`
         }
     }
 }
