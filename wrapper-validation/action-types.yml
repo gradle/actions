@@ -14,4 +14,7 @@ inputs:
 
 outputs:
   failed-wrapper:
-    type: string
+    type: list
+    separator: '|'
+    list-item:
+      type: string
