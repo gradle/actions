@@ -548,6 +548,11 @@ jobs:
     - run: ./gradlew build --scan
 ```
 
+When a comment is added, any earlier Job Summary comments posted by the same job on that Pull Request are
+automatically minimized, so only the most recent result remains expanded. This also applies when
+`add-job-summary-as-pr-comment: 'on-failure'` is used: once a later run of the job succeeds, the previous
+failure comment is collapsed.
+
 Note that to add a Pull Request comment, the workflow must be configured with the `pull-requests: write` permission.
 
 

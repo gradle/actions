@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {Repository} from '@octokit/graphql-schema'
 
 import {BuildResult} from './build-results'
 import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
@@ -234,10 +233,10 @@ async function minimizeObsoletePRComments(): Promise<void> {
       }
     }
   `
-    let comments
+    let comments: PullRequestComment[]
     try {
-        const {repository} = await octokit.graphql<{repository: Repository}>(query, {owner, repo, prNumber})
-        comments = repository.pullRequest?.comments?.nodes?.filter((c): c is NonNullable<typeof c> => c !== null) ?? []
+        const {repository} = await octokit.graphql<CommentsQueryResult>(query, {owner, repo, prNumber})
+        comments = repository.pullRequest?.comments?.nodes?.filter((c): c is PullRequestComment => c !== null) ?? []
     } catch (error) {
         return core.warning(`Failed to fetch comments: ${error}`)
     }
@@ -261,7 +260,24 @@ async function minimizeObsoletePRComments(): Promise<void> {
     await Promise.allSettled(commentsToMinimize)
 }
 
-function jobMarker(context: typeof github.context): string {
+export function jobMarker(context: typeof github.context): string {
     const jobCorrelator = DependencyGraphConfig.constructJobCorrelator(context.workflow, context.job, getJobMatrix())
     return `<!-- gradle-job-summary: ${jobCorrelator} -->`
+}
+
+interface PullRequestComment {
+    id: string
+    body: string
+    isMinimized: boolean
+    url: string
+}
+
+interface CommentsQueryResult {
+    repository: {
+        pullRequest?: {
+            comments?: {
+                nodes?: (PullRequestComment | null)[] | null
+            } | null
+        } | null
+    }
 }
