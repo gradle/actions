@@ -45,7 +45,7 @@
     "@actions/tool-cache": "4.0.0",
     "@octokit/webhooks-types": "7.6.1",
     "cheerio": "1.2.0",
-    "semver": "7.8.3",
+    "semver": "7.8.4",
     "string-argv": "0.3.2",
     "unhomoglyph": "1.0.6",
     "which": "7.0.0"
