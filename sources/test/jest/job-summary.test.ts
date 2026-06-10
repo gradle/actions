@@ -1,8 +1,15 @@
 import dedent from 'dedent'
-import {describe, expect, it} from '@jest/globals'
+import * as github from '@actions/github'
+import {afterEach, describe, expect, it} from '@jest/globals'
 
 import {BuildResult} from '../../src/build-results'
-import {renderSummaryTable} from '../../src/job-summary'
+import {jobMarker, renderSummaryTable} from '../../src/job-summary'
+
+const MATRIX_INPUT_ENV = 'INPUT_WORKFLOW-JOB-CONTEXT'
+
+function fakeContext(workflow: string, job: string): typeof github.context {
+    return {workflow, job} as unknown as typeof github.context
+}
 
 const successfulHelpBuild: BuildResult = {
     rootProjectName: 'root',
@@ -175,5 +182,29 @@ describe('renderSummaryTable', () => {
                 </table>
             `);
         })
+    })
+})
+
+describe('jobMarker', () => {
+    const original = process.env[MATRIX_INPUT_ENV]
+
+    afterEach(() => {
+        if (original === undefined) {
+            delete process.env[MATRIX_INPUT_ENV]
+        } else {
+            process.env[MATRIX_INPUT_ENV] = original
+        }
+    })
+
+    it('builds a hidden marker from the workflow and job', () => {
+        process.env[MATRIX_INPUT_ENV] = 'null'
+        const marker = jobMarker(fakeContext('CI', 'build'))
+        expect(marker).toBe('<!-- gradle-job-summary: ci-build -->')
+    })
+
+    it('includes the job matrix in the marker', () => {
+        process.env[MATRIX_INPUT_ENV] = JSON.stringify({os: 'ubuntu', java: '17'})
+        const marker = jobMarker(fakeContext('CI', 'build'))
+        expect(marker).toBe('<!-- gradle-job-summary: ci-build-ubuntu-17 -->')
     })
 })
