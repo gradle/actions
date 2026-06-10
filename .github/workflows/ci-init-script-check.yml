@@ -8,10 +8,6 @@ on:
     paths-ignore:
     - 'dist/**'
   pull_request:
-    paths:
-      - '.github/workflows/ci-init-script-check.yml'
-      - 'sources/src/resources/init-scripts/**'
-      - 'sources/test/init-scripts/**'
   workflow_dispatch:
 
 permissions:
@@ -23,16 +19,34 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        fetch-depth: 0
+    # Detect whether anything relevant to the init-script tests changed.
+    # The workflow always runs (so it always reports a status check, making it safe
+    # to mark as required), but the heavy steps below are skipped on pull requests
+    # that don't touch the init-scripts. Pushes and manual runs always execute fully.
+    - name: Check for relevant changes
+      id: changes
+      if: github.event_name == 'pull_request'
+      uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+      with:
+        files: |
+          .github/workflows/ci-init-script-check.yml
+          sources/src/resources/init-scripts/**
+          sources/test/init-scripts/**
     - name: Setup Java
+      if: steps.changes.outputs.any_changed == 'true' || github.event_name != 'pull_request'
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
         distribution: temurin
         java-version: 17
     - name: Setup Gradle
+      if: steps.changes.outputs.any_changed == 'true' || github.event_name != 'pull_request'
       # Use a released version to avoid breakages
       uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
     - name: Run integration tests
+      if: steps.changes.outputs.any_changed == 'true' || github.event_name != 'pull_request'
       working-directory: sources/test/init-scripts
       run: ./gradlew check
