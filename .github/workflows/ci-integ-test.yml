@@ -57,3 +57,24 @@ jobs:
     with:
       skip-dist: false
     secrets: inherit
+
+  # Aggregate gate: a single check that succeeds only when all integ-test jobs succeed.
+  # Require this one check in branch protection instead of every fanned-out matrix job.
+  integ-test-success:
+    if: ${{ always() }}
+    needs:
+    - build-distribution
+    - caching-integ-tests
+    - other-integ-tests
+    - dependency-submission-integ-tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fail if any integ-test job failed or was cancelled
+      if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+      run: |
+        echo "One or more integ-test jobs did not succeed:"
+        echo "  build-distribution:                ${{ needs.build-distribution.result }}"
+        echo "  caching-integ-tests:               ${{ needs.caching-integ-tests.result }}"
+        echo "  other-integ-tests:                 ${{ needs.other-integ-tests.result }}"
+        echo "  dependency-submission-integ-tests: ${{ needs.dependency-submission-integ-tests.result }}"
+        exit 1
