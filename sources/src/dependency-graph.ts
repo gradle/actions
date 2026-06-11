@@ -41,6 +41,11 @@ export async function setup(config: DependencyGraphConfig): Promise<void> {
     maybeExportVariable('DEPENDENCY_GRAPH_EXCLUDE_CONFIGURATIONS', config.getExcludeConfigurations())
     maybeExportVariable('DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS', config.getIncludeConfigurations())
 
+    maybeExportVariable('DEPENDENCY_GRAPH_RUNTIME_EXCLUDE_PROJECTS', config.getRuntimeExcludeProjects())
+    maybeExportVariable('DEPENDENCY_GRAPH_RUNTIME_INCLUDE_PROJECTS', config.getRuntimeIncludeProjects())
+    maybeExportVariable('DEPENDENCY_GRAPH_RUNTIME_EXCLUDE_CONFIGURATIONS', config.getRuntimeExcludeConfigurations())
+    maybeExportVariable('DEPENDENCY_GRAPH_RUNTIME_INCLUDE_CONFIGURATIONS', config.getRuntimeIncludeConfigurations())
+
     maybeExportVariable('GRADLE_PLUGIN_REPOSITORY_URL', config.getPluginRepository().getUrl())
     maybeExportVariable('GRADLE_PLUGIN_REPOSITORY_USERNAME', config.getPluginRepository().getUsername())
     maybeExportVariable('GRADLE_PLUGIN_REPOSITORY_PASSWORD', config.getPluginRepository().getPassword())
