@@ -34,13 +34,16 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
  * provider note, and (when there are entries) an expandable details section.
  */
 export function renderCachingReport(report: CacheReport, providerNote?: ProviderNote): string {
-    const active = isActive(report.status)
+    if (!isActive(report.status)) {
+        // Disabled / skipped / unavailable: a compact heading + status line, no expandable section.
+        return `${renderHeading(report.status, providerNote)}\n\n${STATUS_COPY[report.status]}\n`
+    }
     const sections = [
         renderHeading(report.status, providerNote),
-        STATUS_COPY[report.status],
-        report.status === 'enabled' ? renderCleanupLine(report.cleanup) : undefined,
-        active ? renderProviderNote(providerNote) : undefined,
-        report.entries.length > 0 ? renderDetails(report) : undefined
+        renderProviderNote(providerNote),
+        // Status and cleanup messages live inside the details expando; if there are no entries
+        // to expand, fall back to showing the status line directly.
+        report.entries.length > 0 ? renderDetails(report) : STATUS_COPY[report.status]
     ]
     return `${sections.filter(section => section !== undefined && section !== '').join('\n\n')}\n`
 }
@@ -53,14 +56,17 @@ function renderHeading(status: CacheStatus, providerNote?: ProviderNote): string
     if (!isActive(status)) {
         const label =
             status === 'disabled-existing-home' ? 'Skipped' : status === 'not-available' ? 'Unavailable' : 'Disabled'
-        return `#### Gradle Caching — ${label}`
+        return `<h4>Gradle Caching — ${label}</h4>`
     }
 
     const icon = providerNote?.kind === 'basic' ? '🛡️ ' : providerNote?.kind === 'enhanced' ? '⚡ ' : ''
     const provider =
-        providerNote?.kind === 'basic' ? ' — Basic' : providerNote?.kind === 'enhanced' ? ' — Enhanced' : ''
-    const suffix = status === 'read-only' ? ' (read-only)' : status === 'write-only' ? ' (write-only)' : ''
-    return `#### ${icon}Gradle Caching${provider}${suffix}`
+        providerNote?.kind === 'basic'
+            ? ' — Basic Provider'
+            : providerNote?.kind === 'enhanced'
+              ? ' — Enhanced Provider'
+              : ''
+    return `<h4>${icon}Gradle Caching${provider}</h4>`
 }
 
 function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
@@ -72,18 +78,20 @@ function renderProviderNote(providerNote?: ProviderNote): string | undefined {
         return undefined
     }
     if (providerNote.kind === 'enhanced') {
-        return `Optimized caching is provided by the proprietary **[gradle-actions-caching](${DOCS}#enhanced-caching)** provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for terms of use and opt-out instructions.`
+        return `**[Enhanced Caching](${DOCS}#enhanced-caching)** is provided by the proprietary \`gradle-actions-caching\` provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for terms of use and opt-out instructions.`
     }
-    return `This build uses the basic open-source caching provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for details.`
+    return `**[Basic Caching](${DOCS}#basic-caching)** uses the basic open-source provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for details.`
 }
 
 function renderDetails(report: CacheReport): string {
     const restored = report.entries.filter(entry => entry.restoredKey).length
     const saved = report.entries.filter(entry => entry.savedKey).length
-    const summary = `Cache entry details — ${restored} restored, ${saved} saved`
+    const summary = `Entries: ${restored} restored, ${saved} saved (expand for more details)`
 
+    const cleanup = report.status === 'enabled' ? renderCleanupLine(report.cleanup) : undefined
     const table = renderEntryTable(report.entries)
-    const body = [table, `<pre>\n${renderEntryDetails(report.entries)}</pre>`].filter(Boolean).join('\n')
+    const pre = `<pre>\n${renderEntryDetails(report.entries)}</pre>`
+    const body = [STATUS_COPY[report.status], cleanup, table, pre].filter(Boolean).join('\n\n')
 
     return `<details>
 <summary>${summary}</summary>
