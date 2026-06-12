@@ -138,8 +138,8 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('read-only')
-            expect(report).toContain(PRIMARY_KEY)
+            expect(report.status).toBe('read-only')
+            expect(report.entries[0].restoredKey).toBe(PRIMARY_KEY)
         })
 
         it('reports readOnly with no restore when cache was missed', async () => {
@@ -156,8 +156,9 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('read-only')
-            expect(report).toContain('No cache entry')
+            expect(report.status).toBe('read-only')
+            expect(report.entries[0].restoredKey).toBeUndefined()
+            expect(report.entries[0].restoredOutcome).toContain('not restored')
         })
 
         it('skips save when restored key equals primary key', async () => {
@@ -179,7 +180,8 @@ describe('BasicCacheService', () => {
             })
 
             expect(mockSaveCache).not.toHaveBeenCalled()
-            expect(report).toContain('Save was skipped')
+            expect(report.status).toBe('enabled')
+            expect(report.entries[0].savedOutcome).toContain('already exists')
         })
 
         it('saves cache and returns report on success', async () => {
@@ -204,7 +206,9 @@ describe('BasicCacheService', () => {
                 ['/home/.gradle/caches', '/home/.gradle/wrapper'],
                 PRIMARY_KEY
             )
-            expect(report).toContain('saved entry with key')
+            expect(report.status).toBe('enabled')
+            expect(report.entries[0].savedKey).toBe(PRIMARY_KEY)
+            expect(report.entries[0].savedOutcome).toBe('(Entry saved)')
         })
 
         it('warns on save failure instead of throwing', async () => {
@@ -228,7 +232,7 @@ describe('BasicCacheService', () => {
             expect(mockWarning).toHaveBeenCalledWith(
                 expect.stringContaining('failed to save')
             )
-            expect(report).toContain('failed')
+            expect(report.entries[0].savedOutcome).toContain('not saved')
         })
     })
 })

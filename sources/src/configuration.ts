@@ -167,11 +167,6 @@ export class CacheConfig {
         return core.getMultilineInput('gradle-home-cache-excludes')
     }
 
-    isCacheLicenseAccepted(): boolean {
-        const dvConfig = new DevelocityConfig()
-        return dvConfig.getDevelocityAccessKey() !== '' || dvConfig.hasTermsOfUseAgreement()
-    }
-
     getCacheProvider(): CacheProvider {
         const val = core.getInput('cache-provider')
         switch (val.toLowerCase().trim()) {

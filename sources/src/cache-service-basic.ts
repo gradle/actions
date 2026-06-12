@@ -4,7 +4,9 @@ import * as glob from '@actions/glob'
 import * as path from 'path'
 
 import {BuildResult} from './build-results'
-import {CacheOptions, CacheService} from './cache-service'
+import {CacheEntryReport, CacheOptions, CacheReport, CacheService} from './cache-service'
+
+const ENTRY_NAME = 'Gradle User Home'
 
 const PRIMARY_KEY_STATE = 'BASIC_CACHE_PRIMARY_KEY'
 const RESTORED_KEY_STATE = 'BASIC_CACHE_RESTORED_KEY'
@@ -40,21 +42,39 @@ export class BasicCacheService implements CacheService {
         }
     }
 
-    async save(gradleUserHome: string, _buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string> {
-        if (cacheOptions.readOnly) {
-            const restoredKey = core.getState(RESTORED_KEY_STATE)
-            if (restoredKey) {
-                return `\nBasic caching was read-only. Restored from cache key \`${restoredKey}\`.\n`
-            }
-            return '\nBasic caching was read-only. No cache entry was found to restore.\n'
-        }
-
+    async save(gradleUserHome: string, _buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<CacheReport> {
         const primaryKey = core.getState(PRIMARY_KEY_STATE)
         const restoredKey = core.getState(RESTORED_KEY_STATE)
 
+        if (cacheOptions.readOnly) {
+            return {
+                status: 'read-only',
+                entries: [
+                    entryReport({
+                        primaryKey,
+                        restoredKey,
+                        restoredOutcome: restoredKey
+                            ? '(Entry restored: exact match found)'
+                            : '(Entry not restored: no match found)',
+                        savedOutcome: '(Entry not saved: cache is read-only)'
+                    })
+                ]
+            }
+        }
+
         if (restoredKey === primaryKey) {
             core.info(`Basic caching restored entry with key \`${primaryKey}\`. Save was skipped.`)
-            return `\nBasic caching restored entry with key \`${primaryKey}\`. Save was skipped.\n`
+            return {
+                status: 'enabled',
+                entries: [
+                    entryReport({
+                        primaryKey,
+                        restoredKey,
+                        restoredOutcome: '(Entry restored: exact match found)',
+                        savedOutcome: '(Entry not saved: entry with key already exists)'
+                    })
+                ]
+            }
         }
 
         const cachePaths = getCachePaths(gradleUserHome)
@@ -62,11 +82,53 @@ export class BasicCacheService implements CacheService {
         try {
             await cache.saveCache(cachePaths, primaryKey)
             core.info(`Basic caching saved entry with key: ${primaryKey}`)
-            return `\nBasic caching saved entry with key \`${primaryKey}\`.\n`
+            return {
+                status: 'enabled',
+                entries: [
+                    entryReport({
+                        primaryKey,
+                        restoredKey,
+                        savedKey: primaryKey,
+                        restoredOutcome: restoredKey
+                            ? '(Entry restored: exact match found)'
+                            : '(Entry not restored: no match found)',
+                        savedOutcome: '(Entry saved)'
+                    })
+                ]
+            }
         } catch (error) {
             core.warning(`Basic caching failed to save entry with key \`${primaryKey}\`: ${error}`)
-            return `\nBasic caching save failed: ${error}\n`
+            return {
+                status: 'enabled',
+                entries: [
+                    entryReport({
+                        primaryKey,
+                        restoredKey,
+                        restoredOutcome: restoredKey
+                            ? '(Entry restored: exact match found)'
+                            : '(Entry not restored: no match found)',
+                        savedOutcome: `(Entry not saved: ${error})`
+                    })
+                ]
+            }
         }
+    }
+}
+
+function entryReport(opts: {
+    primaryKey: string
+    restoredKey?: string
+    savedKey?: string
+    restoredOutcome: string
+    savedOutcome: string
+}): CacheEntryReport {
+    return {
+        entryName: ENTRY_NAME,
+        requestedKey: opts.primaryKey || undefined,
+        restoredKey: opts.restoredKey || undefined,
+        restoredOutcome: opts.restoredOutcome,
+        savedKey: opts.savedKey || undefined,
+        savedOutcome: opts.savedOutcome
     }
 }
 
