@@ -2,12 +2,15 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 
 import {BuildResult} from './build-results'
+import {CacheReport} from './cache-service'
+import {ProviderNote, renderCachingReport} from './caching-report'
 import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
 
 export async function generateJobSummary(
     buildResults: BuildResult[],
-    cachingReport: string,
+    cacheReport: CacheReport,
+    providerNote: ProviderNote | undefined,
     config: SummaryConfig
 ): Promise<void> {
     const errors = renderErrors()
@@ -18,6 +21,7 @@ export async function generateJobSummary(
     }
 
     const summaryTable = renderSummaryTable(buildResults)
+    const cachingReport = renderCachingReport(cacheReport, providerNote)
     const hasFailure = anyFailed(buildResults)
     if (config.shouldGenerateJobSummary(hasFailure)) {
         core.info('Generating Job Summary')

@@ -12,8 +12,7 @@ describe('getCacheService selection logic', () => {
         const {getCacheService} = await import('../../src/cache-service-loader')
         const mockConfig = {
             isCacheDisabled: () => true,
-            getCacheProvider: () => CacheProvider.Enhanced,
-            isCacheLicenseAccepted: () => true
+            getCacheProvider: () => CacheProvider.Enhanced
         } as unknown as CacheConfig
 
         const service = await getCacheService(mockConfig)
@@ -28,23 +27,53 @@ describe('getCacheService selection logic', () => {
             excludes: []
         })
 
-        // NoOpCacheService returns a specific report mentioning cache was disabled
-        expect(report).toContain('Cache was disabled')
+        // NoOpCacheService reports a disabled cache with no entries
+        expect(report.status).toBe('disabled')
+        expect(report.entries).toHaveLength(0)
     })
 
-    it('wraps BasicCacheService with LicenseWarningCacheService when cache-provider is basic', async () => {
+    it('returns a BasicCacheService when cache-provider is basic', async () => {
         const {getCacheService} = await import('../../src/cache-service-loader')
         const mockConfig = {
             isCacheDisabled: () => false,
-            getCacheProvider: () => CacheProvider.Basic,
-            isCacheLicenseAccepted: () => false
+            getCacheProvider: () => CacheProvider.Basic
         } as unknown as CacheConfig
 
         const service = await getCacheService(mockConfig)
 
-        // The service should not be a bare BasicCacheService — it should be wrapped
-        // with LicenseWarningCacheService that appends the basic caching summary
         const {BasicCacheService} = await import('../../src/cache-service-basic')
-        expect(service).not.toBeInstanceOf(BasicCacheService)
+        expect(service).toBeInstanceOf(BasicCacheService)
+    })
+
+    describe('getProviderNote', () => {
+        it('returns undefined when cache is disabled', async () => {
+            const {getProviderNote} = await import('../../src/cache-service-loader')
+            const mockConfig = {
+                isCacheDisabled: () => true,
+                getCacheProvider: () => CacheProvider.Enhanced
+            } as unknown as CacheConfig
+
+            expect(getProviderNote(mockConfig)).toBeUndefined()
+        })
+
+        it('returns basic note for the basic provider', async () => {
+            const {getProviderNote} = await import('../../src/cache-service-loader')
+            const mockConfig = {
+                isCacheDisabled: () => false,
+                getCacheProvider: () => CacheProvider.Basic
+            } as unknown as CacheConfig
+
+            expect(getProviderNote(mockConfig)).toEqual({kind: 'basic'})
+        })
+
+        it('returns enhanced note for the enhanced provider', async () => {
+            const {getProviderNote} = await import('../../src/cache-service-loader')
+            const mockConfig = {
+                isCacheDisabled: () => false,
+                getCacheProvider: () => CacheProvider.Enhanced
+            } as unknown as CacheConfig
+
+            expect(getProviderNote(mockConfig)).toEqual({kind: 'enhanced'})
+        })
     })
 })

@@ -7,7 +7,7 @@ import * as jobSummary from './job-summary'
 import * as buildScan from './develocity/build-scan'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
-import {getCacheService} from './cache-service-loader'
+import {getCacheService, getProviderNote} from './cache-service-loader'
 import {CacheOptions} from './cache-service'
 import {
     DevelocityConfig,
@@ -65,8 +65,8 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
 
     const gradleUserHome = core.getState(GRADLE_USER_HOME)
     const cacheService = await getCacheService(cacheConfig)
-    const cachingReport = await cacheService.save(gradleUserHome, buildResults, cacheOptionsFrom(cacheConfig))
-    await jobSummary.generateJobSummary(buildResults, cachingReport, summaryConfig)
+    const cacheReport = await cacheService.save(gradleUserHome, buildResults, cacheOptionsFrom(cacheConfig))
+    await jobSummary.generateJobSummary(buildResults, cacheReport, getProviderNote(cacheConfig), summaryConfig)
 
     markBuildResultsProcessed()
 

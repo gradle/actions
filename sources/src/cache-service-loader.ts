@@ -5,57 +5,24 @@ import {pathToFileURL} from 'url'
 import {CacheConfig, CacheProvider} from './configuration'
 import {BasicCacheService} from './cache-service-basic'
 import {BuildResult} from './build-results'
-import {CacheOptions, CacheService} from './cache-service'
-
-const NOOP_CACHING_REPORT = `
-[Cache was disabled](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#disabling-caching). Gradle User Home was not restored from or saved to the cache.
-`
+import {CacheOptions, CacheReport, CacheService} from './cache-service'
+import {ProviderNote} from './caching-report'
 
 const ENHANCED_CACHE_MESSAGE = `Enhanced Caching: This build is using the proprietary 'gradle-actions-caching' provider for optimized caching support. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for terms of use and opt-out instructions.`
 
-const ENHANCED_CACHE_SUMMARY = `
-> [!NOTE]
-> ### ⚡️ Enhanced Caching enabled
-> This build provides optimized caching support via the proprietary **gradle-actions-caching** provider. 
-> See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for terms of use and opt-out instructions.
-`
-
-const BASIC_CACHE_MESSAGE = `Basic Caching: This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. Upgrade available: for faster builds and advanced features, consider switching to the Enhanced Caching provider. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for details.`
-
-const BASIC_CACHE_SUMMARY = `
-> [!NOTE]
-> ### 🛡️ Basic Caching enabled
-> This build uses the open-source caching provider for reliable, path-based caching of Gradle dependencies. 
-> 
-> **Upgrade Available:** For faster builds and advanced features, consider switching to the **Enhanced Caching** provider. 
-> See [DISTRIBUTION.md](https://github.com/gradle/actions/blob/main/DISTRIBUTION.md) for details.`
+const BASIC_CACHE_MESSAGE = `Basic Caching: This build uses the basic open-source caching provider. For faster builds and advanced features, consider switching to the Enhanced Caching provider. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for details.`
 
 class NoOpCacheService implements CacheService {
     async restore(_gradleUserHome: string, _cacheOptions: CacheOptions): Promise<void> {
         return
     }
 
-    async save(_gradleUserHome: string, _buildResults: BuildResult[], _cacheOptions: CacheOptions): Promise<string> {
-        return NOOP_CACHING_REPORT
-    }
-}
-
-class LicenseWarningCacheService implements CacheService {
-    private delegate: CacheService
-    private summary: string
-
-    constructor(delegate: CacheService, summary: string) {
-        this.delegate = delegate
-        this.summary = summary
-    }
-
-    async restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void> {
-        await this.delegate.restore(gradleUserHome, cacheOptions)
-    }
-
-    async save(gradleUserHome: string, buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string> {
-        const cachingReport = await this.delegate.save(gradleUserHome, buildResults, cacheOptions)
-        return `${cachingReport}\n${this.summary}`
+    async save(
+        _gradleUserHome: string,
+        _buildResults: BuildResult[],
+        _cacheOptions: CacheOptions
+    ): Promise<CacheReport> {
+        return {status: 'disabled', entries: []}
     }
 }
 
@@ -67,16 +34,22 @@ export async function getCacheService(cacheConfig: CacheConfig): Promise<CacheSe
 
     if (cacheConfig.getCacheProvider() === CacheProvider.Basic) {
         logCacheMessage(BASIC_CACHE_MESSAGE)
-        return new LicenseWarningCacheService(new BasicCacheService(), BASIC_CACHE_SUMMARY)
+        return new BasicCacheService()
     }
 
     logCacheMessage(ENHANCED_CACHE_MESSAGE)
-    const cacheService = await loadVendoredCacheService()
-    if (cacheConfig.isCacheLicenseAccepted()) {
-        return cacheService
-    }
+    return loadVendoredCacheService()
+}
 
-    return new LicenseWarningCacheService(cacheService, ENHANCED_CACHE_SUMMARY)
+/**
+ * Identifies the caching provider for the Job Summary. Returns `undefined` when
+ * caching is disabled, since no provider is engaged in that case.
+ */
+export function getProviderNote(cacheConfig: CacheConfig): ProviderNote | undefined {
+    if (cacheConfig.isCacheDisabled()) {
+        return undefined
+    }
+    return cacheConfig.getCacheProvider() === CacheProvider.Basic ? {kind: 'basic'} : {kind: 'enhanced'}
 }
 
 export async function loadVendoredCacheService(): Promise<CacheService> {

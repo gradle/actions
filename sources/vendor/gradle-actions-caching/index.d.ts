@@ -12,6 +12,23 @@ export declare interface BuildResult {
 }
 
 /** @public */
+export declare type CacheCleanupStatus = 'enabled' | 'disabled-param' | 'disabled-failure' | 'disabled-config-cache-hit' | 'disabled-readonly';
+
+/** @public */
+export declare interface CacheEntryReport {
+    entryName: string;
+    requestedKey?: string;
+    restoredKey?: string;
+    restoredSize?: number;
+    restoredTime?: number;
+    restoredOutcome: string;
+    savedKey?: string;
+    savedSize?: number;
+    savedTime?: number;
+    savedOutcome: string;
+}
+
+/** @public */
 export declare interface CacheOptions {
     disabled: boolean;
     readOnly: boolean;
@@ -25,9 +42,19 @@ export declare interface CacheOptions {
 }
 
 /** @public */
+export declare interface CacheReport {
+    status: CacheStatus;
+    cleanup?: CacheCleanupStatus;
+    entries: CacheEntryReport[];
+}
+
+/** @public */
+export declare type CacheStatus = 'enabled' | 'read-only' | 'write-only' | 'disabled' | 'disabled-existing-home' | 'not-available';
+
+/** @public */
 export declare function restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void>;
 
 /** @public */
-export declare function save(gradleUserHome: string, buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<string>;
+export declare function save(gradleUserHome: string, buildResults: BuildResult[], cacheOptions: CacheOptions): Promise<CacheReport>;
 
 export { }
