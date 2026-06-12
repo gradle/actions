@@ -76,7 +76,7 @@ function renderProviderNote(providerNote?: ProviderNote): string | undefined {
     if (providerNote.kind === 'enhanced') {
         return `**[Enhanced Caching](${DOCS}#enhanced-caching)** uses the proprietary \`gradle-actions-caching\` provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for terms of use and opt-out instructions.`
     }
-    return `**[Basic Caching](${DOCS}#basic-caching)** uses the basic open-source provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for details.`
+    return `**[Basic Caching](${DOCS}#basic-caching)** uses the basic open-source provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider.`
 }
 
 function renderDetails(report: CacheReport): string {

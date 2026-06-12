@@ -71,7 +71,8 @@ describe('renderCachingReport', () => {
         expect(md).toContain('<h4>Gradle State Caching — 🛡️ Basic (read-only)</h4>')
         expect(md).toContain('[Basic Caching]')
         expect(md).toContain('[Enhanced Caching]')
-        expect(md).toContain('DISTRIBUTION.md')
+        // DISTRIBUTION.md is only referenced for the enhanced provider
+        expect(md).not.toContain('DISTRIBUTION.md')
         // No size/time data, so the metrics table is omitted but the entry list remains
         expect(md).not.toContain('<table>')
         expect(md).toContain('<pre>')
