@@ -56,17 +56,13 @@ function renderHeading(status: CacheStatus, providerNote?: ProviderNote): string
     if (!isActive(status)) {
         const label =
             status === 'disabled-existing-home' ? 'Skipped' : status === 'not-available' ? 'Unavailable' : 'Disabled'
-        return `<h4>Gradle Caching — ${label}</h4>`
+        return `<h4>Gradle State Caching — ${label}</h4>`
     }
 
-    const icon = providerNote?.kind === 'basic' ? '🛡️ ' : providerNote?.kind === 'enhanced' ? '⚡ ' : ''
-    const provider =
-        providerNote?.kind === 'basic'
-            ? ' — Basic Provider'
-            : providerNote?.kind === 'enhanced'
-              ? ' — Enhanced Provider'
-              : ''
-    return `<h4>${icon}Gradle Caching${provider}</h4>`
+    const icon = providerNote?.kind === 'basic' ? '🛡️' : '⚡'
+    const provider = providerNote?.kind === 'basic' ? 'Basic' : 'Enhanced'
+    const suffix = status === 'read-only' ? ' (read-only)' : status === 'write-only' ? ' (write-only)' : ''
+    return `<h4>Gradle State Caching — ${icon} ${provider}${suffix}</h4>`
 }
 
 function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
@@ -78,7 +74,7 @@ function renderProviderNote(providerNote?: ProviderNote): string | undefined {
         return undefined
     }
     if (providerNote.kind === 'enhanced') {
-        return `**[Enhanced Caching](${DOCS}#enhanced-caching)** is provided by the proprietary \`gradle-actions-caching\` provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for terms of use and opt-out instructions.`
+        return `**[Enhanced Caching](${DOCS}#enhanced-caching)** uses the proprietary \`gradle-actions-caching\` provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for terms of use and opt-out instructions.`
     }
     return `**[Basic Caching](${DOCS}#basic-caching)** uses the basic open-source provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for details.`
 }

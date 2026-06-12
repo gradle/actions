@@ -27,7 +27,7 @@ describe('renderCachingReport', () => {
         const report: CacheReport = {status: 'read-only', cleanup: 'disabled-readonly', entries: [entry()]}
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).toContain('<h4>⚡ Gradle Caching — Enhanced Provider</h4>')
+        expect(md).toContain('<h4>Gradle State Caching — ⚡ Enhanced (read-only)</h4>')
         expect(md).toContain('[Enhanced Caching]')
         expect(md).toContain('`gradle-actions-caching`')
         expect(md).toContain('DISTRIBUTION.md')
@@ -43,7 +43,7 @@ describe('renderCachingReport', () => {
         const report: CacheReport = {status: 'enabled', cleanup: 'enabled', entries: [entry()]}
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).toContain('<h4>⚡ Gradle Caching — Enhanced Provider</h4>')
+        expect(md).toContain('<h4>Gradle State Caching — ⚡ Enhanced</h4>')
         // status and cleanup messages are within the expando, after the summary
         const detailsBody = md.slice(md.indexOf('</summary>'))
         expect(detailsBody).toContain('Cache was enabled')
@@ -68,7 +68,7 @@ describe('renderCachingReport', () => {
         }
         const md = renderCachingReport(report, BASIC)
 
-        expect(md).toContain('<h4>🛡️ Gradle Caching — Basic Provider</h4>')
+        expect(md).toContain('<h4>Gradle State Caching — 🛡️ Basic (read-only)</h4>')
         expect(md).toContain('[Basic Caching]')
         expect(md).toContain('[Enhanced Caching]')
         expect(md).toContain('DISTRIBUTION.md')
@@ -82,7 +82,7 @@ describe('renderCachingReport', () => {
         const report: CacheReport = {status: 'disabled', entries: []}
         const md = renderCachingReport(report, undefined)
 
-        expect(md).toContain('<h4>Gradle Caching — Disabled</h4>')
+        expect(md).toContain('<h4>Gradle State Caching — Disabled</h4>')
         expect(md).toContain('Caching was disabled')
         expect(md).not.toContain('<details>')
         expect(md).not.toContain('DISTRIBUTION.md')
@@ -92,7 +92,7 @@ describe('renderCachingReport', () => {
         const report: CacheReport = {status: 'disabled-existing-home', entries: []}
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).toContain('<h4>Gradle Caching — Skipped</h4>')
+        expect(md).toContain('<h4>Gradle State Caching — Skipped</h4>')
         expect(md).toContain('pre-existing Gradle User Home')
         expect(md).not.toContain('<details>')
         // no provider note for non-active states
@@ -103,7 +103,7 @@ describe('renderCachingReport', () => {
         const report: CacheReport = {status: 'not-available', entries: []}
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).toContain('<h4>Gradle Caching — Unavailable</h4>')
+        expect(md).toContain('<h4>Gradle State Caching — Unavailable</h4>')
         expect(md).not.toContain('<details>')
     })
 })
