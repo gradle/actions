@@ -56,13 +56,13 @@ function renderHeading(status: CacheStatus, providerNote?: ProviderNote): string
     if (!isActive(status)) {
         const label =
             status === 'disabled-existing-home' ? 'Skipped' : status === 'not-available' ? 'Unavailable' : 'Disabled'
-        return `<h4>Gradle State Caching — ${label}</h4>`
+        return `<h4>Gradle State Caching - ${label}</h4>`
     }
 
     const icon = providerNote?.kind === 'basic' ? '🛡️' : '⚡'
     const provider = providerNote?.kind === 'basic' ? 'Basic' : 'Enhanced'
     const suffix = status === 'read-only' ? ' (read-only)' : status === 'write-only' ? ' (write-only)' : ''
-    return `<h4>Gradle State Caching — ${icon} ${provider}${suffix}</h4>`
+    return `<h4>Gradle State Caching - ${icon} ${provider}${suffix}</h4>`
 }
 
 function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
@@ -76,13 +76,16 @@ function renderProviderNote(providerNote?: ProviderNote): string | undefined {
     if (providerNote.kind === 'enhanced') {
         return `**[Enhanced Caching](${DOCS}#enhanced-caching)** uses the proprietary \`gradle-actions-caching\` provider. See [DISTRIBUTION.md](${DISTRIBUTION}) for terms of use and opt-out instructions.`
     }
-    return `**[Basic Caching](${DOCS}#basic-caching)** uses the basic open-source provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider.`
+    return `**[Basic Caching](${DOCS}#basic-caching)** uses the basic open-source caching provider. For faster builds and advanced features, consider the **[Enhanced Caching](${DOCS}#enhanced-caching)** provider.`
 }
 
 function renderDetails(report: CacheReport): string {
-    const restored = report.entries.filter(entry => entry.restoredKey).length
-    const saved = report.entries.filter(entry => entry.savedKey).length
-    const summary = `Entries: ${restored} restored, ${saved} saved (expand for more details)`
+    const entries = report.entries
+    const restored = entries.filter(entry => entry.restoredKey).length
+    const saved = entries.filter(entry => entry.savedKey).length
+    const summary = hasMetrics(entries)
+        ? `Entries: ${restored} restored (${getSize(entries, e => e.restoredSize)}Mb), ${saved} saved (${getSize(entries, e => e.savedSize)}Mb) - Expand for more details`
+        : `Entries: ${restored} restored, ${saved} saved - Expand for more details`
 
     const cleanup = report.status === 'enabled' ? renderCleanupLine(report.cleanup) : undefined
     const table = renderEntryTable(report.entries)
@@ -96,11 +99,12 @@ ${body}
 </details>`
 }
 
+function hasMetrics(entries: CacheEntryReport[]): boolean {
+    return entries.some(entry => entry.restoredSize || entry.restoredTime || entry.savedSize || entry.savedTime)
+}
+
 function renderEntryTable(entries: CacheEntryReport[]): string {
-    const hasMetrics = entries.some(
-        entry => entry.restoredSize || entry.restoredTime || entry.savedSize || entry.savedTime
-    )
-    if (!hasMetrics) {
+    if (!hasMetrics(entries)) {
         return ''
     }
     return `<table>
