@@ -174,3 +174,22 @@ export class DevelocityAccessCredentials {
         return this.accessKeyRegexp.test(allKeys)
     }
 }
+
+/**
+ * Resolve the access key that matches a given Develocity server, for use as the
+ * `develocityAccessToken` cache option. Returns `undefined` (fail-closed) when the access key is
+ * empty/malformed, the server URL is empty/unparseable, or no key matches the server's host.
+ */
+export function resolveAccessKeyForServer(accessKey: string, serverUrl: string): string | undefined {
+    const creds = DevelocityAccessCredentials.parse(accessKey)
+    if (!creds || !serverUrl) {
+        return undefined
+    }
+    let host: string
+    try {
+        host = new URL(serverUrl).hostname
+    } catch {
+        host = serverUrl // tolerate a bare hostname (no scheme)
+    }
+    return creds.keys.find(k => k.hostname === host)?.key
+}
