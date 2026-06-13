@@ -8,6 +8,8 @@ export interface CacheOptions {
     strictMatch: boolean
     cleanup: string
     encryptionKey?: string
+    develocityAccessToken?: string
+    develocityServerUrl?: string
     includes: string[]
     excludes: string[]
 }
@@ -27,7 +29,18 @@ export type CacheCleanupStatus =
     | 'disabled-config-cache-hit'
     | 'disabled-readonly'
 
-export type ConfigurationCacheStatus = 'not-active' | 'restored' | 'not-restored' | 'restore-incomplete'
+// Mirrors ProjectCacheStatus in the gradle-actions-caching library. The first three are set on
+// restore (ungated); the rest on save, reflecting the opt-in + Develocity trial gate.
+export type ProjectCacheStatus =
+    | 'restore-incomplete'
+    | 'restored'
+    | 'not-restored'
+    | 'not-enabled'
+    | 'trial-expired'
+    | 'trial-not-licensed'
+    | 'not-stored-no-develocity-plugin'
+    | 'stored'
+    | 'stored-no-configuration-cache'
 
 export interface CacheEntryReport {
     entryName: string
@@ -49,7 +62,7 @@ export interface CacheEntryReport {
 export interface CacheReport {
     status: CacheStatus
     cleanup?: CacheCleanupStatus
-    configurationCache?: ConfigurationCacheStatus
+    projectCache?: ProjectCacheStatus
     entries: CacheEntryReport[]
 }
 
