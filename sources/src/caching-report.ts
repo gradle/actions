@@ -1,4 +1,4 @@
-import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus} from './cache-service'
+import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus, ConfigurationCacheStatus} from './cache-service'
 
 const DOCS = 'https://github.com/gradle/actions/blob/main/docs/setup-gradle.md'
 const DISTRIBUTION = 'https://github.com/gradle/actions/blob/main/DISTRIBUTION.md'
@@ -26,6 +26,13 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
     'disabled-failure': `[Cache cleanup](${DOCS}#configuring-cache-cleanup) was skipped due to a build failure. Use \`cache-cleanup: always\` to override.`,
     'disabled-config-cache-hit': `[Cache cleanup](${DOCS}#configuring-cache-cleanup) was skipped due to configuration-cache reuse.`,
     'disabled-readonly': `[Cache cleanup](${DOCS}#configuring-cache-cleanup) is always disabled when the cache is read-only.`
+}
+
+const CONFIG_CACHE_COPY: Record<ConfigurationCacheStatus, string> = {
+    'not-active': `Configuration cache state was not cached — set a [cache-encryption-key](${DOCS}#cache-encryption-key) to enable configuration-cache caching.`,
+    restored: `Configuration cache state was restored from the cache.`,
+    'not-restored': `Configuration cache state was not restored — no cached data was available (e.g. the first run for this cache key).`,
+    'restore-incomplete': `Configuration cache state was not restored — the Gradle User Home was not fully restored.`
 }
 
 /**
@@ -69,6 +76,10 @@ function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
     return cleanup ? CLEANUP_COPY[cleanup] : undefined
 }
 
+function renderConfigCacheLine(configurationCache?: ConfigurationCacheStatus): string | undefined {
+    return configurationCache ? CONFIG_CACHE_COPY[configurationCache] : undefined
+}
+
 function renderProviderNote(providerNote?: ProviderNote): string | undefined {
     if (!providerNote) {
         return undefined
@@ -88,9 +99,10 @@ function renderDetails(report: CacheReport): string {
         : `Entries: ${restored} restored, ${saved} saved - Expand for more details`
 
     const cleanup = report.status === 'enabled' ? renderCleanupLine(report.cleanup) : undefined
+    const configCache = renderConfigCacheLine(report.configurationCache)
     const table = renderEntryTable(report.entries)
     const pre = `<pre>\n${renderEntryDetails(report.entries)}</pre>`
-    const body = [STATUS_COPY[report.status], cleanup, table, pre].filter(Boolean).join('\n\n')
+    const body = [STATUS_COPY[report.status], cleanup, configCache, table, pre].filter(Boolean).join('\n\n')
 
     return `<details>
 <summary>${summary}</summary>

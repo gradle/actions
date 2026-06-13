@@ -27,6 +27,8 @@ export type CacheCleanupStatus =
     | 'disabled-config-cache-hit'
     | 'disabled-readonly'
 
+export type ConfigurationCacheStatus = 'not-active' | 'restored' | 'not-restored' | 'restore-incomplete'
+
 export interface CacheEntryReport {
     entryName: string
     requestedKey?: string
@@ -47,6 +49,7 @@ export interface CacheEntryReport {
 export interface CacheReport {
     status: CacheStatus
     cleanup?: CacheCleanupStatus
+    configurationCache?: ConfigurationCacheStatus
     entries: CacheEntryReport[]
 }
 
