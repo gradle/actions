@@ -79,37 +79,52 @@ describe('renderCachingReport', () => {
         expect(md).toContain('<summary>Entries: 1 restored, 0 saved - Expand for more details</summary>')
     })
 
-    it('renders the configuration-cache status line inside the details', () => {
+    it('renders the project-cache status line inside the details', () => {
         const report: CacheReport = {
             status: 'enabled',
             cleanup: 'enabled',
-            configurationCache: 'restored',
+            projectCache: 'restored',
             entries: [entry()]
         }
         const md = renderCachingReport(report, ENHANCED)
 
         const detailsBody = md.slice(md.indexOf('</summary>'))
-        expect(detailsBody).toContain('Configuration cache state was restored from the cache.')
+        expect(detailsBody).toContain(
+            'Project state (build-logic and configuration cache) was restored from the cache.'
+        )
     })
 
-    it('explains an inactive configuration cache with a link to the encryption key docs', () => {
+    it('explains an omitted configuration cache with a link to the encryption key docs', () => {
         const report: CacheReport = {
             status: 'enabled',
             cleanup: 'enabled',
-            configurationCache: 'not-active',
+            projectCache: 'stored-no-configuration-cache',
             entries: [entry()]
         }
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).toContain('Configuration cache state was not cached')
+        expect(md).toContain('Build-logic state was cached.')
         expect(md).toContain('#cache-encryption-key')
     })
 
-    it('omits the configuration-cache line when the status is absent', () => {
+    it('renders nothing for the not-enabled project-cache status', () => {
+        const report: CacheReport = {
+            status: 'enabled',
+            cleanup: 'enabled',
+            projectCache: 'not-enabled',
+            entries: [entry()]
+        }
+        const md = renderCachingReport(report, ENHANCED)
+
+        expect(md).not.toContain('Project state')
+        expect(md).not.toContain('Build-logic state')
+    })
+
+    it('omits the project-cache line when the status is absent', () => {
         const report: CacheReport = {status: 'enabled', cleanup: 'enabled', entries: [entry()]}
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).not.toContain('Configuration cache state')
+        expect(md).not.toContain('Project state')
     })
 
     it('renders a compact disabled report with no note and no details', () => {
