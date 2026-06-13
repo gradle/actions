@@ -5,6 +5,7 @@ import * as path from 'path'
 import * as os from 'os'
 import * as jobSummary from './job-summary'
 import * as buildScan from './develocity/build-scan'
+import {resolveAccessKeyForServer} from './develocity/short-lived-token'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {getCacheService, getProviderNote} from './cache-service-loader'
@@ -54,7 +55,11 @@ export async function setup(
     return true
 }
 
-export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryConfig): Promise<boolean> {
+export async function complete(
+    cacheConfig: CacheConfig,
+    develocityConfig: DevelocityConfig,
+    summaryConfig: SummaryConfig
+): Promise<boolean> {
     if (!core.getState(GRADLE_SETUP_VAR)) {
         core.info('Gradle setup post-action only performed for first gradle/actions step in workflow.')
         return false
@@ -65,7 +70,11 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
 
     const gradleUserHome = core.getState(GRADLE_USER_HOME)
     const cacheService = await getCacheService(cacheConfig)
-    const cacheReport = await cacheService.save(gradleUserHome, buildResults, cacheOptionsFrom(cacheConfig))
+    const cacheReport = await cacheService.save(
+        gradleUserHome,
+        buildResults,
+        cacheOptionsFrom(cacheConfig, develocityConfig)
+    )
     await jobSummary.generateJobSummary(buildResults, cacheReport, getProviderNote(cacheConfig), summaryConfig)
 
     markBuildResultsProcessed()
@@ -75,7 +84,14 @@ export async function complete(cacheConfig: CacheConfig, summaryConfig: SummaryC
     return true
 }
 
-function cacheOptionsFrom(config: CacheConfig): CacheOptions {
+function cacheOptionsFrom(config: CacheConfig, develocityConfig?: DevelocityConfig): CacheOptions {
+    // Trial credentials are threaded only on the save path (when develocityConfig is provided).
+    // On restore they stay undefined, which is fine: project-entry restore is ungated.
+    const develocityServerUrl = develocityConfig?.getDevelocityUrl() || undefined
+    const develocityAccessToken =
+        develocityConfig && develocityServerUrl
+            ? resolveAccessKeyForServer(develocityConfig.getDevelocityAccessKey(), develocityServerUrl)
+            : undefined
     return {
         disabled: config.isCacheDisabled(),
         readOnly: config.isCacheReadOnly(),
@@ -84,6 +100,8 @@ function cacheOptionsFrom(config: CacheConfig): CacheOptions {
         strictMatch: config.isCacheStrictMatch(),
         cleanup: config.getCacheCleanupOption(),
         encryptionKey: config.getCacheEncryptionKey() || undefined,
+        develocityAccessToken,
+        develocityServerUrl,
         includes: config.getCacheIncludes(),
         excludes: config.getCacheExcludes()
     }
