@@ -1,7 +1,7 @@
 import nock from "nock";
 import {describe, expect, it} from '@jest/globals'
 
-import {DevelocityAccessCredentials, getToken} from "../../src/develocity/short-lived-token";
+import {DevelocityAccessCredentials, getToken, resolveAccessKeyForServer} from "../../src/develocity/short-lived-token";
 
 describe('short lived tokens', () => {
     it('parse valid access key should return an object', async () => {
@@ -132,5 +132,39 @@ describe('short lived tokens with retry', () => {
         await expect(getToken('dev=xyz', false, ''))
             .resolves
             .toBeNull()
+    })
+})
+
+describe('resolveAccessKeyForServer', () => {
+    it('returns the key matching the server host from a full URL', () => {
+        expect(resolveAccessKeyForServer('ge.example.com=key1;other=key2', 'https://ge.example.com')).toBe('key1')
+    })
+
+    it('matches on hostname, ignoring scheme, port and path', () => {
+        expect(resolveAccessKeyForServer('ge.example.com=key1', 'https://ge.example.com:8443/path')).toBe('key1')
+    })
+
+    it('tolerates a bare hostname with no scheme', () => {
+        expect(resolveAccessKeyForServer('ge.example.com=key1', 'ge.example.com')).toBe('key1')
+    })
+
+    it('selects the matching key when multiple are present', () => {
+        expect(resolveAccessKeyForServer('dev=key1;ge.example.com=key2', 'https://ge.example.com')).toBe('key2')
+    })
+
+    it('returns undefined when no key matches the server host', () => {
+        expect(resolveAccessKeyForServer('ge.example.com=key1', 'https://other.example.com')).toBeUndefined()
+    })
+
+    it('returns undefined for an empty server URL', () => {
+        expect(resolveAccessKeyForServer('ge.example.com=key1', '')).toBeUndefined()
+    })
+
+    it('returns undefined for an empty access key', () => {
+        expect(resolveAccessKeyForServer('', 'https://ge.example.com')).toBeUndefined()
+    })
+
+    it('returns undefined for a malformed access key', () => {
+        expect(resolveAccessKeyForServer('not-a-valid-access-key', 'https://ge.example.com')).toBeUndefined()
     })
 })
