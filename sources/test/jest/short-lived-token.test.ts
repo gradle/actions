@@ -152,6 +152,11 @@ describe('resolveAccessKeyForServer', () => {
         expect(resolveAccessKeyForServer('dev=key1;ge.example.com=key2', 'https://ge.example.com')).toBe('key2')
     })
 
+    it('accepts a short-lived token value (JWT with dots and dashes)', () => {
+        const token = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ4In0.sig-na_ture'
+        expect(resolveAccessKeyForServer(`ge.example.com=${token}`, 'https://ge.example.com')).toBe(token)
+    })
+
     it('returns undefined when no key matches the server host', () => {
         expect(resolveAccessKeyForServer('ge.example.com=key1', 'https://other.example.com')).toBeUndefined()
     })
