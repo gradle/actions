@@ -29,18 +29,11 @@ export type CacheCleanupStatus =
     | 'disabled-config-cache-hit'
     | 'disabled-readonly'
 
-// Mirrors ProjectCacheStatus in the gradle-actions-caching library. The first three are set on
-// restore (ungated); the rest on save, reflecting the opt-in + Develocity trial gate.
 export type ProjectCacheStatus =
-    | 'restore-incomplete'
-    | 'restored'
-    | 'not-restored'
-    | 'not-enabled'
-    | 'trial-expired'
-    | 'trial-not-licensed'
-    | 'not-stored-no-develocity-plugin'
-    | 'stored'
-    | 'stored-no-configuration-cache'
+    | 'not-enabled' // the hidden opt-in env var was not set (rendered as nothing)
+    | 'trial-expired' // past the hard trial expiry
+    | 'trial-not-licensed' // Develocity trial token missing or invalid
+    | 'enabled' // Trial in effect: will attempt to save project state
 
 export interface CacheEntryReport {
     entryName: string
