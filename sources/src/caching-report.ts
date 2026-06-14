@@ -32,7 +32,7 @@ const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
     'not-enabled': ``,
     'trial-expired': `Project state (build-logic and configuration cache) was not cached — the Develocity caching trial has expired.`,
     'trial-not-licensed': `Project state (build-logic and configuration cache) was not cached — a valid Develocity trial token is required.`,
-    'enabled': `Caching of project state (build-logic and configuration cache) was enabled.`
+    enabled: `Caching of project state (build-logic and configuration cache) was enabled.`
 }
 
 /**
