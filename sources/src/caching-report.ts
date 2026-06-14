@@ -29,18 +29,10 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
 }
 
 const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
-    // Restore (ungated).
-    'restore-incomplete': `Project state was not restored — the Gradle User Home was not fully restored.`,
-    restored: `Project state (build-logic and configuration cache) was restored from the cache.`,
-    'not-restored': `Project state was not restored — no cached data was available (e.g. the first run for this cache key).`,
-    // Save, Tier A gate. 'not-enabled' renders nothing (dropped by the .filter(Boolean) below).
     'not-enabled': ``,
-    'trial-expired': `Project state was not cached — the Develocity caching trial has expired.`,
-    'trial-not-licensed': `Project state was not cached — a valid Develocity trial token is required.`,
-    // Save, post-gate outcomes.
-    'not-stored-no-develocity-plugin': `Project state was not cached — applying the Develocity plugin is required to cache build-logic and configuration-cache state.`,
-    stored: `Project state (build-logic and configuration cache) was saved to the cache.`,
-    'stored-no-configuration-cache': `Build-logic state was cached. Storing configuration-cache data requires a build running Gradle >= 8.6 and a [valid encryption key](${DOCS}#cache-encryption-key).`
+    'trial-expired': `Project state (build-logic and configuration cache) was not cached — the Develocity caching trial has expired.`,
+    'trial-not-licensed': `Project state (build-logic and configuration cache) was not cached — a valid Develocity trial token is required.`,
+    'enabled': `Caching of project state (build-logic and configuration cache) was enabled.`
 }
 
 /**
