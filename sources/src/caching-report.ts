@@ -30,8 +30,9 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
 
 const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
     'not-enabled': ``,
-    'trial-expired': `Project state (build-logic and configuration cache) was not cached — the Develocity caching trial has expired.`,
-    'trial-not-licensed': `Project state (build-logic and configuration cache) was not cached — a valid Develocity trial token is required.`,
+    'trial-expired': `Project state (build-logic and configuration cache) was not cached - the Develocity caching trial has expired.`,
+    'trial-not-licensed': `Project state (build-logic and configuration cache) was not cached - a develocity-access-key and develocity-server-url is required.`,
+    'no-encryption-key': `Project state (build-logic and configuration cache) was not cached - a [cache-encryption-key](${DOCS}#cache-encryption-key) is required.`,
     enabled: `Caching of project state (build-logic and configuration cache) was enabled.`
 }
 
