@@ -46,7 +46,7 @@ export async function setup(
     initializeGradleUserHome(userHome, gradleUserHome, cacheConfig.getCacheEncryptionKey())
 
     const cacheService = await getCacheService(cacheConfig)
-    await cacheService.restore(gradleUserHome, cacheOptionsFrom(cacheConfig))
+    await cacheService.restore(gradleUserHome, cacheOptionsFrom(cacheConfig, develocityConfig))
 
     await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory(), gradleUserHome)
 
@@ -84,9 +84,7 @@ export async function complete(
     return true
 }
 
-function cacheOptionsFrom(config: CacheConfig, develocityConfig?: DevelocityConfig): CacheOptions {
-    // Trial credentials are threaded only on the save path (when develocityConfig is provided).
-    // On restore they stay undefined, which is fine: project-entry restore is ungated.
+function cacheOptionsFrom(config: CacheConfig, develocityConfig: DevelocityConfig): CacheOptions {
     const develocityServerUrl = develocityConfig?.getDevelocityUrl() || undefined
     const develocityAccessToken =
         develocityConfig && develocityServerUrl
