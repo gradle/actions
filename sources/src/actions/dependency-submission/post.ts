@@ -1,6 +1,6 @@
 import * as setupGradle from '../../setup-gradle'
 
-import {CacheConfig, SummaryConfig} from '../../configuration'
+import {CacheConfig, DevelocityConfig, SummaryConfig} from '../../configuration'
 import {handlePostActionError} from '../../errors'
 import {forceExit} from '../../force-exit'
 
@@ -14,7 +14,7 @@ process.on('uncaughtException', e => handlePostActionError(e))
  */
 export async function run(): Promise<void> {
     try {
-        await setupGradle.complete(new CacheConfig(), new SummaryConfig())
+        await setupGradle.complete(new CacheConfig(), new DevelocityConfig(), new SummaryConfig())
     } catch (error) {
         handlePostActionError(error)
     }

@@ -79,37 +79,39 @@ describe('renderCachingReport', () => {
         expect(md).toContain('<summary>Entries: 1 restored, 0 saved - Expand for more details</summary>')
     })
 
-    it('renders the configuration-cache status line inside the details', () => {
+    it('renders the project-cache status line inside the details', () => {
         const report: CacheReport = {
             status: 'enabled',
             cleanup: 'enabled',
-            configurationCache: 'restored',
+            projectCache: 'enabled',
             entries: [entry()]
         }
         const md = renderCachingReport(report, ENHANCED)
 
         const detailsBody = md.slice(md.indexOf('</summary>'))
-        expect(detailsBody).toContain('Configuration cache state was restored from the cache.')
+        expect(detailsBody).toContain(
+            'Caching of project state (build-logic and configuration cache) was enabled.'
+        )
     })
 
-    it('explains an inactive configuration cache with a link to the encryption key docs', () => {
+    it('renders nothing for the not-enabled project-cache status', () => {
         const report: CacheReport = {
             status: 'enabled',
             cleanup: 'enabled',
-            configurationCache: 'not-active',
+            projectCache: 'not-enabled',
             entries: [entry()]
         }
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).toContain('Configuration cache state was not cached')
-        expect(md).toContain('#cache-encryption-key')
+        expect(md).not.toContain('Project state')
+        expect(md).not.toContain('build-logic')
     })
 
-    it('omits the configuration-cache line when the status is absent', () => {
+    it('omits the project-cache line when the status is absent', () => {
         const report: CacheReport = {status: 'enabled', cleanup: 'enabled', entries: [entry()]}
         const md = renderCachingReport(report, ENHANCED)
 
-        expect(md).not.toContain('Configuration cache state')
+        expect(md).not.toContain('Project state')
     })
 
     it('renders a compact disabled report with no note and no details', () => {

@@ -8,6 +8,8 @@ export interface CacheOptions {
     strictMatch: boolean
     cleanup: string
     encryptionKey?: string
+    develocityAccessToken?: string
+    develocityServerUrl?: string
     includes: string[]
     excludes: string[]
 }
@@ -27,7 +29,12 @@ export type CacheCleanupStatus =
     | 'disabled-config-cache-hit'
     | 'disabled-readonly'
 
-export type ConfigurationCacheStatus = 'not-active' | 'restored' | 'not-restored' | 'restore-incomplete'
+export type ProjectCacheStatus =
+    | 'not-enabled' // the hidden opt-in env var was not set (rendered as nothing)
+    | 'trial-expired' // past the hard trial expiry
+    | 'trial-not-licensed' // Develocity trial token missing or invalid
+    | 'no-encryption-key' // Cannot store due to missing encryption key
+    | 'enabled' // Trial in effect: will attempt to save project state
 
 export interface CacheEntryReport {
     entryName: string
@@ -49,7 +56,7 @@ export interface CacheEntryReport {
 export interface CacheReport {
     status: CacheStatus
     cleanup?: CacheCleanupStatus
-    configurationCache?: ConfigurationCacheStatus
+    projectCache?: ProjectCacheStatus
     entries: CacheEntryReport[]
 }
 

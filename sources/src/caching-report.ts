@@ -1,4 +1,4 @@
-import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus, ConfigurationCacheStatus} from './cache-service'
+import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus, ProjectCacheStatus} from './cache-service'
 
 const DOCS = 'https://github.com/gradle/actions/blob/main/docs/setup-gradle.md'
 const DISTRIBUTION = 'https://github.com/gradle/actions/blob/main/DISTRIBUTION.md'
@@ -28,11 +28,12 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
     'disabled-readonly': `[Cache cleanup](${DOCS}#configuring-cache-cleanup) is always disabled when the cache is read-only.`
 }
 
-const CONFIG_CACHE_COPY: Record<ConfigurationCacheStatus, string> = {
-    'not-active': `Configuration cache state was not cached — set a [cache-encryption-key](${DOCS}#cache-encryption-key) to enable configuration-cache caching.`,
-    restored: `Configuration cache state was restored from the cache.`,
-    'not-restored': `Configuration cache state was not restored — no cached data was available (e.g. the first run for this cache key).`,
-    'restore-incomplete': `Configuration cache state was not restored — the Gradle User Home was not fully restored.`
+const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
+    'not-enabled': ``,
+    'trial-expired': `Project state (build-logic and configuration cache) was not cached - the Develocity caching trial has expired.`,
+    'trial-not-licensed': `Project state (build-logic and configuration cache) was not cached - a develocity-access-key and develocity-server-url is required.`,
+    'no-encryption-key': `Project state (build-logic and configuration cache) was not cached - a [cache-encryption-key](${DOCS}#cache-encryption-key) is required.`,
+    enabled: `Caching of project state (build-logic and configuration cache) was enabled.`
 }
 
 /**
@@ -76,8 +77,9 @@ function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
     return cleanup ? CLEANUP_COPY[cleanup] : undefined
 }
 
-function renderConfigCacheLine(configurationCache?: ConfigurationCacheStatus): string | undefined {
-    return configurationCache ? CONFIG_CACHE_COPY[configurationCache] : undefined
+function renderProjectCacheLine(projectCache?: ProjectCacheStatus): string | undefined {
+    // PROJECT_CACHE_COPY['not-enabled'] is '', which the .filter(Boolean) at the call site drops.
+    return projectCache ? PROJECT_CACHE_COPY[projectCache] : undefined
 }
 
 function renderProviderNote(providerNote?: ProviderNote): string | undefined {
@@ -99,10 +101,10 @@ function renderDetails(report: CacheReport): string {
         : `Entries: ${restored} restored, ${saved} saved - Expand for more details`
 
     const cleanup = report.status === 'enabled' ? renderCleanupLine(report.cleanup) : undefined
-    const configCache = renderConfigCacheLine(report.configurationCache)
+    const projectCache = renderProjectCacheLine(report.projectCache)
     const table = renderEntryTable(report.entries)
     const pre = `<pre>\n${renderEntryDetails(report.entries)}</pre>`
-    const body = [STATUS_COPY[report.status], cleanup, configCache, table, pre].filter(Boolean).join('\n\n')
+    const body = [STATUS_COPY[report.status], cleanup, projectCache, table, pre].filter(Boolean).join('\n\n')
 
     return `<details>
 <summary>${summary}</summary>
