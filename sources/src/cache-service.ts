@@ -33,6 +33,7 @@ export type ProjectCacheStatus =
     | 'not-enabled' // the hidden opt-in env var was not set (rendered as nothing)
     | 'trial-expired' // past the hard trial expiry
     | 'trial-not-licensed' // Develocity trial token missing or invalid
+    | 'no-encryption-key' // Cannot store due to missing encryption key
     | 'enabled' // Trial in effect: will attempt to save project state
 
 export interface CacheEntryReport {
