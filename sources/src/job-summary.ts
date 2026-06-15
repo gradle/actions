@@ -13,6 +13,8 @@ export async function generateJobSummary(
     providerNote: ProviderNote | undefined,
     config: SummaryConfig
 ): Promise<void> {
+    core.startGroup('Generating Job Summary')
+
     const errors = renderErrors()
     if (errors) {
         core.summary.addRaw(errors)
@@ -23,19 +25,17 @@ export async function generateJobSummary(
     const summaryTable = renderSummaryTable(buildResults)
     const cachingReport = renderCachingReport(cacheReport, providerNote)
     const hasFailure = anyFailed(buildResults)
-    if (config.shouldGenerateJobSummary(hasFailure)) {
-        core.info('Generating Job Summary')
 
+    core.info(summaryTable)
+    core.info('============================')
+    core.info(cachingReport)
+
+    if (config.shouldGenerateJobSummary(hasFailure)) {
         core.summary.addRaw(summaryTable)
         core.summary.addRaw(cachingReport)
         await core.summary.write()
-    } else {
-        core.info('============================')
-        core.info(summaryTable)
-        core.info('============================')
-        core.info(cachingReport)
-        core.info('============================')
     }
+    core.endGroup()
 
     if (config.canAddPRComment()) {
         await minimizeObsoletePRComments()
