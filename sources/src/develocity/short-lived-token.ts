@@ -3,28 +3,41 @@ import * as httpm from '@actions/http-client'
 import {DevelocityConfig} from '../configuration'
 import {recordDeprecation} from '../deprecation-collector'
 
-export async function setupToken(
-    develocityAccessKey: string,
-    develocityAllowUntrustedServer: boolean | undefined,
-    develocityTokenExpiry: string
-): Promise<void> {
-    if (develocityAccessKey) {
-        try {
-            core.debug('Fetching short-lived token...')
-            const tokens = await getToken(develocityAccessKey, develocityAllowUntrustedServer, develocityTokenExpiry)
-            if (tokens != null && !tokens.isEmpty()) {
-                core.debug(`Got token(s), setting the access key env vars`)
-                const token = tokens.raw()
-                core.setSecret(token)
-                exportAccessKeyEnvVars(token)
-            } else {
-                handleMissingAccessToken()
-            }
-        } catch (e) {
-            handleMissingAccessToken()
-            core.warning(`Failed to fetch short-lived token, reason: ${e}`)
-        }
+/**
+ * Exchange the configured Develocity access key(s) for short-lived tokens, export them as the access
+ * key env vars, and return the short-lived token matching the configured Develocity server URL (for
+ * use as the `develocityAccessToken` cache option). Returns `undefined` when there is no access key,
+ * token fetching fails, or no token matches the configured server.
+ */
+export async function setupToken(config: DevelocityConfig): Promise<string | undefined> {
+    const develocityAccessKey = config.getDevelocityAccessKey()
+    if (!develocityAccessKey) {
+        return undefined
     }
+    try {
+        core.debug('Fetching short-lived token...')
+        const tokens = await getToken(
+            develocityAccessKey,
+            config.getDevelocityAllowUntrustedServer(),
+            config.getDevelocityTokenExpiry()
+        )
+        if (tokens != null && !tokens.isEmpty()) {
+            core.debug(`Got token(s), setting the access key env vars`)
+            const token = tokens.raw()
+            core.setSecret(token)
+            exportAccessKeyEnvVars(token)
+            for (const k of tokens.keys) {
+                core.setSecret(k.key)
+            }
+            const serverUrl = config.getDevelocityUrl()
+            return serverUrl ? resolveTokenForServer(tokens, serverUrl) : undefined
+        }
+        handleMissingAccessToken()
+    } catch (e) {
+        handleMissingAccessToken()
+        core.warning(`Failed to fetch short-lived token, reason: ${e}`)
+    }
+    return undefined
 }
 
 function exportAccessKeyEnvVars(value: string): void {
@@ -176,16 +189,11 @@ export class DevelocityAccessCredentials {
 }
 
 /**
- * Resolve the access key that matches a given Develocity server, for use as the
- * `develocityAccessToken` cache option. Returns `undefined` (fail-closed) when the access key is
- * empty, the server URL is empty/unparseable, or no entry matches the server's host.
- *
- * Parses the `host=value;host=value` form leniently rather than via `DevelocityAccessCredentials`:
- * at save time the value is typically a short-lived token (a JWT whose `.`/`-` characters the strict
- * parser rejects), but it is still a valid access token for that host.
+ * Resolve the token whose hostname matches a given Develocity server URL. Returns `undefined`
+ * (fail-closed) when the server URL is empty or no token matches the server's host.
  */
-export function resolveAccessKeyForServer(accessKey: string, serverUrl: string): string | undefined {
-    if (!accessKey || !serverUrl) {
+export function resolveTokenForServer(tokens: DevelocityAccessCredentials, serverUrl: string): string | undefined {
+    if (!serverUrl) {
         return undefined
     }
     let host: string
@@ -194,14 +202,5 @@ export function resolveAccessKeyForServer(accessKey: string, serverUrl: string):
     } catch {
         host = serverUrl // tolerate a bare hostname (no scheme)
     }
-    for (const entry of accessKey.split(';')) {
-        const sep = entry.indexOf('=')
-        if (sep < 1) {
-            continue // skip blanks / malformed entries with no `host=` prefix
-        }
-        if (entry.slice(0, sep) === host) {
-            return entry.slice(sep + 1) || undefined
-        }
-    }
-    return undefined
+    return tokens.keys.find(k => k.hostname === host)?.key
 }

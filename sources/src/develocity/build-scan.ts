@@ -1,8 +1,7 @@
 import * as core from '@actions/core'
 import {DevelocityConfig} from '../configuration'
-import {setupToken} from './short-lived-token'
 
-export async function setup(config: DevelocityConfig): Promise<void> {
+export function setup(config: DevelocityConfig): void {
     maybeExportVariable('DEVELOCITY_INJECTION_INIT_SCRIPT_NAME', 'gradle-actions.inject-develocity.init.gradle')
     maybeExportVariable('DEVELOCITY_INJECTION_CUSTOM_VALUE', 'gradle-actions')
 
@@ -39,12 +38,6 @@ export async function setup(config: DevelocityConfig): Promise<void> {
         maybeExportVariable('DEVELOCITY_INJECTION_TERMS_OF_USE_URL', config.getTermsOfUseUrl())
         maybeExportVariable('DEVELOCITY_INJECTION_TERMS_OF_USE_AGREE', config.getTermsOfUseAgree())
     }
-
-    return setupToken(
-        config.getDevelocityAccessKey(),
-        config.getDevelocityAllowUntrustedServer(),
-        config.getDevelocityTokenExpiry()
-    )
 }
 
 function maybeExportVariable(variableName: string, value: unknown): void {

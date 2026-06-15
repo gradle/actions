@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as os from 'os'
 import * as jobSummary from './job-summary'
 import * as buildScan from './develocity/build-scan'
-import {resolveAccessKeyForServer} from './develocity/short-lived-token'
+import {setupToken} from './develocity/short-lived-token'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {getCacheService, getProviderNote} from './cache-service-loader'
@@ -22,6 +22,8 @@ import {initializeGradleUserHome} from './gradle-user-home'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
+// Short-lived Develocity token for the configured server, resolved during setup and reused on save.
+const DEVELOCITY_CACHE_TOKEN = 'DEVELOCITY_CACHE_TOKEN'
 
 export async function setup(
     cacheConfig: CacheConfig,
@@ -45,12 +47,18 @@ export async function setup(
 
     initializeGradleUserHome(userHome, gradleUserHome, cacheConfig.getCacheEncryptionKey())
 
+    // Exchange the long-lived access key(s) for short-lived tokens, resolving the token for the
+    // configured Develocity server and retaining it for the post-action (save) step.
+    const develocityServerUrl = develocityConfig.getDevelocityUrl() || undefined
+    const cacheToken = await setupToken(develocityConfig)
+    core.saveState(DEVELOCITY_CACHE_TOKEN, cacheToken ?? '')
+
     const cacheService = await getCacheService(cacheConfig)
-    await cacheService.restore(gradleUserHome, cacheOptionsFrom(cacheConfig, develocityConfig))
+    await cacheService.restore(gradleUserHome, cacheOptionsFrom(cacheConfig, develocityServerUrl, cacheToken))
 
     await wrapperValidator.validateWrappers(wrapperValidationConfig, getWorkspaceDirectory(), gradleUserHome)
 
-    await buildScan.setup(develocityConfig)
+    buildScan.setup(develocityConfig)
 
     return true
 }
@@ -69,11 +77,13 @@ export async function complete(
     const buildResults = loadBuildResults()
 
     const gradleUserHome = core.getState(GRADLE_USER_HOME)
+    const develocityServerUrl = develocityConfig.getDevelocityUrl() || undefined
+    const cacheToken = core.getState(DEVELOCITY_CACHE_TOKEN) || undefined
     const cacheService = await getCacheService(cacheConfig)
     const cacheReport = await cacheService.save(
         gradleUserHome,
         buildResults,
-        cacheOptionsFrom(cacheConfig, develocityConfig)
+        cacheOptionsFrom(cacheConfig, develocityServerUrl, cacheToken)
     )
     await jobSummary.generateJobSummary(buildResults, cacheReport, getProviderNote(cacheConfig), summaryConfig)
 
@@ -84,12 +94,11 @@ export async function complete(
     return true
 }
 
-function cacheOptionsFrom(config: CacheConfig, develocityConfig: DevelocityConfig): CacheOptions {
-    const develocityServerUrl = develocityConfig?.getDevelocityUrl() || undefined
-    const develocityAccessToken =
-        develocityConfig && develocityServerUrl
-            ? resolveAccessKeyForServer(develocityConfig.getDevelocityAccessKey(), develocityServerUrl)
-            : undefined
+function cacheOptionsFrom(
+    config: CacheConfig,
+    develocityServerUrl: string | undefined,
+    develocityAccessToken: string | undefined
+): CacheOptions {
     return {
         disabled: config.isCacheDisabled(),
         readOnly: config.isCacheReadOnly(),
