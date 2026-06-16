@@ -37,6 +37,8 @@ export declare interface CacheOptions {
     strictMatch: boolean;
     cleanup: 'always' | 'on-success' | 'never';
     encryptionKey?: string;
+    develocityAccessToken?: string;
+    develocityServerUrl?: string;
     includes: string[];
     excludes: string[];
 }
@@ -45,11 +47,21 @@ export declare interface CacheOptions {
 export declare interface CacheReport {
     status: CacheStatus;
     cleanup?: CacheCleanupStatus;
+    projectCache?: ProjectCacheStatus;
     entries: CacheEntryReport[];
 }
 
 /** @public */
 export declare type CacheStatus = 'enabled' | 'read-only' | 'write-only' | 'disabled' | 'disabled-existing-home' | 'not-available';
+
+/**
+ * Status of project-entry caching (build-logic artifacts + configuration-cache data) for a run.
+ * The first three are set on restore (always ungated); the rest are set on save and reflect the
+ * two-tier gate (opt-in + Develocity trial, then encryption key + Gradle version). Still beta.
+ *
+ * @public
+ */
+declare type ProjectCacheStatus = 'not-enabled' | 'trial-expired' | 'trial-not-licensed' | 'no-encryption-key' | 'enabled';
 
 /** @public */
 export declare function restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void>;
