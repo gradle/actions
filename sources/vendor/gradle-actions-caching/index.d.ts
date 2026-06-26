@@ -56,12 +56,12 @@ export declare type CacheStatus = 'enabled' | 'read-only' | 'write-only' | 'disa
 
 /**
  * Status of project-entry caching (build-logic artifacts + configuration-cache data) for a run.
- * The first three are set on restore (always ungated); the rest are set on save and reflect the
- * two-tier gate (opt-in + Develocity trial, then encryption key + Gradle version). Still beta.
+ * Set as the gate is evaluated: opt-in, then trial expiry, then entitlement (Develocity trial
+ * license OR repo registration), then encryption key. Still beta.
  *
  * @public
  */
-declare type ProjectCacheStatus = 'not-enabled' | 'trial-expired' | 'trial-not-licensed' | 'no-encryption-key' | 'enabled';
+declare type ProjectCacheStatus = 'not-enabled' | 'trial-expired' | 'not-registered' | 'no-encryption-key' | 'enabled';
 
 /** @public */
 export declare function restore(gradleUserHome: string, cacheOptions: CacheOptions): Promise<void>;

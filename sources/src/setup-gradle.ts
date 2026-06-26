@@ -9,6 +9,7 @@ import {setupToken} from './develocity/short-lived-token'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
 import {getCacheService, getProviderNote} from './cache-service-loader'
+import {renderProjectCacheNotice} from './caching-report'
 import {CacheOptions} from './cache-service'
 import {
     DevelocityConfig,
@@ -85,6 +86,14 @@ export async function complete(
         buildResults,
         cacheOptionsFrom(cacheConfig, develocityServerUrl, cacheToken)
     )
+
+    // Surface a prominent notice (with the /register link) only when advanced caching was withheld
+    // because the repo is not registered; stay quiet when enabled by either path.
+    const registrationNotice = renderProjectCacheNotice(cacheReport.projectCache)
+    if (registrationNotice) {
+        core.notice(registrationNotice)
+    }
+
     await jobSummary.generateJobSummary(buildResults, cacheReport, getProviderNote(cacheConfig), summaryConfig)
 
     markBuildResultsProcessed()

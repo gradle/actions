@@ -2,6 +2,7 @@ import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus, ProjectC
 
 const DOCS = 'https://github.com/gradle/actions/blob/main/docs/setup-gradle.md'
 const DISTRIBUTION = 'https://github.com/gradle/actions/blob/main/DISTRIBUTION.md'
+const REGISTER = 'https://gradle-actions-caching-registration.vercel.app/register'
 
 /**
  * Identifies the caching provider in use, so the report can attribute the cache
@@ -31,7 +32,7 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
 const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
     'not-enabled': ``,
     'trial-expired': `Project state (build-logic and configuration cache) was not cached - the Develocity caching trial has expired.`,
-    'trial-not-licensed': `Project state (build-logic and configuration cache) was not cached - a develocity-access-key and develocity-server-url is required.`,
+    'not-registered': `Project state (build-logic and configuration cache) was not cached - this repository is not registered for advanced caching. [Register this repository](${REGISTER}), or provide a \`develocity-access-key\` and \`develocity-server-url\`.`,
     'no-encryption-key': `Project state (build-logic and configuration cache) was not cached - a [cache-encryption-key](${DOCS}#cache-encryption-key) is required.`,
     enabled: `Caching of project state (build-logic and configuration cache) was enabled.`
 }
@@ -80,6 +81,22 @@ function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
 function renderProjectCacheLine(projectCache?: ProjectCacheStatus): string | undefined {
     // PROJECT_CACHE_COPY['not-enabled'] is '', which the .filter(Boolean) at the call site drops.
     return projectCache ? PROJECT_CACHE_COPY[projectCache] : undefined
+}
+
+/**
+ * A plain-text log notice (no markdown) surfaced when advanced caching was withheld because the
+ * repository is not registered. Returns `undefined` for every other status, so callers stay quiet
+ * when the feature is enabled, disabled, or simply not opted in.
+ */
+export function renderProjectCacheNotice(projectCache?: ProjectCacheStatus): string | undefined {
+    if (projectCache !== 'not-registered') {
+        return undefined
+    }
+    return (
+        'Advanced caching (build-logic and configuration cache) was not enabled: this repository ' +
+        `is not registered. Register it at ${REGISTER}, or provide a develocity-access-key and ` +
+        'develocity-server-url.'
+    )
 }
 
 function renderProviderNote(providerNote?: ProviderNote): string | undefined {

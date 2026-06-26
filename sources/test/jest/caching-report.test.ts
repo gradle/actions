@@ -1,7 +1,7 @@
 import {describe, expect, it} from '@jest/globals'
 
 import {CacheReport} from '../../src/cache-service'
-import {renderCachingReport} from '../../src/caching-report'
+import {renderCachingReport, renderProjectCacheNotice} from '../../src/caching-report'
 
 const ENHANCED = {kind: 'enhanced'} as const
 const BASIC = {kind: 'basic'} as const
@@ -114,6 +114,20 @@ describe('renderCachingReport', () => {
         expect(md).not.toContain('Project state')
     })
 
+    it('renders the not-registered status with a /register link inside the details', () => {
+        const report: CacheReport = {
+            status: 'enabled',
+            cleanup: 'enabled',
+            projectCache: 'not-registered',
+            entries: [entry()]
+        }
+        const md = renderCachingReport(report, ENHANCED)
+
+        const detailsBody = md.slice(md.indexOf('</summary>'))
+        expect(detailsBody).toContain('not registered for advanced caching')
+        expect(detailsBody).toContain('/register')
+    })
+
     it('renders a compact disabled report with no note and no details', () => {
         const report: CacheReport = {status: 'disabled', entries: []}
         const md = renderCachingReport(report, undefined)
@@ -141,5 +155,22 @@ describe('renderCachingReport', () => {
 
         expect(md).toContain('<h4>Gradle State Caching - Unavailable</h4>')
         expect(md).not.toContain('<details>')
+    })
+})
+
+describe('renderProjectCacheNotice', () => {
+    it('returns a notice with the /register link for the not-registered status', () => {
+        const notice = renderProjectCacheNotice('not-registered')
+        expect(notice).toBeDefined()
+        expect(notice).toContain('not registered')
+        expect(notice).toContain('/register')
+    })
+
+    it('is silent for every other status', () => {
+        expect(renderProjectCacheNotice('enabled')).toBeUndefined()
+        expect(renderProjectCacheNotice('not-enabled')).toBeUndefined()
+        expect(renderProjectCacheNotice('trial-expired')).toBeUndefined()
+        expect(renderProjectCacheNotice('no-encryption-key')).toBeUndefined()
+        expect(renderProjectCacheNotice(undefined)).toBeUndefined()
     })
 })
