@@ -2,7 +2,7 @@ import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus, ProjectC
 
 const DOCS = 'https://github.com/gradle/actions/blob/main/docs/setup-gradle.md'
 const DISTRIBUTION = 'https://github.com/gradle/actions/blob/main/DISTRIBUTION.md'
-const REGISTER = 'https://gradle-actions-caching-registration.vercel.app/register'
+const REGISTER = 'https://actions-caching-registration.vercel.app/register'
 
 /**
  * Identifies the caching provider in use, so the report can attribute the cache
