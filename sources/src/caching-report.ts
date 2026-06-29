@@ -2,7 +2,21 @@ import {CacheCleanupStatus, CacheEntryReport, CacheReport, CacheStatus, ProjectC
 
 const DOCS = 'https://github.com/gradle/actions/blob/main/docs/setup-gradle.md'
 const DISTRIBUTION = 'https://github.com/gradle/actions/blob/main/DISTRIBUTION.md'
-const REGISTER = 'https://actions-caching-registration.vercel.app/register'
+const REGISTER_BASE = 'https://actions-caching-registration.vercel.app/register'
+
+/**
+ * The `/register` link with the current repo's identity appended, so the backend can resolve the
+ * installation and route to acceptance. Repo identity comes from `GITHUB_REPOSITORY` (`owner/repo`),
+ * set by the runner; falls back to the bare link if it is somehow unavailable.
+ */
+function registerUrl(): string {
+    const repository = process.env.GITHUB_REPOSITORY
+    if (!repository?.includes('/')) {
+        return REGISTER_BASE
+    }
+    const [owner, repo] = repository.split('/')
+    return `${REGISTER_BASE}?${new URLSearchParams({owner, repo}).toString()}`
+}
 
 /**
  * Identifies the caching provider in use, so the report can attribute the cache
@@ -29,10 +43,11 @@ const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
     'disabled-readonly': `[Cache cleanup](${DOCS}#configuring-cache-cleanup) is always disabled when the cache is read-only.`
 }
 
-const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
+// 'not-registered' is rendered dynamically (see renderProjectCacheLine) because its /register link
+// carries the repo identity, so it is intentionally absent from this static map.
+const PROJECT_CACHE_COPY: Record<Exclude<ProjectCacheStatus, 'not-registered'>, string> = {
     'not-enabled': ``,
     'trial-expired': `Project state (build-logic and configuration cache) was not cached - the Develocity caching trial has expired.`,
-    'not-registered': `Project state (build-logic and configuration cache) was not cached - this repository is not registered for advanced caching. [Register this repository](${REGISTER}), or provide a \`develocity-access-key\` and \`develocity-server-url\`.`,
     'no-encryption-key': `Project state (build-logic and configuration cache) was not cached - a [cache-encryption-key](${DOCS}#cache-encryption-key) is required.`,
     enabled: `Caching of project state (build-logic and configuration cache) was enabled.`
 }
@@ -79,8 +94,14 @@ function renderCleanupLine(cleanup?: CacheCleanupStatus): string | undefined {
 }
 
 function renderProjectCacheLine(projectCache?: ProjectCacheStatus): string | undefined {
+    if (!projectCache) {
+        return undefined
+    }
+    if (projectCache === 'not-registered') {
+        return `Project state (build-logic and configuration cache) was not cached - this repository is not registered for advanced caching. [Register this repository](${registerUrl()}), or provide a \`develocity-access-key\` and \`develocity-server-url\`.`
+    }
     // PROJECT_CACHE_COPY['not-enabled'] is '', which the .filter(Boolean) at the call site drops.
-    return projectCache ? PROJECT_CACHE_COPY[projectCache] : undefined
+    return PROJECT_CACHE_COPY[projectCache]
 }
 
 /**
@@ -94,7 +115,7 @@ export function renderProjectCacheNotice(projectCache?: ProjectCacheStatus): str
     }
     return (
         'Advanced caching (build-logic and configuration cache) was not enabled: this repository ' +
-        `is not registered. Register it at ${REGISTER}, or provide a develocity-access-key and ` +
+        `is not registered. Register it at ${registerUrl()}, or provide a develocity-access-key and ` +
         'develocity-server-url.'
     )
 }

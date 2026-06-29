@@ -114,18 +114,25 @@ describe('renderCachingReport', () => {
         expect(md).not.toContain('Project state')
     })
 
-    it('renders the not-registered status with a /register link inside the details', () => {
-        const report: CacheReport = {
-            status: 'enabled',
-            cleanup: 'enabled',
-            projectCache: 'not-registered',
-            entries: [entry()]
-        }
-        const md = renderCachingReport(report, ENHANCED)
+    it('renders the not-registered status with a repo-scoped /register link inside the details', () => {
+        const saved = process.env.GITHUB_REPOSITORY
+        process.env.GITHUB_REPOSITORY = 'acme/widgets'
+        try {
+            const report: CacheReport = {
+                status: 'enabled',
+                cleanup: 'enabled',
+                projectCache: 'not-registered',
+                entries: [entry()]
+            }
+            const md = renderCachingReport(report, ENHANCED)
 
-        const detailsBody = md.slice(md.indexOf('</summary>'))
-        expect(detailsBody).toContain('not registered for advanced caching')
-        expect(detailsBody).toContain('/register')
+            const detailsBody = md.slice(md.indexOf('</summary>'))
+            expect(detailsBody).toContain('not registered for advanced caching')
+            expect(detailsBody).toContain('/register?owner=acme&repo=widgets')
+        } finally {
+            if (saved === undefined) delete process.env.GITHUB_REPOSITORY
+            else process.env.GITHUB_REPOSITORY = saved
+        }
     })
 
     it('renders a compact disabled report with no note and no details', () => {
@@ -159,11 +166,18 @@ describe('renderCachingReport', () => {
 })
 
 describe('renderProjectCacheNotice', () => {
-    it('returns a notice with the /register link for the not-registered status', () => {
-        const notice = renderProjectCacheNotice('not-registered')
-        expect(notice).toBeDefined()
-        expect(notice).toContain('not registered')
-        expect(notice).toContain('/register')
+    it('returns a notice with a repo-scoped /register link for the not-registered status', () => {
+        const saved = process.env.GITHUB_REPOSITORY
+        process.env.GITHUB_REPOSITORY = 'acme/widgets'
+        try {
+            const notice = renderProjectCacheNotice('not-registered')
+            expect(notice).toBeDefined()
+            expect(notice).toContain('not registered')
+            expect(notice).toContain('/register?owner=acme&repo=widgets')
+        } finally {
+            if (saved === undefined) delete process.env.GITHUB_REPOSITORY
+            else process.env.GITHUB_REPOSITORY = saved
+        }
     })
 
     it('is silent for every other status', () => {
