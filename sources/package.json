@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@actions/artifact": "6.2.1",
-    "@actions/cache": "6.0.1",
+    "@actions/cache": "6.2.0",
     "@actions/core": "3.0.1",
     "@actions/exec": "3.0.0",
     "@actions/github": "9.1.1",
@@ -45,7 +45,7 @@
     "@actions/tool-cache": "4.0.0",
     "@octokit/webhooks-types": "7.6.1",
     "cheerio": "1.2.0",
-    "semver": "7.8.3",
+    "semver": "7.8.5",
     "string-argv": "0.3.2",
     "unhomoglyph": "1.0.6",
     "which": "7.0.0"
@@ -53,20 +53,20 @@
   "devDependencies": {
     "@jest/globals": "30.4.1",
     "@types/jest": "30.0.0",
-    "@types/node": "25.9.2",
+    "@types/node": "26.1.1",
     "@types/semver": "7.7.1",
     "@types/unzipper": "0.10.11",
     "@types/which": "3.0.4",
-    "@typescript-eslint/eslint-plugin": "8.61.0",
+    "@typescript-eslint/eslint-plugin": "8.65.0",
     "dedent": "1.7.2",
-    "esbuild": "0.28.0",
-    "eslint": "10.4.1",
-    "globals": "17.6.0",
+    "esbuild": "0.28.1",
+    "eslint": "10.7.0",
+    "globals": "17.7.0",
     "jest": "30.4.2",
     "nock": "15.0.0",
     "npm-run-all": "4.1.5",
-    "prettier": "3.8.4",
-    "ts-jest": "29.4.11",
-    "typescript": "5.9.3"
+    "prettier": "3.9.6",
+    "ts-jest": "29.4.12",
+    "typescript": "7.0.2"
   }
 }
