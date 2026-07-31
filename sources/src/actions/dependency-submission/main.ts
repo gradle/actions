@@ -47,6 +47,7 @@ export async function run(): Promise<void> {
               -Dorg.gradle.configureondemand=false
               -Dorg.gradle.dependency.verification=off
               -Dorg.gradle.unsafe.isolated-projects=false
+              -Dorg.gradle.isolated-projects=false
               ${taskList}
               ${additionalArgs}
         `
