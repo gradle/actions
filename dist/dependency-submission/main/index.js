@@ -326,6 +326,7 @@ ${String(r)}`)}function C7t(){return Ha(jD())}function XX(t){let e=Yu();return H
               -Dorg.gradle.configureondemand=false
               -Dorg.gradle.dependency.verification=off
               -Dorg.gradle.unsafe.isolated-projects=false
+              -Dorg.gradle.isolated-projects=false
               ${n}
               ${s}
         `,o=eZ(i);await gRe(r.getGradleVersion(),r.getBuildRootDirectory(),o),await p8e(e),pn("GITHUB_DEPENDENCY_GRAPH_ENABLED",t),bme()}catch(t){bxe(t)}await C8e()}Q7t();export{Q7t as run};
