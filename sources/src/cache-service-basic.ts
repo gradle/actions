@@ -80,7 +80,28 @@ export class BasicCacheService implements CacheService {
         const cachePaths = getCachePaths(gradleUserHome)
 
         try {
-            await cache.saveCache(cachePaths, primaryKey)
+            // A cacheId of -1 means the save failed: `saveCache` reports the underlying cause and returns
+            // normally, rather than throwing. Warn and continue: caching failures should not fail the build.
+            const cacheId = await cache.saveCache(cachePaths, primaryKey)
+            if (cacheId === -1) {
+                core.warning(
+                    `Basic caching failed to save entry with key \`${primaryKey}\`. See preceding log output for the cause.`
+                )
+                return {
+                    status: 'enabled',
+                    entries: [
+                        entryReport({
+                            primaryKey,
+                            restoredKey,
+                            restoredOutcome: restoredKey
+                                ? '(Entry restored: exact match found)'
+                                : '(Entry not restored: no match found)',
+                            savedOutcome: '(Entry not saved: save failed)'
+                        })
+                    ]
+                }
+            }
+
             core.info(`Basic caching saved entry with key: ${primaryKey}`)
             return {
                 status: 'enabled',
