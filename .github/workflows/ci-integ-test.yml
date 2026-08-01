@@ -21,8 +21,18 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
     - name: Build and upload distribution
-      if: ${{ needs.determine-suite.outputs.suite != 'full' }}
       uses: ./.github/actions/build-dist
+
+  smoke-tests:
+    needs: build-distribution
+    uses: ./.github/workflows/suite-smoke-test-caching.yml
+    concurrency:
+      group: CI-smoke-test-caching-${{ github.ref }}
+      cancel-in-progress: false
+    with:
+      skip-dist: false
+      runner-os: '["ubuntu-latest", "windows-latest"]'
+    secrets: inherit
 
   caching-integ-tests:
     needs: build-distribution
@@ -64,6 +74,7 @@ jobs:
     if: ${{ always() }}
     needs:
     - build-distribution
+    - smoke-tests
     - caching-integ-tests
     - other-integ-tests
     - dependency-submission-integ-tests
@@ -74,6 +85,7 @@ jobs:
       run: |
         echo "One or more integ-test jobs did not succeed:"
         echo "  build-distribution:                ${{ needs.build-distribution.result }}"
+        echo "  smoke-tests:                       ${{ needs.smoke-tests.result }}"
         echo "  caching-integ-tests:               ${{ needs.caching-integ-tests.result }}"
         echo "  other-integ-tests:                 ${{ needs.other-integ-tests.result }}"
         echo "  dependency-submission-integ-tests: ${{ needs.dependency-submission-integ-tests.result }}"

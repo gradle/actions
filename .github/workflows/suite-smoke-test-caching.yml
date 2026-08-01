@@ -1,0 +1,27 @@
+name: suite-smoke-test-caching
+
+on:
+  workflow_call:
+    inputs:
+      runner-os:
+        type: string
+        default: '["ubuntu-latest"]'
+      skip-dist:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  restore-gradle-home:
+    uses: ./.github/workflows/smoke-test-restore-gradle-home.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  basic-cache-provider:
+    uses: ./.github/workflows/smoke-test-basic-cache-provider.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      skip-dist: ${{ inputs.skip-dist }}

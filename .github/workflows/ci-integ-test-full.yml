@@ -14,6 +14,16 @@ permissions:
   contents: read
 
 jobs:
+  smoke-tests:
+    uses: ./.github/workflows/suite-smoke-test-caching.yml
+    concurrency:
+      group: CI-smoke-test-caching
+      cancel-in-progress: false
+    with:
+      skip-dist: true
+      runner-os: '["ubuntu-latest", "windows-latest"]'
+    secrets: inherit
+
   caching-integ-tests:
     uses: ./.github/workflows/suite-integ-test-caching.yml
     concurrency:
