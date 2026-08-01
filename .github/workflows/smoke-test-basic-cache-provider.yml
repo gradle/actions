@@ -39,9 +39,12 @@ jobs:
       with:
         cache-provider: basic
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
+    # Basic caching does no daemon management, so the workflow must ensure no daemon is left
+    # holding locks on the Gradle User Home when the post-action save runs. Without this, `tar`
+    # cannot read the Gradle '*.lock' files on Windows and the cache entry is never saved.
     - name: Build kotlin-dsl project
       working-directory: .github/workflow-samples/kotlin-dsl
-      run: ./gradlew build
+      run: ./gradlew build --no-daemon
 
   basic-cache-verify-build:
     needs: basic-cache-seed-build
