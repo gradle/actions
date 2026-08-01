@@ -3,3 +3,6 @@
 
 # Ignore Gradle build output directory
 build
+
+# Marker file written when the 'test' task is configured
+task-configured.txt
