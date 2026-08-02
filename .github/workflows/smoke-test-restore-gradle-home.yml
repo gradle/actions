@@ -114,15 +114,16 @@ jobs:
       working-directory: .github/workflow-samples/groovy-dsl
       run: ./gradlew test
 
-  # Test that a pre-existing gradle-user-home can be overwritten by the restored cache
+  # Test that a pre-existing gradle-user-home can be overwritten by the restored cache.
+  #
+  # Deliberately not run against the 'runner-os' matrix: creating ~/.gradle up-front is precisely
+  # what stops setup-gradle relocating the Gradle User Home to D:\a\.gradle on Windows, so this job
+  # would look for a cache entry rooted at a different path than the one the seed build saved.
+  # Cache entries are identified by key *and* by a version derived from the cache paths, so that
+  # never matches. This is integration-level behaviour rather than a smoke test, so run it on Linux.
   restore-gradle-home-pre-existing-gradle-home:
     needs: restore-gradle-home-seed-build
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        os: ${{fromJSON(inputs.runner-os)}}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
