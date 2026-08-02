@@ -1,0 +1,70 @@
+name: Smoke test basic caching
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+        default: '0'
+      runner-os:
+        type: string
+        default: '["ubuntu-latest"]'
+      skip-dist:
+        type: boolean
+        default: false
+
+env:
+  SKIP_DIST: ${{ inputs.skip-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: smoke-test-basic-caching-${{ inputs.cache-key-prefix }}
+
+permissions:
+  contents: read
+
+jobs:
+  basic-cache-seed-build:
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Setup Gradle with basic cache provider
+      uses: ./setup-gradle
+      with:
+        cache-provider: basic
+        cache-read-only: false # For testing, allow writing cache entries on non-default branches
+    # Basic caching does no daemon management, so the workflow must ensure no daemon is left
+    # holding locks on the Gradle User Home when the post-action save runs. Without this, `tar`
+    # cannot read the Gradle '*.lock' files on Windows and the cache entry is never saved.
+    - name: Build kotlin-dsl project
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew build --no-daemon
+
+  basic-cache-verify-build:
+    needs: basic-cache-seed-build
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        os: ${{fromJSON(inputs.runner-os)}}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Setup Gradle with basic cache provider
+      uses: ./setup-gradle
+      with:
+        cache-provider: basic
+        cache-read-only: true
+    - name: Build kotlin-dsl project
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew build --offline
