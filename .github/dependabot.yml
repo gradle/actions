@@ -15,6 +15,11 @@ updates:
       npm-dependencies:
         patterns:
         - "*"
+    ignore:
+      - dependency-name: "typescript"
+        versions: ["7.x"]
+      - dependency-name: "@types/node"
+        versions: ["25.x", "26.x"]
   - package-ecosystem: "github-actions"
     # github-actions with directory: "/" only monitors .github/workflows
     # https://github.com/dependabot/dependabot-core/issues/6345
