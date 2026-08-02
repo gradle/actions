@@ -36,6 +36,11 @@ jobs:
     with:
       skip-dist: ${{ inputs.skip-dist }}
 
+  restore-gradle-home:
+    uses: ./.github/workflows/integ-test-restore-gradle-home.yml
+    with:
+      skip-dist: ${{ inputs.skip-dist }}
+
   restore-java-toolchain:
     uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
     with:

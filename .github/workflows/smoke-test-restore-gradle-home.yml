@@ -1,4 +1,4 @@
-name: Test restore Gradle Home
+name: Smoke test restore Gradle Home
 
 on:
   workflow_call:
@@ -15,8 +15,10 @@ on:
 
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
-  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: restore-gradle-home-${{ inputs.cache-key-prefix }}
-  GRADLE_BUILD_ACTION_CACHE_KEY_JOB: restore-gradle-home
+  # Distinct from the keys used by integ-test-restore-gradle-home.yml, which seeds an equivalent
+  # cache entry. Both suites run concurrently, so they must not write to the same cache key.
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: smoke-test-restore-gradle-home-${{ inputs.cache-key-prefix }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_JOB: smoke-test-restore-gradle-home
 
 permissions:
   contents: read
@@ -62,95 +64,6 @@ jobs:
       uses: ./setup-gradle
       with:
         cache-read-only: true
-    - name: Execute Gradle build with --offline
-      working-directory: .github/workflow-samples/groovy-dsl
-      run: ./gradlew test --offline
-
-  # Test that the gradle-user-home cache will cache and restore local build-cache
-  restore-gradle-home-build-cache:
-    needs: restore-gradle-home-seed-build
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        os: ${{fromJSON(inputs.runner-os)}}
-    runs-on: ${{ matrix.os }}
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-    - name: Initialize integ-test
-      uses: ./.github/actions/init-integ-test
-
-    - name: Setup Gradle
-      uses: ./setup-gradle
-      with:
-        cache-read-only: true
-    - name: Execute Gradle build and verify tasks from cache
-      working-directory: .github/workflow-samples/groovy-dsl
-      run: ./gradlew test -DverifyCachedBuild=true
-
-  # Check that the build can run when Gradle User Home is not fully restored
-  restore-gradle-home-no-extracted-cache-entries-restored:
-    needs: restore-gradle-home-seed-build
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        os: ${{fromJSON(inputs.runner-os)}}
-    runs-on: ${{ matrix.os }}
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-    - name: Initialize integ-test
-      uses: ./.github/actions/init-integ-test
-
-    - name: Setup Gradle with no extracted cache entries restored
-      uses: ./setup-gradle
-      env: 
-        GRADLE_BUILD_ACTION_SKIP_RESTORE: "generated-gradle-jars|wrapper-zips|java-toolchains|instrumented-jars|dependencies|kotlin-dsl"
-      with:
-        cache-read-only: true
-    - name: Check executee Gradle build
-      working-directory: .github/workflow-samples/groovy-dsl
-      run: ./gradlew test
-
-  # Test that a pre-existing gradle-user-home can be overwritten by the restored cache
-  restore-gradle-home-pre-existing-gradle-home:
-    needs: restore-gradle-home-seed-build
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        os: ${{fromJSON(inputs.runner-os)}}
-    runs-on: ${{ matrix.os }}
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-    - name: Initialize integ-test
-      uses: ./.github/actions/init-integ-test
-
-    - name: Pre-create Gradle User Home
-      shell: bash
-      run: |
-        mkdir -p ~/.gradle/caches
-        touch ~/.gradle/gradle.properties
-        touch ~/.gradle/caches/dummy.txt
-    - name: Setup Gradle
-      uses: ./setup-gradle
-      with:
-        cache-read-only: true
-        cache-overwrite-existing: true
-    - name: Check that pre-existing content still exists
-      shell: bash
-      run: |
-        if [ ! -e ~/.gradle/caches/dummy.txt ]; then
-          echo "::error ::Should find dummy.txt after cache restore"
-          exit 1
-        fi
-        if [ ! -e ~/.gradle/gradle.properties ]; then
-          echo "::error ::Should find gradle.properties after cache restore"
-          exit 1
-        fi
     - name: Execute Gradle build with --offline
       working-directory: .github/workflow-samples/groovy-dsl
       run: ./gradlew test --offline
