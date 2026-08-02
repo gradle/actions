@@ -1,4 +1,4 @@
-name: Smoke test restore Gradle Home
+name: Smoke test basic cache provider
 
 on:
   workflow_call:
@@ -15,16 +15,13 @@ on:
 
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
-  # Distinct from the keys used by integ-test-restore-gradle-home.yml, which seeds an equivalent
-  # cache entry. Both suites run concurrently, so they must not write to the same cache key.
-  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: smoke-test-restore-gradle-home-${{ inputs.cache-key-prefix }}
-  GRADLE_BUILD_ACTION_CACHE_KEY_JOB: smoke-test-restore-gradle-home
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: basic-cache-provider-${{ inputs.cache-key-prefix }}
 
 permissions:
   contents: read
 
 jobs:
-  restore-gradle-home-seed-build:
+  basic-cache-seed-build:
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -37,17 +34,20 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Gradle
+    - name: Setup Gradle with basic cache provider
       uses: ./setup-gradle
       with:
+        cache-provider: basic
         cache-read-only: false # For testing, allow writing cache entries on non-default branches
-    - name: Build using Gradle wrapper
-      working-directory: .github/workflow-samples/groovy-dsl
-      run: ./gradlew test
+    # Basic caching does no daemon management, so the workflow must ensure no daemon is left
+    # holding locks on the Gradle User Home when the post-action save runs. Without this, `tar`
+    # cannot read the Gradle '*.lock' files on Windows and the cache entry is never saved.
+    - name: Build kotlin-dsl project
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew build --no-daemon
 
-  # Test that the gradle-user-home cache will cache dependencies, by running build with --offline
-  restore-gradle-home-dependencies-cache:
-    needs: restore-gradle-home-seed-build
+  basic-cache-verify-build:
+    needs: basic-cache-seed-build
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -60,10 +60,11 @@ jobs:
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
 
-    - name: Setup Gradle
+    - name: Setup Gradle with basic cache provider
       uses: ./setup-gradle
       with:
+        cache-provider: basic
         cache-read-only: true
-    - name: Execute Gradle build with --offline
-      working-directory: .github/workflow-samples/groovy-dsl
-      run: ./gradlew test --offline
+    - name: Build kotlin-dsl project
+      working-directory: .github/workflow-samples/kotlin-dsl
+      run: ./gradlew build --offline
