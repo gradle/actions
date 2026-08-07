@@ -14,17 +14,22 @@ export async function findWrapperJars(baseDir: string): Promise<string[]> {
 }
 
 async function recursivelyListFiles(baseDir: string): Promise<string[]> {
-    const childrenNames = await readdir(baseDir)
+    const resolvedBaseDir = await fs.promises.realpath(baseDir)
+    const childrenNames = await readdir(resolvedBaseDir)
     const childrenPaths = await Promise.all(
         childrenNames.map(async childName => {
-            const childPath = path.resolve(baseDir, childName)
-            const stat = fs.lstatSync(childPath, {throwIfNoEntry: false})
+            const childPath = path.resolve(resolvedBaseDir, childName)
+            const resolvedChildPath = await fs.promises.realpath(childPath)
+            if (!resolvedChildPath.startsWith(resolvedBaseDir + path.sep)) {
+                return []
+            }
+            const stat = fs.lstatSync(resolvedChildPath, {throwIfNoEntry: false})
             if (stat === undefined) {
                 return []
             } else if (stat.isDirectory()) {
-                return recursivelyListFiles(childPath)
+                return recursivelyListFiles(resolvedChildPath)
             } else {
-                return new Promise(resolve => resolve([childPath]))
+                return new Promise(resolve => resolve([resolvedChildPath]))
             }
         })
     )
