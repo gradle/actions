@@ -10,8 +10,17 @@ const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 
 // Environment variable an external dependency-caching action (e.g. the Develocity
 // Artifact Cache action) exports to advertise that it is handling caching in this
-// workflow. Its value is a human-readable provider label shown in the Job Summary.
-const EXTERNAL_CACHE_PROVIDER_ENV_VAR = 'GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER'
+// workflow. Its value is a human-readable label shown in the Job Summary.
+//
+// NOTE: this name is the integration point between setup-gradle and a co-resident
+// caching action, and is not yet codified. See docs/setup-gradle.md.
+const EXTERNAL_CACHE_HANDLER_ENV_VAR = 'GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER'
+
+// Labels reach us from another action and are rendered into the Job Summary markdown.
+// Rather than stripping dangerous characters — which silently mangles the label and
+// still leaves markdown syntax (links, emphasis, tables) live — accept only a
+// conservative character set and fall back to an unnamed handler for anything else.
+const EXTERNAL_CACHE_LABEL_PATTERN = /^[\w .&+-]{1,60}$/
 
 export const ACTION_METADATA_DIR = '.setup-gradle'
 
@@ -112,6 +121,15 @@ export enum DependencyGraphOption {
     DownloadAndSubmit = 'download-and-submit'
 }
 
+/**
+ * Another action in this workflow that has advertised itself as handling dependency
+ * caching. `label` is a display name for the Job Summary, absent when the advertised
+ * label was not usable.
+ */
+export interface ExternalCacheHandler {
+    label?: string
+}
+
 export class CacheConfig {
     isCacheDisabled(): boolean {
         if (!cache.isFeatureAvailable()) {
@@ -122,27 +140,28 @@ export class CacheConfig {
     }
 
     /**
-     * The display label of an external action providing dependency caching in this
-     * workflow, read from the GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER environment
-     * variable (exported by that action). When set, and Gradle User Home caching is
-     * disabled, the Job Summary attributes the disabled cache to this provider rather
-     * than reporting a bare "caching was disabled". Returns undefined when unset.
+     * The external action handling dependency caching in this workflow, advertised by
+     * that action via the GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER environment variable.
+     * Returns undefined when no such action has advertised itself.
      *
-     * The value is sanitized before use: HTML-sensitive characters and newlines are
-     * stripped, whitespace is collapsed, and the label is capped in length, since it
-     * originates from another action and is rendered into the summary markdown.
+     * Presence of the variable is the signal; the value is only a display label. A label
+     * that is unusable (empty, or containing characters we will not render into the
+     * summary markdown) still yields a handler, just an unnamed one — refusing the signal
+     * over cosmetics would misreport the job as having no caching at all.
      */
-    getExternalCacheProvider(): string | undefined {
-        const raw = process.env[EXTERNAL_CACHE_PROVIDER_ENV_VAR]
-        if (!raw) {
+    getExternalCacheHandler(): ExternalCacheHandler | undefined {
+        const raw = process.env[EXTERNAL_CACHE_HANDLER_ENV_VAR]
+        if (!raw || raw.trim().length === 0) {
             return undefined
         }
-        const label = raw
-            .replace(/[<>`\r\n]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 60)
-        return label.length > 0 ? label : undefined
+        const label = raw.replace(/\s+/g, ' ').trim()
+        if (!EXTERNAL_CACHE_LABEL_PATTERN.test(label)) {
+            core.debug(
+                `Ignoring unusable ${EXTERNAL_CACHE_HANDLER_ENV_VAR} label '${label}': reporting an unnamed external cache handler.`
+            )
+            return {}
+        }
+        return {label}
     }
 
     isCacheReadOnly(): boolean {

@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as path from 'path'
 import {pathToFileURL} from 'url'
@@ -6,7 +7,7 @@ import {CacheConfig, CacheProvider} from './configuration'
 import {BasicCacheService} from './cache-service-basic'
 import {BuildResult} from './build-results'
 import {CacheOptions, CacheReport, CacheService} from './cache-service'
-import {ProviderNote} from './caching-report'
+import {isActive, ProviderNote} from './caching-report'
 
 const ENHANCED_CACHE_MESSAGE = `Enhanced Caching: This build is using the proprietary 'gradle-actions-caching' provider for optimized caching support. See https://github.com/gradle/actions/blob/main/DISTRIBUTION.md for terms of use and opt-out instructions.`
 
@@ -53,22 +54,40 @@ export function getProviderNote(cacheConfig: CacheConfig): ProviderNote | undefi
 }
 
 /**
- * Re-labels a disabled cache report when another action in the workflow is providing
- * dependency caching (advertised via GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER). This turns
- * the summary's misleading "caching was disabled" into an accurate "handled externally by
- * <provider>" line. Only a plain `disabled` report is re-labelled — an enabled/read-only
- * cache, a skipped/unavailable one, or a report with no external provider set is returned
- * unchanged.
+ * Reconciles the cache report with any other action in this workflow that has advertised
+ * itself as handling dependency caching (via GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER).
+ *
+ * When our own caching is disabled, this re-labels the report so the summary attributes
+ * the disabled Gradle User Home cache to that action instead of reporting a bare "caching
+ * was disabled" alongside the other action's own caching report.
+ *
+ * Note this only softens the wording — the report still states that caching is disabled
+ * here, so a user who disabled it by mistake is not left in the dark. The one case that
+ * wording cannot cover is the opposite mistake: caching left *enabled* while another
+ * action caches the same Gradle User Home. That is warned about rather than re-labelled.
  */
-export function applyExternalCacheProvider(report: CacheReport, cacheConfig: CacheConfig): CacheReport {
+export function applyExternalCacheHandler(report: CacheReport, cacheConfig: CacheConfig): CacheReport {
+    const handler = cacheConfig.getExternalCacheHandler()
+    if (!handler) {
+        return report
+    }
+    const handlerName = handler.label ?? 'Another action'
+
+    if (isActive(report.status)) {
+        core.warning(
+            `${handlerName} is providing dependency caching in this workflow, but setup-gradle caching is also enabled — ` +
+                `both are caching the Gradle User Home. Set 'cache-disabled: true' to leave dependency caching to ${handlerName}.`
+        )
+        return report
+    }
+
+    // 'disabled' is the only status reachable when caching is disabled: getCacheService
+    // short-circuits to the no-op service, so the statuses reported by the real cache
+    // service ('disabled-existing-home', 'not-available') cannot arise here.
     if (report.status !== 'disabled') {
         return report
     }
-    const provider = cacheConfig.getExternalCacheProvider()
-    if (!provider) {
-        return report
-    }
-    return {...report, status: 'disabled-external', externalCacheProvider: provider}
+    return {...report, status: 'disabled-external', externalCacheHandler: handler.label}
 }
 
 export async function loadVendoredCacheService(): Promise<CacheService> {

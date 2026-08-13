@@ -22,12 +22,13 @@ const STATUS_COPY: Record<CacheStatus, string> = {
 }
 
 /**
- * The status line for a report. Normally the static {@link STATUS_COPY} entry, but for a
- * cache disabled in favour of an external provider it names that provider (when known).
+ * The status line for a report. Normally the static {@link STATUS_COPY} entry, but a cache
+ * disabled in favour of an external handler names that handler when it supplied a usable
+ * label; without one, the generic {@link STATUS_COPY} entry applies.
  */
 function statusCopy(report: CacheReport): string {
-    if (report.status === 'disabled-external' && report.externalCacheProvider) {
-        return `[Caching was disabled](${DOCS}#disabling-caching) here — Gradle User Home caching is turned off because dependency caching is handled by **${report.externalCacheProvider}** in this workflow.`
+    if (report.status === 'disabled-external' && report.externalCacheHandler) {
+        return `[Caching was disabled](${DOCS}#disabling-caching) here — Gradle User Home caching is turned off because dependency caching is handled by **${report.externalCacheHandler}** in this workflow.`
     }
     return STATUS_COPY[report.status]
 }
@@ -68,7 +69,7 @@ export function renderCachingReport(report: CacheReport, providerNote?: Provider
     return `${sections.filter(section => section !== undefined && section !== '').join('\n\n')}\n`
 }
 
-function isActive(status: CacheStatus): boolean {
+export function isActive(status: CacheStatus): boolean {
     return status === 'enabled' || status === 'read-only' || status === 'write-only'
 }
 

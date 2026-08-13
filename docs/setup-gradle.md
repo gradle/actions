@@ -167,12 +167,35 @@ GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER: Develocity Artifact Cache
 ```
 
 When this variable is set and `setup-gradle`'s own caching is disabled, the caching
-section of the Job Summary reads "handled externally by _&lt;label&gt;_" rather than
-"caching was disabled". It has no effect when `setup-gradle`'s caching is active.
+section of the Job Summary attributes the disabled cache to that action rather than
+reporting a bare "caching was disabled". It still reports that `setup-gradle`'s caching is
+disabled — the variable changes the attribution, not the fact.
+
+When the variable is set and `setup-gradle`'s caching is **active**, the action instead
+warns: both it and the other action are caching the same Gradle User Home, which is
+usually a mistake.
+
+##### Contract for action authors
+
+This variable is the integration point between `setup-gradle` and a co-resident caching
+action. If you are writing such an action:
+
+- **Export it only once you have determined that your action will actually provide
+  dependency caching for this job** — not unconditionally at the start of your step. The
+  "caching was disabled" wording it replaces is a diagnostic that helps users notice a
+  `cache-disabled: true` they did not intend; claiming caching you do not provide takes
+  that diagnostic away from them.
+- Export it from your **main** step. `setup-gradle` reads it in its post step, when the
+  Job Summary is written.
+- The presence of the variable is the signal; the value is only a display label. Labels
+  are rendered into the Job Summary, so only a conservative character set is accepted
+  (letters, digits, spaces, and `. _ - & +`, up to 60 characters). A label outside that
+  set is not rendered and the summary falls back to "another action in this workflow" —
+  the attribution still happens, just unnamed.
 
 > [!NOTE]
-> `GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER` is the integration point between `setup-gradle`
-> and a co-resident caching action. Its name and contract are still being finalized.
+> The name and value shape of `GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER` are still being
+> finalized.
 
 #### Using the cache read-only
 

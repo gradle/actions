@@ -1,4 +1,4 @@
-import {describe, expect, it} from '@jest/globals'
+import {afterEach, describe, expect, it} from '@jest/globals'
 
 import * as inputParams from '../../src/configuration'
 
@@ -23,7 +23,7 @@ describe('input params', () => {
     })
 })
 
-describe('CacheConfig.getExternalCacheProvider', () => {
+describe('CacheConfig.getExternalCacheHandler', () => {
     const ENV_VAR = 'GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER'
     const original = process.env[ENV_VAR]
 
@@ -35,32 +35,45 @@ describe('CacheConfig.getExternalCacheProvider', () => {
         }
     })
 
-    function provider(): string | undefined {
-        return new inputParams.CacheConfig().getExternalCacheProvider()
+    function handler(): inputParams.ExternalCacheHandler | undefined {
+        return new inputParams.CacheConfig().getExternalCacheHandler()
     }
 
     it('returns undefined when the env var is unset', () => {
         delete process.env[ENV_VAR]
-        expect(provider()).toBeUndefined()
+        expect(handler()).toBeUndefined()
     })
 
     it('returns undefined when the env var is empty or whitespace', () => {
         process.env[ENV_VAR] = '   '
-        expect(provider()).toBeUndefined()
+        expect(handler()).toBeUndefined()
     })
 
-    it('returns the provider label when set', () => {
+    it('returns the label when set', () => {
         process.env[ENV_VAR] = 'Develocity Artifact Cache'
-        expect(provider()).toBe('Develocity Artifact Cache')
+        expect(handler()).toEqual({label: 'Develocity Artifact Cache'})
     })
 
-    it('sanitizes HTML-sensitive characters, newlines, and collapses whitespace', () => {
-        process.env[ENV_VAR] = '  <b>Develocity`</b>\n Artifact   Cache  '
-        expect(provider()).toBe('bDevelocity/b Artifact Cache')
+    it('trims and collapses whitespace, including newlines', () => {
+        process.env[ENV_VAR] = '  Develocity \n  Artifact  Cache  '
+        expect(handler()).toEqual({label: 'Develocity Artifact Cache'})
     })
 
-    it('caps the label length', () => {
-        process.env[ENV_VAR] = 'x'.repeat(200)
-        expect(provider()).toHaveLength(60)
+    it.each([
+        ['HTML', '<b>Develocity</b>'],
+        ['a markdown link', '[Develocity](https://example.com)'],
+        ['markdown emphasis', '**Develocity**'],
+        ['a table separator', 'Develocity | Artifact Cache'],
+        ['a backtick', 'Develocity `Artifact` Cache'],
+        ['an over-long label', 'x'.repeat(61)]
+    ])('reports an unnamed handler rather than rendering %s', (_description, value) => {
+        process.env[ENV_VAR] = value
+        // Still a handler — the signal is honoured, only the label is dropped.
+        expect(handler()).toEqual({})
+    })
+
+    it('accepts the punctuation commonly found in product names', () => {
+        process.env[ENV_VAR] = 'Foo_Bar & Co. C++ cache-action'
+        expect(handler()).toEqual({label: 'Foo_Bar & Co. C++ cache-action'})
     })
 })

@@ -8,7 +8,7 @@ import * as buildScan from './develocity/build-scan'
 import {setupToken} from './develocity/short-lived-token'
 
 import {loadBuildResults, markBuildResultsProcessed} from './build-results'
-import {applyExternalCacheProvider, getCacheService, getProviderNote} from './cache-service-loader'
+import {applyExternalCacheHandler, getCacheService, getProviderNote} from './cache-service-loader'
 import {CacheOptions} from './cache-service'
 import {
     DevelocityConfig,
@@ -80,7 +80,7 @@ export async function complete(
     const develocityServerUrl = develocityConfig.getDevelocityUrl() || undefined
     const cacheToken = core.getState(DEVELOCITY_CACHE_TOKEN) || undefined
     const cacheService = await getCacheService(cacheConfig)
-    const cacheReport = applyExternalCacheProvider(
+    const cacheReport = applyExternalCacheHandler(
         await cacheService.save(
             gradleUserHome,
             buildResults,
