@@ -142,4 +142,27 @@ describe('renderCachingReport', () => {
         expect(md).toContain('<h4>Gradle State Caching - Unavailable</h4>')
         expect(md).not.toContain('<details>')
     })
+
+    it('names the external provider when caching is handled elsewhere', () => {
+        const report: CacheReport = {
+            status: 'disabled-external',
+            externalCacheProvider: 'Develocity Artifact Cache',
+            entries: []
+        }
+        const md = renderCachingReport(report, undefined)
+
+        expect(md).toContain('<h4>Gradle State Caching - Disabled (handled externally)</h4>')
+        expect(md).toContain('dependency caching is handled by **Develocity Artifact Cache** in this workflow')
+        expect(md).not.toContain('<details>')
+        expect(md).not.toContain('DISTRIBUTION.md')
+    })
+
+    it('falls back to a generic external message when no provider label is set', () => {
+        const report: CacheReport = {status: 'disabled-external', entries: []}
+        const md = renderCachingReport(report, undefined)
+
+        expect(md).toContain('<h4>Gradle State Caching - Disabled (handled externally)</h4>')
+        expect(md).toContain('dependency caching is handled by another action in this workflow')
+        expect(md).not.toContain('<details>')
+    })
 })

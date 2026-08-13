@@ -153,6 +153,27 @@ Caching is enabled by default. You can disable caching for the action as follows
 cache-disabled: true
 ```
 
+#### Reporting an external caching provider
+
+When you disable caching because another action in the workflow provides dependency
+caching (for example, the Develocity Artifact Cache action), that action can advertise
+itself so the Job Summary attributes the disabled Gradle User Home cache to it instead of
+reporting a bare "caching was disabled". To do so, the other action exports the
+`GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER` environment variable with a display label:
+
+```yaml
+# Exported by the co-resident caching action, not something you normally set by hand:
+GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER: Develocity Artifact Cache
+```
+
+When this variable is set and `setup-gradle`'s own caching is disabled, the caching
+section of the Job Summary reads "handled externally by _&lt;label&gt;_" rather than
+"caching was disabled". It has no effect when `setup-gradle`'s caching is active.
+
+> [!NOTE]
+> `GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER` is the integration point between `setup-gradle`
+> and a co-resident caching action. Its name and contract are still being finalized.
+
 #### Using the cache read-only
 
 By default, The `setup-gradle` action will only write to the cache from Jobs on the default (`main`/`master`) branch.

@@ -15,7 +15,13 @@ export interface CacheOptions {
 }
 
 export type CacheStatus =
-    'enabled' | 'read-only' | 'write-only' | 'disabled' | 'disabled-existing-home' | 'not-available'
+    | 'enabled'
+    | 'read-only'
+    | 'write-only'
+    | 'disabled'
+    | 'disabled-external' // disabled here because dependency caching is provided by another action in the workflow
+    | 'disabled-existing-home'
+    | 'not-available'
 
 export type CacheCleanupStatus =
     'enabled' | 'disabled-param' | 'disabled-failure' | 'disabled-config-cache-hit' | 'disabled-readonly'
@@ -49,6 +55,9 @@ export interface CacheReport {
     cleanup?: CacheCleanupStatus
     projectCache?: ProjectCacheStatus
     entries: CacheEntryReport[]
+    // The display label of the external action providing dependency caching, set only
+    // when status is 'disabled-external'. Sourced from GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER.
+    externalCacheProvider?: string
 }
 
 export interface CacheService {

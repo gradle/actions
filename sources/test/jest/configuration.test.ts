@@ -22,3 +22,45 @@ describe('input params', () => {
         })
     })
 })
+
+describe('CacheConfig.getExternalCacheProvider', () => {
+    const ENV_VAR = 'GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER'
+    const original = process.env[ENV_VAR]
+
+    afterEach(() => {
+        if (original === undefined) {
+            delete process.env[ENV_VAR]
+        } else {
+            process.env[ENV_VAR] = original
+        }
+    })
+
+    function provider(): string | undefined {
+        return new inputParams.CacheConfig().getExternalCacheProvider()
+    }
+
+    it('returns undefined when the env var is unset', () => {
+        delete process.env[ENV_VAR]
+        expect(provider()).toBeUndefined()
+    })
+
+    it('returns undefined when the env var is empty or whitespace', () => {
+        process.env[ENV_VAR] = '   '
+        expect(provider()).toBeUndefined()
+    })
+
+    it('returns the provider label when set', () => {
+        process.env[ENV_VAR] = 'Develocity Artifact Cache'
+        expect(provider()).toBe('Develocity Artifact Cache')
+    })
+
+    it('sanitizes HTML-sensitive characters, newlines, and collapses whitespace', () => {
+        process.env[ENV_VAR] = '  <b>Develocity`</b>\n Artifact   Cache  '
+        expect(provider()).toBe('bDevelocity/b Artifact Cache')
+    })
+
+    it('caps the label length', () => {
+        process.env[ENV_VAR] = 'x'.repeat(200)
+        expect(provider()).toHaveLength(60)
+    })
+})

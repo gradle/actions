@@ -8,6 +8,11 @@ import * as path from 'path'
 const ACTION_ID_VAR = 'GRADLE_ACTION_ID'
 const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 
+// Environment variable an external dependency-caching action (e.g. the Develocity
+// Artifact Cache action) exports to advertise that it is handling caching in this
+// workflow. Its value is a human-readable provider label shown in the Job Summary.
+const EXTERNAL_CACHE_PROVIDER_ENV_VAR = 'GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER'
+
 export const ACTION_METADATA_DIR = '.setup-gradle'
 
 export class DependencyGraphConfig {
@@ -114,6 +119,30 @@ export class CacheConfig {
         }
 
         return getBooleanInput('cache-disabled')
+    }
+
+    /**
+     * The display label of an external action providing dependency caching in this
+     * workflow, read from the GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER environment
+     * variable (exported by that action). When set, and Gradle User Home caching is
+     * disabled, the Job Summary attributes the disabled cache to this provider rather
+     * than reporting a bare "caching was disabled". Returns undefined when unset.
+     *
+     * The value is sanitized before use: HTML-sensitive characters and newlines are
+     * stripped, whitespace is collapsed, and the label is capped in length, since it
+     * originates from another action and is rendered into the summary markdown.
+     */
+    getExternalCacheProvider(): string | undefined {
+        const raw = process.env[EXTERNAL_CACHE_PROVIDER_ENV_VAR]
+        if (!raw) {
+            return undefined
+        }
+        const label = raw
+            .replace(/[<>`\r\n]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 60)
+        return label.length > 0 ? label : undefined
     }
 
     isCacheReadOnly(): boolean {

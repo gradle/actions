@@ -52,6 +52,25 @@ export function getProviderNote(cacheConfig: CacheConfig): ProviderNote | undefi
     return cacheConfig.getCacheProvider() === CacheProvider.Basic ? {kind: 'basic'} : {kind: 'enhanced'}
 }
 
+/**
+ * Re-labels a disabled cache report when another action in the workflow is providing
+ * dependency caching (advertised via GRADLE_ACTIONS_EXTERNAL_CACHE_PROVIDER). This turns
+ * the summary's misleading "caching was disabled" into an accurate "handled externally by
+ * <provider>" line. Only a plain `disabled` report is re-labelled — an enabled/read-only
+ * cache, a skipped/unavailable one, or a report with no external provider set is returned
+ * unchanged.
+ */
+export function applyExternalCacheProvider(report: CacheReport, cacheConfig: CacheConfig): CacheReport {
+    if (report.status !== 'disabled') {
+        return report
+    }
+    const provider = cacheConfig.getExternalCacheProvider()
+    if (!provider) {
+        return report
+    }
+    return {...report, status: 'disabled-external', externalCacheProvider: provider}
+}
+
 export async function loadVendoredCacheService(): Promise<CacheService> {
     const vendoredLibraryPath = findVendoredLibraryPath()
     const moduleUrl = pathToFileURL(vendoredLibraryPath).href

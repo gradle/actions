@@ -76,4 +76,37 @@ describe('getCacheService selection logic', () => {
             expect(getProviderNote(mockConfig)).toEqual({kind: 'enhanced'})
         })
     })
+
+    describe('applyExternalCacheProvider', () => {
+        const disabledReport = {status: 'disabled' as const, entries: []}
+
+        it('re-labels a disabled report when an external provider is advertised', async () => {
+            const {applyExternalCacheProvider} = await import('../../src/cache-service-loader')
+            const mockConfig = {
+                getExternalCacheProvider: () => 'Develocity Artifact Cache'
+            } as unknown as CacheConfig
+
+            const result = applyExternalCacheProvider(disabledReport, mockConfig)
+
+            expect(result.status).toBe('disabled-external')
+            expect(result.externalCacheProvider).toBe('Develocity Artifact Cache')
+        })
+
+        it('leaves a disabled report unchanged when no external provider is set', async () => {
+            const {applyExternalCacheProvider} = await import('../../src/cache-service-loader')
+            const mockConfig = {getExternalCacheProvider: () => undefined} as unknown as CacheConfig
+
+            expect(applyExternalCacheProvider(disabledReport, mockConfig)).toBe(disabledReport)
+        })
+
+        it('never re-labels an active cache even when a provider is advertised', async () => {
+            const {applyExternalCacheProvider} = await import('../../src/cache-service-loader')
+            const enabledReport = {status: 'enabled' as const, entries: []}
+            const mockConfig = {
+                getExternalCacheProvider: () => 'Develocity Artifact Cache'
+            } as unknown as CacheConfig
+
+            expect(applyExternalCacheProvider(enabledReport, mockConfig)).toBe(enabledReport)
+        })
+    })
 })

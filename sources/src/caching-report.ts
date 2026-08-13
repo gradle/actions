@@ -16,8 +16,20 @@ const STATUS_COPY: Record<CacheStatus, string> = {
     'read-only': `[Cache was read-only](${DOCS}#using-the-cache-read-only) — by default, the action only writes to the cache for jobs running on the default branch.`,
     'write-only': `[Cache was write-only](${DOCS}#using-the-cache-write-only) — Gradle User Home was not restored from the cache.`,
     disabled: `[Caching was disabled](${DOCS}#disabling-caching) — Gradle User Home was not restored from or saved to the cache.`,
+    'disabled-external': `[Caching was disabled](${DOCS}#disabling-caching) here — Gradle User Home caching is turned off because dependency caching is handled by another action in this workflow.`,
     'disabled-existing-home': `⚠️ [Caching was skipped](${DOCS}#overwriting-an-existing-gradle-user-home) — a pre-existing Gradle User Home was found, so the cache was not restored or saved.`,
     'not-available': `Caching is not available — the GitHub Actions cache service could not be reached, so Gradle User Home was not restored or saved.`
+}
+
+/**
+ * The status line for a report. Normally the static {@link STATUS_COPY} entry, but for a
+ * cache disabled in favour of an external provider it names that provider (when known).
+ */
+function statusCopy(report: CacheReport): string {
+    if (report.status === 'disabled-external' && report.externalCacheProvider) {
+        return `[Caching was disabled](${DOCS}#disabling-caching) here — Gradle User Home caching is turned off because dependency caching is handled by **${report.externalCacheProvider}** in this workflow.`
+    }
+    return STATUS_COPY[report.status]
 }
 
 const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
@@ -44,7 +56,7 @@ const PROJECT_CACHE_COPY: Record<ProjectCacheStatus, string> = {
 export function renderCachingReport(report: CacheReport, providerNote?: ProviderNote): string {
     if (!isActive(report.status)) {
         // Disabled / skipped / unavailable: a compact heading + status line, no expandable section.
-        return `${renderHeading(report.status, providerNote)}\n\n${STATUS_COPY[report.status]}\n`
+        return `${renderHeading(report.status, providerNote)}\n\n${statusCopy(report)}\n`
     }
     const sections = [
         renderHeading(report.status, providerNote),
@@ -63,7 +75,13 @@ function isActive(status: CacheStatus): boolean {
 function renderHeading(status: CacheStatus, providerNote?: ProviderNote): string {
     if (!isActive(status)) {
         const label =
-            status === 'disabled-existing-home' ? 'Skipped' : status === 'not-available' ? 'Unavailable' : 'Disabled'
+            status === 'disabled-existing-home'
+                ? 'Skipped'
+                : status === 'not-available'
+                  ? 'Unavailable'
+                  : status === 'disabled-external'
+                    ? 'Disabled (handled externally)'
+                    : 'Disabled'
         return `<h4>Gradle State Caching - ${label}</h4>`
     }
 
