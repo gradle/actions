@@ -1,0 +1,60 @@
+name: Test Gradle support status reporting
+
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        type: string
+        default: '0'
+      skip-dist:
+        type: boolean
+        default: false
+
+env:
+  SKIP_DIST: ${{ inputs.skip-dist }}
+  GRADLE_BUILD_ACTION_CACHE_KEY_PREFIX: gradle-support-status-${{ inputs.cache-key-prefix }}
+
+permissions:
+  contents: read
+
+jobs:
+  report-version-status:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Setup Gradle with an end-of-life version
+      uses: ./setup-gradle
+      with:
+        cache-read-only: false
+        gradle-version: '7.6.4'
+    - name: Build with the end-of-life version
+      id: build-end-of-life
+      working-directory: .github/workflow-samples/no-wrapper
+      run: gradle help "-DgradleVersionCheck=7.6.4"
+
+    - name: Setup Gradle with the current version
+      uses: ./setup-gradle
+      with:
+        gradle-version: current
+    - name: Build with the current version
+      id: build-current
+      working-directory: .github/workflow-samples/no-wrapper
+      run: gradle help
+
+    - name: Check the end-of-life version was reported as 'eol'
+      if: ${{ steps.build-end-of-life.outputs.gradle-version-status != 'eol' }}
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      with:
+        script: |
+          core.setFailed("Expected Gradle 7.6.4 to be reported as 'eol', but was '${{ steps.build-end-of-life.outputs.gradle-version-status }}'")
+
+    - name: Check the current version was reported as 'active'
+      if: ${{ steps.build-current.outputs.gradle-version-status != 'active' }}
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      with:
+        script: |
+          core.setFailed("Expected the current Gradle version to be reported as 'active', but was '${{ steps.build-current.outputs.gradle-version-status }}'")

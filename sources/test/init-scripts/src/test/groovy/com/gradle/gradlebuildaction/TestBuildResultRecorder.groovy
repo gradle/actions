@@ -6,6 +6,7 @@ import static org.junit.Assume.assumeTrue
 
 class TestBuildResultRecorder extends BaseInitScriptTest {
     def initScript = 'gradle-actions.build-result-capture.init.gradle'
+    String latestGradleMajor
 
     def "produces build results file for build with #testGradleVersion"() {
         assumeTrue testGradleVersion.compatibleWithCurrentJvm
@@ -269,6 +270,63 @@ task expectFailure {
         testGradleVersion << SETTINGS_PLUGIN_VERSIONS
     }
 
+    def "captures version status '#expectedStatus' when the latest released major is #latestMajor"() {
+        assumeTrue GRADLE_8_X.compatibleWithCurrentJvm
+
+        when:
+        latestGradleMajor = latestMajor
+        run(GRADLE_8_X.gradleVersion)
+
+        then:
+        assertVersionStatus(expectedStatus)
+
+        where:
+        latestMajor | expectedStatus
+        '7'         | 'active'
+        '8'         | 'active'
+        '9'         | 'maintenance'
+        '10'        | 'eol'
+        '13'        | 'eol'
+    }
+
+    def "captures version status for #testGradleVersion"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        latestGradleMajor = '9'
+        run(testGradleVersion.gradleVersion)
+
+        then:
+        assertVersionStatus(expectedStatus)
+
+        where:
+        testGradleVersion | expectedStatus
+        GRADLE_6_X        | 'eol'
+        GRADLE_7_X        | 'eol'
+        GRADLE_8_X        | 'maintenance'
+    }
+
+    def "captures no version status when the action did not supply the latest released major"() {
+        assumeTrue GRADLE_8_X.compatibleWithCurrentJvm
+
+        when:
+        run(GRADLE_8_X.gradleVersion)
+
+        then:
+        assertVersionStatus(null)
+    }
+
+    def "captures no version status when the latest released major is not a number"() {
+        assumeTrue GRADLE_8_X.compatibleWithCurrentJvm
+
+        when:
+        latestGradleMajor = 'not-a-number'
+        run(GRADLE_8_X.gradleVersion)
+
+        then:
+        assertVersionStatus(null)
+    }
+
     def run(def args = ['help'], def gradleVersion) {
         return run(args, initScript, gradleVersion, jvmArgs, envVars)
     }
@@ -278,17 +336,26 @@ task expectFailure {
     }
 
     def getJvmArgs() {
-        [
+        def jvmArgs = [
             "-DRUNNER_TEMP=${testProjectDir.absolutePath}".toString(),
             "-DGITHUB_ACTION=github-step-id".toString()
         ]
+        if (latestGradleMajor != null) {
+            jvmArgs << "-DGRADLE_ACTIONS_LATEST_GRADLE_MAJOR=${latestGradleMajor}".toString()
+        }
+        jvmArgs
     }
 
     def getEnvVars() {
-        [
+        def envVars = [
             RUNNER_TEMP: testProjectDir.absolutePath,
-            GITHUB_ACTION: 'github-step-id'
+            GITHUB_ACTION: 'github-step-id',
+            GITHUB_OUTPUT: githubOutputFile.absolutePath
         ]
+        if (latestGradleMajor != null) {
+            envVars.GRADLE_ACTIONS_LATEST_GRADLE_MAJOR = latestGradleMajor
+        }
+        envVars
     }
 
     void assertResults(String task, TestGradleVersion testGradleVersion, boolean hasFailure, boolean configCacheHit = false) {
@@ -306,6 +373,24 @@ task expectFailure {
         def scanResults = new JsonSlurper().parse(scanResultFile)
         assert scanResults['buildScanUri'] == (scanUploadFailed ? null : "${mockScansServer.address}s/${PUBLIC_BUILD_SCAN_ID}")
         assert scanResults['buildScanFailed'] == scanUploadFailed
+    }
+
+    void assertVersionStatus(String expectedStatus) {
+        def results = new JsonSlurper().parse(buildResultFile)
+        assert results['versionStatus'] == expectedStatus
+        if (expectedStatus == null) {
+            assert !githubOutput.contains('gradle-version-status')
+        } else {
+            assert githubOutput.contains("gradle-version-status=${expectedStatus}")
+        }
+    }
+
+    private File getGithubOutputFile() {
+        new File(testProjectDir, 'github-output')
+    }
+
+    private String getGithubOutput() {
+        githubOutputFile.exists() ? githubOutputFile.text : ''
     }
 
     private File getBuildResultFile() {

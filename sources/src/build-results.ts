@@ -6,6 +6,7 @@ export interface BuildResult {
     get rootProjectDir(): string
     get requestedTasks(): string
     get gradleVersion(): string
+    get versionStatus(): string | undefined
     get gradleHomeDir(): string
     get buildFailed(): boolean
     get configCacheHit(): boolean

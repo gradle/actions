@@ -5,6 +5,7 @@ import which from 'which'
 import * as semver from 'semver'
 import * as provisioner from './provision'
 import * as gradlew from './gradlew'
+import {GradleVersion} from './gradle-version'
 
 export async function provisionAndMaybeExecute(
     gradleVersion: string,
@@ -89,23 +90,4 @@ export function parseGradleVersionFromOutput(output: string): string | undefined
     const regex = /Gradle (\d+\.\d+(\.\d+)?(-.*)?)/
     const versionString = output.match(regex)?.[1]
     return versionString
-}
-
-class GradleVersion {
-    static PATTERN = /((\d+)(\.\d+)+)(-([a-z]+)-(\w+))?(-(SNAPSHOT|\d{14}([-+]\d{4})?))?/
-
-    versionPart: string
-    stagePart: string
-    snapshotPart: string
-
-    constructor(readonly version: string) {
-        const matcher = GradleVersion.PATTERN.exec(version)
-        if (!matcher) {
-            throw new Error(`'${version}' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')`)
-        }
-
-        this.versionPart = matcher[1]
-        this.stagePart = matcher[4]
-        this.snapshotPart = matcher[7]
-    }
 }

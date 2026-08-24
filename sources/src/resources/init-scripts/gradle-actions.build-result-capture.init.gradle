@@ -5,6 +5,7 @@ import org.gradle.util.GradleVersion
 import org.slf4j.LoggerFactory
 
 def SKIP_BUILD_CAPTURE = "GRADLE_ACTIONS_SKIP_BUILD_RESULT_CAPTURE"
+def LATEST_GRADLE_MAJOR_ENV = "GRADLE_ACTIONS_LATEST_GRADLE_MAJOR"
 def BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan"
 def BUILD_SCAN_EXTENSION = "buildScan"
 def DEVELOCITY_PLUGIN_ID = "com.gradle.develocity"
@@ -22,6 +23,8 @@ def isTopLevelBuild = gradle.getParent() == null
 if (isTopLevelBuild) {
     def resultsWriter = new ResultsWriter()
     def version = GradleVersion.current().baseVersion
+
+    gradle.ext.gradleVersionStatus = supportStatusOf(version, System.getenv(LATEST_GRADLE_MAJOR_ENV))
 
     def atLeastGradle3 = version >= GradleVersion.version("3.0")
     def atLeastGradle6 = version >= GradleVersion.version("6.0")
@@ -84,13 +87,46 @@ def captureUsingBuildService(invocationId) {
     apply from: 'gradle-actions.build-result-capture-service.plugin.groovy'
 }
 
+String supportStatusOf(version, String latestGradleMajor) {
+    def latestMajor = latestGradleMajor?.find(/^\d+$/)?.toInteger()
+    def currentMajor = version.version.find(/^\d+/)?.toInteger()
+    if (!latestMajor || !currentMajor) {
+        return null
+    }
+
+    switch (Math.max(0, latestMajor - currentMajor)) {
+        case 0:
+            return "active"
+        case 1:
+            return "maintenance"
+        default:
+            return "eol"
+    }
+}
+
+void setStepOutput(String name, String value) {
+    def githubOutput = System.getenv("GITHUB_OUTPUT")
+    if (githubOutput) {
+        new File(githubOutput) << "${name}=${value}\n"
+    } else {
+        // Retained for compatibility with older GHES versions
+        println("::set-output name=${name}::${value}")
+    }
+}
+
 void captureUsingBuildFinished(gradle, String invocationId, ResultsWriter resultsWriter) {
     gradle.buildFinished { result ->
+        def versionStatus = gradle.ext.gradleVersionStatus
+        if (versionStatus) {
+            setStepOutput("gradle-version-status", versionStatus)
+        }
+
         def buildResults = [
             rootProjectName: rootProject.name,
             rootProjectDir: rootProject.projectDir.absolutePath,
             requestedTasks: gradle.startParameter.taskNames.join(" "),
             gradleVersion: GradleVersion.current().version,
+            versionStatus: versionStatus,
             gradleHomeDir: gradle.gradleHomeDir.absolutePath,
             buildFailed: result.failure != null,
             configCacheHit: false
@@ -110,13 +146,7 @@ void captureUsingBuildScanPublished(buildScanExtension, String invocationId, Res
             ]
             resultsWriter.writeToResultsFile("build-scans", invocationId, scanResults)
 
-            def githubOutput = System.getenv("GITHUB_OUTPUT")
-            if (githubOutput) {
-                new File(githubOutput) << "build-scan-url=${buildScan.buildScanUri}\n"
-            } else {
-                // Retained for compatibility with older GHES versions
-                println("::set-output name=build-scan-url::${buildScan.buildScanUri}")
-            }
+            setStepOutput("build-scan-url", buildScan.buildScanUri.toString())
         }
 
         onError { error ->

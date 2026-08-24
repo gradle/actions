@@ -28,6 +28,11 @@ jobs:
     secrets:
       DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
 
+  gradle-support-status:
+    uses: ./.github/workflows/integ-test-gradle-support-status.yml
+    with:
+      skip-dist: ${{ inputs.skip-dist }}
+
   provision-gradle-versions:
     uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
     with:
