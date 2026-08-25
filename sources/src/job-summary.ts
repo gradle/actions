@@ -61,8 +61,7 @@ async function addPRComment(jobSummary: string): Promise<void> {
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
     const prComment = `${jobMarker(context)}
-<h3>Job Summary for Gradle</h3>
-<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
+${renderActionHeading()}<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
 </a>
 
@@ -103,7 +102,8 @@ export function renderSummaryTable(results: BuildResult[]): string {
 
 function renderActionHeading(): string {
     const actionId = getActionId()
-    return actionId ? `<h3>Gradle Builds (${actionId})</h3>\n\n` : `<h3>Gradle Builds</h3>\n\n`
+    const caption = actionId ? ` <small><em>captured by ${actionId}</em></small>` : ''
+    return `<h3>Gradle Builds${caption}</h3>\n\n`
 }
 
 function renderErrors(): string | undefined {
