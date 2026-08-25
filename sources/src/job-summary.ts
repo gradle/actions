@@ -15,8 +15,11 @@ export async function generateJobSummary(
 ): Promise<void> {
     core.startGroup('Generating Job Summary')
 
+    const heading = renderActionHeading()
+
     const errors = renderErrors()
     if (errors) {
+        core.summary.addRaw(heading)
         core.summary.addRaw(errors)
         await core.summary.write()
         return
@@ -31,6 +34,7 @@ export async function generateJobSummary(
     core.info(cachingReport)
 
     if (config.shouldGenerateJobSummary(hasFailure)) {
+        core.summary.addRaw(heading)
         core.summary.addRaw(summaryTable)
         core.summary.addRaw(cachingReport)
         await core.summary.write()
@@ -57,8 +61,7 @@ async function addPRComment(jobSummary: string): Promise<void> {
     core.info(`Adding Job Summary as comment to PR #${pull_request_number}.`)
 
     const prComment = `${jobMarker(context)}
-<h3>Job Summary for Gradle</h3>
-<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
+${renderActionHeading()}<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}" target="_blank">
 <h5>${context.workflow} :: <em>${context.job}</em></h5>
 </a>
 
@@ -95,6 +98,12 @@ Note that this permission is never available for a workflow triggered from a rep
 
 export function renderSummaryTable(results: BuildResult[]): string {
     return `${renderDeprecations()}\n${renderBuildResults(results)}`
+}
+
+function renderActionHeading(): string {
+    const actionId = getActionId()
+    const caption = actionId ? ` <sub><em>captured by ${actionId}</em></sub>` : ''
+    return `<h3>Gradle Builds${caption}</h3>\n\n`
 }
 
 function renderErrors(): string | undefined {
