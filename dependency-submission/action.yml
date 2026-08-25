@@ -31,6 +31,7 @@ inputs:
       Specifies the caching implementation to use.
       'enhanced' (default) uses the full-featured commercial caching service (gradle-actions-caching).
       'basic' uses a simple open-source caching implementation based on GitHub Actions cache.
+      'external' disables Gradle User Home caching by this action, for use when Gradle User Home is already saved and restored by another mechanism (e.g. Develocity Artifact Cache).
     required: false
     default: 'enhanced'
 

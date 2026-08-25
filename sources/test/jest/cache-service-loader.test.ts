@@ -45,12 +45,67 @@ describe('getCacheService selection logic', () => {
         expect(service).toBeInstanceOf(BasicCacheService)
     })
 
+    it('returns NoOpCacheService reporting "external" when cache-provider is external', async () => {
+        const {getCacheService} = await import('../../src/cache-service-loader')
+        const mockConfig = {
+            isCacheDisabled: () => false,
+            getCacheProvider: () => CacheProvider.External
+        } as unknown as CacheConfig
+
+        const service = await getCacheService(mockConfig)
+        const report = await service.save('/home/.gradle', [], {
+            disabled: false,
+            readOnly: false,
+            writeOnly: false,
+            overwriteExisting: false,
+            strictMatch: false,
+            cleanup: 'never',
+            includes: [],
+            excludes: []
+        })
+
+        expect(report.status).toBe('external')
+        expect(report.entries).toHaveLength(0)
+    })
+
+    it('reports "external" even when cache-disabled is also true', async () => {
+        const {getCacheService} = await import('../../src/cache-service-loader')
+        const mockConfig = {
+            isCacheDisabled: () => true,
+            getCacheProvider: () => CacheProvider.External
+        } as unknown as CacheConfig
+
+        const service = await getCacheService(mockConfig)
+        const report = await service.save('/home/.gradle', [], {
+            disabled: false,
+            readOnly: false,
+            writeOnly: false,
+            overwriteExisting: false,
+            strictMatch: false,
+            cleanup: 'never',
+            includes: [],
+            excludes: []
+        })
+
+        expect(report.status).toBe('external')
+    })
+
     describe('getProviderNote', () => {
         it('returns undefined when cache is disabled', async () => {
             const {getProviderNote} = await import('../../src/cache-service-loader')
             const mockConfig = {
                 isCacheDisabled: () => true,
                 getCacheProvider: () => CacheProvider.Enhanced
+            } as unknown as CacheConfig
+
+            expect(getProviderNote(mockConfig)).toBeUndefined()
+        })
+
+        it('returns undefined when cache-provider is external', async () => {
+            const {getProviderNote} = await import('../../src/cache-service-loader')
+            const mockConfig = {
+                isCacheDisabled: () => false,
+                getCacheProvider: () => CacheProvider.External
             } as unknown as CacheConfig
 
             expect(getProviderNote(mockConfig)).toBeUndefined()

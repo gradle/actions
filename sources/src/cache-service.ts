@@ -15,10 +15,20 @@ export interface CacheOptions {
 }
 
 export type CacheStatus =
-    'enabled' | 'read-only' | 'write-only' | 'disabled' | 'disabled-existing-home' | 'not-available'
+    | 'enabled' // Gradle User Home was restored from and saved to the cache
+    | 'read-only' // restored from the cache, but not saved
+    | 'write-only' // saved to the cache, but not restored
+    | 'disabled' // caching was turned off via the cache-disabled parameter
+    | 'disabled-existing-home' // a pre-existing Gradle User Home was found, so caching was skipped
+    | 'not-available' // the GitHub Actions cache service could not be reached
+    | 'external' // Gradle User Home is cached by an external provider, not by this action
 
 export type CacheCleanupStatus =
-    'enabled' | 'disabled-param' | 'disabled-failure' | 'disabled-config-cache-hit' | 'disabled-readonly'
+    | 'enabled' // stale files were purged from Gradle User Home before saving
+    | 'disabled-param' // disabled via action parameter
+    | 'disabled-failure' // skipped due to a build failure
+    | 'disabled-config-cache-hit' // skipped due to configuration-cache reuse
+    | 'disabled-readonly' // always disabled when the cache is read-only
 
 export type ProjectCacheStatus =
     | 'not-enabled' // the hidden opt-in env var was not set (rendered as nothing)

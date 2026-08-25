@@ -175,14 +175,19 @@ export class CacheConfig {
             case 'enhanced':
             case '':
                 return CacheProvider.Enhanced
+            case 'external':
+                return CacheProvider.External
         }
-        throw TypeError(`The value '${val}' is not valid for 'cache-provider'. Valid values are: [basic, enhanced].`)
+        throw TypeError(
+            `The value '${val}' is not valid for 'cache-provider'. Valid values are: [basic, enhanced, external].`
+        )
     }
 }
 
 export enum CacheProvider {
     Basic = 'basic',
-    Enhanced = 'enhanced'
+    Enhanced = 'enhanced',
+    External = 'external'
 }
 
 export enum CacheCleanupOption {
