@@ -102,7 +102,7 @@ export function renderSummaryTable(results: BuildResult[]): string {
 
 function renderActionHeading(): string {
     const actionId = getActionId()
-    const caption = actionId ? ` <small><em>captured by ${actionId}</em></small>` : ''
+    const caption = actionId ? ` <sub><em>captured by ${actionId}</em></sub>` : ''
     return `<h3>Gradle Builds${caption}</h3>\n\n`
 }
 
