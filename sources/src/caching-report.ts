@@ -17,7 +17,8 @@ const STATUS_COPY: Record<CacheStatus, string> = {
     'write-only': `[Cache was write-only](${DOCS}#using-the-cache-write-only) — Gradle User Home was not restored from the cache.`,
     disabled: `[Caching was disabled](${DOCS}#disabling-caching) — Gradle User Home was not restored from or saved to the cache.`,
     'disabled-existing-home': `⚠️ [Caching was skipped](${DOCS}#overwriting-an-existing-gradle-user-home) — a pre-existing Gradle User Home was found, so the cache was not restored or saved.`,
-    'not-available': `Caching is not available — the GitHub Actions cache service could not be reached, so Gradle User Home was not restored or saved.`
+    'not-available': `Caching is not available — the GitHub Actions cache service could not be reached, so Gradle User Home was not restored or saved.`,
+    external: `[Gradle User Home is cached externally](${DOCS}#using-an-external-cache-provider) — this action did not restore or save the Gradle User Home.`
 }
 
 const CLEANUP_COPY: Record<CacheCleanupStatus, string> = {
@@ -63,7 +64,13 @@ function isActive(status: CacheStatus): boolean {
 function renderHeading(status: CacheStatus, providerNote?: ProviderNote): string {
     if (!isActive(status)) {
         const label =
-            status === 'disabled-existing-home' ? 'Skipped' : status === 'not-available' ? 'Unavailable' : 'Disabled'
+            status === 'disabled-existing-home'
+                ? 'Skipped'
+                : status === 'not-available'
+                  ? 'Unavailable'
+                  : status === 'external'
+                    ? 'External'
+                    : 'Disabled'
         return `<h4>Gradle State Caching - ${label}</h4>`
     }
 

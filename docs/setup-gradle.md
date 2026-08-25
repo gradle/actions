@@ -133,6 +133,7 @@ You choose which provider to use via the `cache-provider` input:
 
 - **`enhanced`** (default): Uses the full-featured commercial `gradle-actions-caching` library. Provides advanced features like fine-grained cache entries, intelligent cache cleanup, and deduplication. See [Enhanced Caching](#enhanced-caching) for details.
 - **`basic`**: A fully open-source (MIT) caching implementation built on the standard GitHub Actions cache (`@actions/cache`). Uses the same caching strategy as `actions/setup-java` with `cache: gradle`. See [Basic Caching](#basic-caching) for details.
+- **`external`**: Disables Gradle User Home caching by this action, for use when another mechanism already saves and restores Gradle User Home. See [Using an external cache provider](#using-an-external-cache-provider) for details.
 
 ```yaml
     # Use the open-source basic cache provider
@@ -185,7 +186,17 @@ Specifically:
 - Avoid using `actions/cache` configured to cache the Gradle User Home, [as described in this example](https://github.com/actions/cache/blob/main/examples.md#java---gradle).
 - Avoid using `actions/setup-java` with the `cache: gradle` option, [as described here](https://github.com/actions/setup-java#caching-gradle-dependencies).
 
-Using either of these mechanisms may interfere with the caching provided by this action. If you choose to use a different mechanism to save and restore the Gradle User Home, you should disable the caching provided by this action, as described above.
+Using either of these mechanisms may interfere with the caching provided by this action. If you choose to use a different mechanism to save and restore the Gradle User Home, you should disable the caching provided by this action, as described above, or [use `cache-provider: external`](#using-an-external-cache-provider) if that mechanism is a dedicated Gradle User Home cache.
+
+#### Using an external cache provider
+
+If Gradle User Home is already saved and restored by another mechanism — for example the [Develocity Artifact Cache](https://github.com/gradle/actions-caching) — set `cache-provider: external` rather than `cache-disabled: true`.
+
+Both settings stop `setup-gradle` from restoring or saving Gradle User Home, but `cache-provider: external` reflects the actual reason: caching is still happening, just not through this action. It also updates the Job Summary to say that caching was handled externally, rather than implying that caching was turned off.
+
+```yaml
+cache-provider: external
+```
 
 ## Enhanced Caching
 

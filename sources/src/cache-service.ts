@@ -15,10 +15,20 @@ export interface CacheOptions {
 }
 
 export type CacheStatus =
-    'enabled' | 'read-only' | 'write-only' | 'disabled' | 'disabled-existing-home' | 'not-available'
+    | 'enabled'
+    | 'read-only'
+    | 'write-only'
+    | 'disabled'
+    | 'disabled-existing-home'
+    | 'not-available'
+    | 'external'
 
 export type CacheCleanupStatus =
-    'enabled' | 'disabled-param' | 'disabled-failure' | 'disabled-config-cache-hit' | 'disabled-readonly'
+    | 'enabled'
+    | 'disabled-param'
+    | 'disabled-failure'
+    | 'disabled-config-cache-hit'
+    | 'disabled-readonly'
 
 export type ProjectCacheStatus =
     | 'not-enabled' // the hidden opt-in env var was not set (rendered as nothing)

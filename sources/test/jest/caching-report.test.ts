@@ -142,4 +142,14 @@ describe('renderCachingReport', () => {
         expect(md).toContain('<h4>Gradle State Caching - Unavailable</h4>')
         expect(md).not.toContain('<details>')
     })
+
+    it('renders a compact external report with no provider note', () => {
+        const report: CacheReport = {status: 'external', entries: []}
+        const md = renderCachingReport(report, undefined)
+
+        expect(md).toContain('<h4>Gradle State Caching - External</h4>')
+        expect(md).toContain('cached externally')
+        expect(md).not.toContain('<details>')
+        expect(md).not.toContain('DISTRIBUTION.md')
+    })
 })
