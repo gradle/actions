@@ -134,6 +134,32 @@ jobs:
         script: |
           core.setFailed('No Build Scan detected')
 
+  # Test that build scans are captured when cache-provider is 'external', even with a pre-existing Gradle User Home
+  caching-config-cache-provider-external:
+    runs-on: ubuntu-latest # This test only runs on Ubuntu
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - name: Create dummy Gradle User Home
+      run: mkdir -p ~/.gradle/caches
+    - name: Setup Gradle
+      uses: ./setup-gradle
+      with:
+        cache-provider: external
+    - name: Build using Gradle wrapper
+      id: gradle
+      working-directory: .github/workflow-samples/groovy-dsl
+      run: ./gradlew help
+    - name: Check Build Scan url is captured
+      if: ${{ !steps.gradle.outputs.build-scan-url }}
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      with:
+        script: |
+          core.setFailed('No Build Scan detected')
+
   # Test seed the cache with cache-write-only and verify with cache-read-only
   caching-config-seed-write-only:
     env:
