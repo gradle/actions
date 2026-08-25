@@ -15,8 +15,11 @@ export async function generateJobSummary(
 ): Promise<void> {
     core.startGroup('Generating Job Summary')
 
+    const heading = renderActionHeading()
+
     const errors = renderErrors()
     if (errors) {
+        core.summary.addRaw(heading)
         core.summary.addRaw(errors)
         await core.summary.write()
         return
@@ -31,6 +34,7 @@ export async function generateJobSummary(
     core.info(cachingReport)
 
     if (config.shouldGenerateJobSummary(hasFailure)) {
+        core.summary.addRaw(heading)
         core.summary.addRaw(summaryTable)
         core.summary.addRaw(cachingReport)
         await core.summary.write()
@@ -95,6 +99,11 @@ Note that this permission is never available for a workflow triggered from a rep
 
 export function renderSummaryTable(results: BuildResult[]): string {
     return `${renderDeprecations()}\n${renderBuildResults(results)}`
+}
+
+function renderActionHeading(): string {
+    const actionId = getActionId()
+    return actionId ? `<h3>Gradle Builds (${actionId})</h3>\n\n` : `<h3>Gradle Builds</h3>\n\n`
 }
 
 function renderErrors(): string | undefined {
