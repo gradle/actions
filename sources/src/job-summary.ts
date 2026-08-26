@@ -6,7 +6,7 @@ import {CacheReport} from './cache-service'
 import {ProviderNote, renderCachingReport} from './caching-report'
 import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
-import {supportStatusOf} from './gradle-support-status'
+import {SupportStatusKind, supportStatusOf} from './gradle-support-status'
 
 const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
 
@@ -169,11 +169,14 @@ function renderBuildResultRow(result: BuildResult): string {
 }
 
 function renderGradleVersion(gradleVersion: string): string {
-    switch (supportStatusOf(gradleVersion)) {
-        case 'eol':
+    const support = supportStatusOf(gradleVersion)
+    switch (support.kind) {
+        case SupportStatusKind.Eol:
             return `${gradleVersion} <span title="End-of-life: no longer receives bug fixes or security fixes">:warning:</span>`
-        case 'maintenance':
+        case SupportStatusKind.Maintenance:
             return `${gradleVersion} <span title="Maintenance only: receives critical bug fixes and security fixes only">:information_source:</span>`
+        case SupportStatusKind.PatchAvailable:
+            return `${gradleVersion} <span title="Patch update available: Gradle ${support.newerPatch}">:information_source:</span>`
         default:
             return gradleVersion
     }
@@ -182,7 +185,7 @@ function renderGradleVersion(gradleVersion: string): string {
 function renderOutdatedVersions(results: BuildResult[]): string {
     const hasOutdatedVersion = results
         .map(result => supportStatusOf(result.gradleVersion))
-        .some(status => status === 'eol' || status === 'maintenance')
+        .some(support => support.kind === SupportStatusKind.Eol || support.kind === SupportStatusKind.Maintenance)
     if (!hasOutdatedVersion) {
         return ''
     }

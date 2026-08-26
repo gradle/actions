@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       maintenance-version: ${{ steps.maintenance-version.outputs.version }}
+      patch-version: ${{ steps.patch-version.outputs.version }}
+      newer-patch: ${{ steps.patch-version.outputs.newer }}
     steps:
     - name: Checkout sources
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -38,6 +40,27 @@ jobs:
         ' sources/src/wrapper-validation/wrapper-checksums.json)
         echo "Newest release in the maintenance-only line: $version"
         echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Determine a version with a newer patch available
+      id: patch-version
+      run: |
+        read -r version newer <<<"$(jq -r '
+          [.[].version | select(test("^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"))] as $finals
+          | ($finals | map(split(".")[0] | tonumber) | max) as $latest
+          | [$finals[] | select((split(".")[0] | tonumber) == $latest)]
+          | group_by(split(".")[0:2] | join("."))
+          | map(sort_by(split(".") | if length > 2 then (.[2] | tonumber) else 0 end) | reverse)
+          | map(select(length > 1))
+          | first
+          | if . then "\(.[1]) \(.[0])" else empty end
+        ' sources/src/wrapper-validation/wrapper-checksums.json)"
+        if [ -z "${version:-}" ]; then
+          echo "No release line in the current major has more than one release: skipping the patch case"
+        else
+          echo "Gradle ${version} is superseded by ${newer}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "newer=${newer}" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Setup Gradle with an end-of-life version
       uses: ./setup-gradle
@@ -57,6 +80,16 @@ jobs:
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=${{ steps.maintenance-version.outputs.version }}"
 
+    - name: Setup Gradle with a version that has a newer patch
+      if: ${{ steps.patch-version.outputs.version != '' }}
+      uses: ./setup-gradle
+      with:
+        gradle-version: ${{ steps.patch-version.outputs.version }}
+    - name: Build with the version that has a newer patch
+      if: ${{ steps.patch-version.outputs.version != '' }}
+      working-directory: .github/workflow-samples/no-wrapper
+      run: gradle help "-DgradleVersionCheck=${{ steps.patch-version.outputs.version }}"
+
   verify-annotations:
     needs: report-outdated-versions
     runs-on: ubuntu-latest
@@ -68,6 +101,8 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         MAINTENANCE_VERSION: ${{ needs.report-outdated-versions.outputs.maintenance-version }}
+        PATCH_VERSION: ${{ needs.report-outdated-versions.outputs.patch-version }}
+        NEWER_PATCH: ${{ needs.report-outdated-versions.outputs.newer-patch }}
       run: |
         set -euo pipefail
 
@@ -92,3 +127,6 @@ jobs:
 
         assert_logged "##[warning]Gradle 7.6.4 has reached end-of-life"
         assert_logged "##[notice]Gradle ${MAINTENANCE_VERSION} is in maintenance-only support"
+        if [ -n "${PATCH_VERSION}" ]; then
+          assert_logged "##[notice]Gradle ${PATCH_VERSION} is not the latest patch release: Gradle ${NEWER_PATCH} is available"
+        fi

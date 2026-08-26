@@ -3,18 +3,22 @@ import * as github from '@actions/github'
 import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals'
 
 import {BuildResult} from '../../src/build-results'
-import {SupportStatus} from '../../src/gradle-support-status'
 
-const mockSupportStatusOf = jest.fn<(gradleVersion: string) => SupportStatus | undefined>()
-jest.unstable_mockModule('../../src/gradle-support-status', () => ({
-    supportStatusOf: mockSupportStatusOf
+let releasedVersions = [{version: '8.0', checksum: ''}]
+jest.unstable_mockModule('../../src/wrapper-validation/wrapper-checksums.json', () => ({
+    get default() {
+        return releasedVersions
+    }
 }))
 
 const {jobMarker, renderSummaryTable} = await import('../../src/job-summary')
 
-beforeEach(() => {
-    mockSupportStatusOf.mockReturnValue('active')
-})
+async function renderWith(versions: string[], results: BuildResult[]): Promise<string> {
+    releasedVersions = versions.map(version => ({version, checksum: ''}))
+    jest.resetModules()
+    const {renderSummaryTable: render} = await import('../../src/job-summary')
+    return render(results)
+}
 
 const MATRIX_INPUT_ENV = 'INPUT_WORKFLOW-JOB-CONTEXT'
 
@@ -197,9 +201,8 @@ describe('renderSummaryTable', () => {
 })
 
 describe('Gradle version support status', () => {
-    it('marks an outdated version and adds a details section', () => {
-        mockSupportStatusOf.mockReturnValue('eol')
-        const table = renderSummaryTable([successfulHelpBuild])
+    it('marks an outdated version and adds a details section', async () => {
+        const table = await renderWith(['10.0.0', '8.0'], [successfulHelpBuild])
         expect(table.trim()).toBe(dedent`
             <table>
                 <tr>
@@ -233,13 +236,19 @@ describe('Gradle version support status', () => {
             </details>
         `);
     })
-    it('marks a maintenance-only version', () => {
-        mockSupportStatusOf.mockReturnValue('maintenance')
-        const table = renderSummaryTable([successfulHelpBuild])
+    it('marks a maintenance-only version', async () => {
+        const table = await renderWith(['9.0.0', '8.0'], [successfulHelpBuild])
         expect(table).toContain(
             `<td align='center'>8.0 <span title="Maintenance only: receives critical bug fixes and security fixes only">:information_source:</span></td>`
         )
         expect(table).toContain('This Job uses an outdated Gradle version')
+    })
+    it('marks a version with a newer patch release available', async () => {
+        const table = await renderWith(['8.0.1', '8.0'], [successfulHelpBuild])
+        expect(table).toContain(
+            `<td align='center'>8.0 <span title="Patch update available: Gradle 8.0.1">:information_source:</span></td>`
+        )
+        expect(table).not.toContain('outdated Gradle version')
     })
 })
 
