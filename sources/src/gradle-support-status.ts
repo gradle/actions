@@ -28,6 +28,13 @@ export function getSupportStatus(version: GradleVersion, latestMajor: number): S
     }
 }
 
+export function supportStatusOf(gradleVersion: string): SupportStatus | undefined {
+    if (LATEST_RELEASED_MAJOR === undefined) {
+        return undefined
+    }
+    return getSupportStatus(new GradleVersion(gradleVersion), LATEST_RELEASED_MAJOR)
+}
+
 export function reportSupportStatus(gradleVersions: string[]): void {
     if (LATEST_RELEASED_MAJOR === undefined) {
         return
