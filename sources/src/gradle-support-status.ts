@@ -1,13 +1,13 @@
 import * as core from '@actions/core'
 
-import {BuildResult} from './build-results'
 import {GradleVersion} from './execution/gradle-version'
 import wrapperChecksums from './wrapper-validation/wrapper-checksums.json'
 
-const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html'
+const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
 
 const LATEST_RELEASED_MAJOR = determineLatestReleasedMajor(wrapperChecksums.map(entry => entry.version))
-const LATEST_MAJOR_VERSION_ENV = 'GRADLE_ACTIONS_LATEST_GRADLE_MAJOR'
+
+export type SupportStatus = 'active' | 'maintenance' | 'eol'
 
 export function determineLatestReleasedMajor(versions: string[]): number | undefined {
     const releasedMajors = versions
@@ -17,27 +17,25 @@ export function determineLatestReleasedMajor(versions: string[]): number | undef
     return releasedMajors.length > 0 ? Math.max(...releasedMajors) : undefined
 }
 
-export function exportLatestReleasedMajor(): void {
-    if (LATEST_RELEASED_MAJOR !== undefined) {
-        core.exportVariable(LATEST_MAJOR_VERSION_ENV, LATEST_RELEASED_MAJOR)
+export function getSupportStatus(version: GradleVersion, latestMajor: number): SupportStatus {
+    switch (Math.max(0, latestMajor - version.major)) {
+        case 0:
+            return 'active'
+        case 1:
+            return 'maintenance'
+        default:
+            return 'eol'
     }
 }
 
-export function reportSupportStatus(buildResults: BuildResult[]): void {
+export function reportSupportStatus(gradleVersions: string[]): void {
     if (LATEST_RELEASED_MAJOR === undefined) {
         return
     }
 
-    const statusByVersion = new Map<string, string>()
-    for (const {gradleVersion, versionStatus} of buildResults) {
-        if (versionStatus) {
-            statusByVersion.set(gradleVersion, versionStatus)
-        }
-    }
-
-    for (const [gradleVersion, status] of statusByVersion) {
+    for (const gradleVersion of new Set(gradleVersions)) {
         const version = new GradleVersion(gradleVersion)
-        switch (status) {
+        switch (getSupportStatus(version, LATEST_RELEASED_MAJOR)) {
             case 'eol':
                 core.warning(eolMessage(version, LATEST_RELEASED_MAJOR), {title: 'Gradle version at end-of-life'})
                 break

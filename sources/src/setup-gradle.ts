@@ -19,7 +19,7 @@ import {
 } from './configuration'
 import * as wrapperValidator from './wrapper-validation/wrapper-validator'
 import {initializeGradleUserHome} from './gradle-user-home'
-import {exportLatestReleasedMajor, reportSupportStatus} from './gradle-support-status'
+import {reportSupportStatus} from './gradle-support-status'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
@@ -47,7 +47,6 @@ export async function setup(
     core.saveState(GRADLE_USER_HOME, gradleUserHome)
 
     initializeGradleUserHome(userHome, gradleUserHome, cacheConfig.getCacheEncryptionKey())
-    exportLatestReleasedMajor()
 
     // Exchange the long-lived access key(s) for short-lived tokens, resolving the token for the
     // configured Develocity server and retaining it for the post-action (save) step.
@@ -91,7 +90,7 @@ export async function complete(
 
     markBuildResultsProcessed()
 
-    reportSupportStatus(buildResults)
+    reportSupportStatus(buildResults.map(result => result.gradleVersion))
 
     core.info('Completed post-action step')
 

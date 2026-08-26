@@ -18,13 +18,26 @@ permissions:
   contents: read
 
 jobs:
-  report-version-status:
+  report-outdated-versions:
     runs-on: ubuntu-latest
+    outputs:
+      maintenance-version: ${{ steps.maintenance-version.outputs.version }}
     steps:
     - name: Checkout sources
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
+
+    - name: Determine the maintenance-only Gradle version
+      id: maintenance-version
+      run: |
+        version=$(jq -r '
+          [.[].version | select(test("^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"))] as $finals
+          | ($finals | map(split(".")[0] | tonumber) | max) as $latest
+          | [$finals[] | select((split(".")[0] | tonumber) == ($latest - 1))] | first
+        ' sources/src/wrapper-validation/wrapper-checksums.json)
+        echo "Newest release in the maintenance-only line: $version"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Setup Gradle with an end-of-life version
       uses: ./setup-gradle
@@ -36,25 +49,46 @@ jobs:
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=7.6.4"
 
-    - name: Setup Gradle with the current version
+    - name: Setup Gradle with the maintenance-only version
       uses: ./setup-gradle
       with:
-        gradle-version: current
-    - name: Build with the current version
-      id: build-current
+        gradle-version: ${{ steps.maintenance-version.outputs.version }}
+    - name: Build with the maintenance-only version
       working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help
+      run: gradle help "-DgradleVersionCheck=${{ steps.maintenance-version.outputs.version }}"
 
-    - name: Check the end-of-life version was reported as 'eol'
-      if: ${{ steps.build-end-of-life.outputs.gradle-version-status != 'eol' }}
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-      with:
-        script: |
-          core.setFailed("Expected Gradle 7.6.4 to be reported as 'eol', but was '${{ steps.build-end-of-life.outputs.gradle-version-status }}'")
+  verify-annotations:
+    needs: report-outdated-versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - name: Check the support-status annotations were emitted
+      env:
+        GH_TOKEN: ${{ github.token }}
+        MAINTENANCE_VERSION: ${{ needs.report-outdated-versions.outputs.maintenance-version }}
+      run: |
+        set -euo pipefail
 
-    - name: Check the current version was reported as 'active'
-      if: ${{ steps.build-current.outputs.gradle-version-status != 'active' }}
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-      with:
-        script: |
-          core.setFailed("Expected the current Gradle version to be reported as 'active', but was '${{ steps.build-current.outputs.gradle-version-status }}'")
+        job_id=$(gh api \
+          "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
+          --paginate --jq '.jobs[] | select(.name | endswith("report-outdated-versions")) | .id')
+        if [ -z "$job_id" ]; then
+          echo "Could not find the 'report-outdated-versions' Job in this workflow run"
+          exit 1
+        fi
+        gh api --allow-escape-sequences "/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > job.log
+
+        # The runner renders '::warning::'/'::notice::' commands into the log as '##[warning]'/'##[notice]'.
+        assert_logged() {
+          if ! grep -qF -- "$1" job.log; then
+            echo "Expected the Job log to contain: $1"
+            echo "Annotations found instead:"
+            grep -E '##\[(warning|notice)\]' job.log || echo "(none)"
+            exit 1
+          fi
+        }
+
+        assert_logged "##[warning]Gradle 7.6.4 has reached end-of-life"
+        assert_logged "##[notice]Gradle ${MAINTENANCE_VERSION} is in maintenance-only support"

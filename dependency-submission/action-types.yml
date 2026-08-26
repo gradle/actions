@@ -156,6 +156,3 @@ outputs:
 
   gradle-version:
     type: string
-
-  gradle-version-status:
-    type: string

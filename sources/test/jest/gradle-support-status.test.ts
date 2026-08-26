@@ -1,23 +1,22 @@
 import {beforeEach, describe, expect, it, jest} from '@jest/globals'
 
-import {BuildResult} from '../../src/build-results'
-
 // Mock @actions/core
 const mockWarning = jest.fn<(message: string, properties?: {title?: string}) => void>()
 const mockNotice = jest.fn<(message: string, properties?: {title?: string}) => void>()
-const mockExportVariable = jest.fn<(name: string, value: string | number) => void>()
 jest.unstable_mockModule('@actions/core', () => ({
     warning: mockWarning,
-    notice: mockNotice,
-    exportVariable: mockExportVariable
+    notice: mockNotice
 }))
 
-const {determineLatestReleasedMajor, exportLatestReleasedMajor, reportSupportStatus} =
+const {determineLatestReleasedMajor, getSupportStatus, reportSupportStatus} =
     await import('../../src/gradle-support-status')
+const {GradleVersion} = await import('../../src/execution/gradle-version')
+import wrapperChecksums from '../../src/wrapper-validation/wrapper-checksums.json'
 
-function build(gradleVersion: string, versionStatus?: string): BuildResult {
-    return {gradleVersion, versionStatus} as BuildResult
-}
+const latestReleasedMajor = determineLatestReleasedMajor(wrapperChecksums.map(entry => entry.version))
+const MAINTENANCE_VERSION = `${(latestReleasedMajor ?? 0) - 1}.0`
+
+const DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
 
 describe('determineLatestReleasedMajor', () => {
     it('ignores pre-releases and snapshots of an unreleased major', () => {
@@ -46,11 +45,17 @@ describe('determineLatestReleasedMajor', () => {
     })
 })
 
-describe('exportLatestReleasedMajor', () => {
-    it('exports the boundary the init script needs to classify the running version', () => {
-        exportLatestReleasedMajor()
+describe('getSupportStatus', () => {
+    it.each(['10.0.0', '10.4.2', '11.0.0-milestone-1', '12.0.0'])('treats %s as active', version => {
+        expect(getSupportStatus(new GradleVersion(version), 10)).toBe('active')
+    })
 
-        expect(mockExportVariable).toHaveBeenCalledWith('GRADLE_ACTIONS_LATEST_GRADLE_MAJOR', expect.any(Number))
+    it.each(['9.0.0', '9.6.1', '9.7.0-rc-2'])('treats %s as maintenance-only', version => {
+        expect(getSupportStatus(new GradleVersion(version), 10)).toBe('maintenance')
+    })
+
+    it.each(['8.14', '8.0.2', '7.6.4', '4.10.3', '1.0'])('treats %s as end-of-life', version => {
+        expect(getSupportStatus(new GradleVersion(version), 10)).toBe('eol')
     })
 })
 
@@ -59,43 +64,38 @@ describe('reportSupportStatus', () => {
         jest.clearAllMocks()
     })
 
-    it('warns about a version recorded as end-of-life', () => {
-        reportSupportStatus([build('7.6.4', 'eol')])
+    it('warns about an end-of-life version', () => {
+        reportSupportStatus(['7.6.4'])
 
         expect(mockNotice).not.toHaveBeenCalled()
         expect(mockWarning).toHaveBeenCalledTimes(1)
         const [message, properties] = mockWarning.mock.calls[0]
         expect(message).toContain('Gradle 7.6.4 has reached end-of-life')
-        expect(message).toContain('the 7.x release line')
+        expect(message).toContain('the 7.x release line no longer receives bug fixes or security fixes')
+        expect(message).toContain(DOC)
         expect(properties?.title).toBe('Gradle version at end-of-life')
     })
 
-    it('notices a version recorded as maintenance-only', () => {
-        reportSupportStatus([build('8.14', 'maintenance')])
+    it('notices a maintenance-only version', () => {
+        reportSupportStatus([MAINTENANCE_VERSION])
 
         expect(mockWarning).not.toHaveBeenCalled()
         expect(mockNotice).toHaveBeenCalledTimes(1)
         const [message, properties] = mockNotice.mock.calls[0]
-        expect(message).toContain('Gradle 8.14 is in maintenance-only support')
+        expect(message).toContain(`Gradle ${MAINTENANCE_VERSION} is in maintenance-only support`)
+        expect(message).toContain('receives critical bug fixes and security fixes only')
         expect(properties?.title).toBe('Gradle version in maintenance')
     })
 
-    it('says nothing about a version recorded as active', () => {
-        reportSupportStatus([build('9.6.1', 'active')])
-
-        expect(mockWarning).not.toHaveBeenCalled()
-        expect(mockNotice).not.toHaveBeenCalled()
-    })
-
-    it('says nothing when the init script recorded no status', () => {
-        reportSupportStatus([build('7.6.4')])
+    it('says nothing about a version in the latest release line', () => {
+        reportSupportStatus(['999.0.0'])
 
         expect(mockWarning).not.toHaveBeenCalled()
         expect(mockNotice).not.toHaveBeenCalled()
     })
 
     it('annotates each distinct version once', () => {
-        reportSupportStatus([build('7.6.4', 'eol'), build('4.10.3', 'eol'), build('7.6.4', 'eol')])
+        reportSupportStatus(['7.6.4', '4.10.3', '7.6.4'])
 
         expect(mockWarning).toHaveBeenCalledTimes(2)
     })

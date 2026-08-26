@@ -15,7 +15,6 @@ settingsEvaluated { settings ->
         spec.getParameters().getRequestedTasks().set(gradle.startParameter.taskNames.join(" "))
         spec.getParameters().getGradleHomeDir().set(gradle.gradleHomeDir.absolutePath)
         spec.getParameters().getInvocationId().set(gradle.ext.invocationId)
-        spec.getParameters().getVersionStatus().set(gradle.ext.gradleVersionStatus ?: "")
     })
 
     gradle.services.get(BuildEventListenerRegistryInternal).onOperationCompletion(projectTracker)
@@ -31,7 +30,6 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
         Property<String> getRequestedTasks()
         Property<String> getGradleHomeDir()
         Property<String> getInvocationId()
-        Property<String> getVersionStatus()
     }
 
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
@@ -51,16 +49,6 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
         }
     }
 
-    private static void setStepOutput(String name, String value) {
-        def githubOutput = System.getenv("GITHUB_OUTPUT")
-        if (githubOutput) {
-            new File(githubOutput) << "${name}=${value}\n"
-        } else {
-            // Retained for compatibility with older GHES versions
-            println("::set-output name=${name}::${value}")
-        }
-    }
-
     @Override
     public void close() {
         def buildResults = [
@@ -68,16 +56,10 @@ abstract class BuildResultsRecorder implements BuildService<BuildResultsRecorder
             rootProjectDir: getParameters().getRootProjectDir().get(),
             requestedTasks: getParameters().getRequestedTasks().get(),
             gradleVersion: GradleVersion.current().version,
-            versionStatus: getParameters().getVersionStatus().getOrElse("") ?: null,
             gradleHomeDir: getParameters().getGradleHomeDir().get(),
             buildFailed: buildFailed,
             configCacheHit: configCacheHit
         ]
-
-        def versionStatus = getParameters().getVersionStatus().getOrElse("")
-        if (versionStatus) {
-            setStepOutput("gradle-version-status", versionStatus)
-        }
 
         def runnerTempDir = System.getProperty("RUNNER_TEMP") ?: System.getenv("RUNNER_TEMP")
         def githubActionStep = System.getProperty("GITHUB_ACTION") ?: System.getenv("GITHUB_ACTION")
