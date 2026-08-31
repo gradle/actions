@@ -20,6 +20,8 @@ async function renderWith(versions: string[], results: BuildResult[]): Promise<s
     return render(results)
 }
 
+const DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
+
 const MATRIX_INPUT_ENV = 'INPUT_WORKFLOW-JOB-CONTEXT'
 
 function fakeContext(workflow: string, job: string): typeof github.context {
@@ -201,7 +203,7 @@ describe('renderSummaryTable', () => {
 })
 
 describe('Gradle version support status', () => {
-    it('marks an outdated version and adds a details section', async () => {
+    it('signs an end-of-life version and folds the detail below the table', async () => {
         const table = await renderWith(['10.0.0', '8.0'], [successfulHelpBuild])
         expect(table.trim()).toBe(dedent`
             <table>
@@ -215,40 +217,38 @@ describe('Gradle version support status', () => {
                 <tr>
                     <td>root</td>
                     <td>help</td>
-                    <td align='center'>8.0 <span title="End-of-life: no longer receives bug fixes or security fixes">:warning:</span></td>
+                    <td align='center'>8.0 :octagonal_sign:</td>
                     <td align='center'>:white_check_mark:</td>
                     <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                 </tr>
             </table>
 
-            <h4>:warning: This Job uses an outdated Gradle version</h4>
             <details>
-                <summary>Gradle release end-of-life policy</summary>
-                <p>For major versions, Gradle will backport critical fixes and security fixes to the last minor in the
-                previous major version. As such, each major Gradle release causes:</p>
-                <ul>
-                    <li>The previous major version becomes maintenance only. It will only receive critical bug fixes
-                    and security fixes.</li>
-                    <li>The major version before the previous one to become end-of-life (EOL), and that release line
-                    will not receive any new fixes.</li>
-                </ul>
-                <a href="https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support" target="_blank">Gradle feature lifecycle</a>
+                <summary>:octagonal_sign: Gradle 8.0 is end-of-life</summary>
+                <p>The 8.x release line receives no new fixes of any kind. Update to at least Gradle <strong>10.0.0</strong>.</p>
+                <p>Options for staying secure on an end-of-life version: <a href="https://fantastic-bassoon-z4jm99l.pages.github.io/dotorg-site/pull/1172/security-subscription/">Gradle security subscription</a></p>
             </details>
         `);
     })
-    it('marks a maintenance-only version', async () => {
-        const table = await renderWith(['9.0.0', '8.0'], [successfulHelpBuild])
+    it('signs an unmaintained version with a warning', async () => {
+        const table = await renderWith(['9.0.0', '8.1', '8.0'], [successfulHelpBuild])
+        expect(table).toContain(`<td align='center'>8.0 :warning:</td>`)
         expect(table).toContain(
-            `<td align='center'>8.0 <span title="Maintenance only: receives critical bug fixes and security fixes only">:information_source:</span></td>`
+            `:warning: <strong>8.0</strong> <a href="${DOC}">Unmaintained</a> — update Gradle to at least <strong>9.0.0</strong>, or at least <strong>8.1</strong>`
         )
-        expect(table).toContain('This Job uses an outdated Gradle version')
     })
-    it('marks a version with a newer patch release available', async () => {
-        const table = await renderWith(['8.0.1', '8.0'], [successfulHelpBuild])
+    it('signs a version behind the latest with an info sign', async () => {
+        const table = await renderWith(['8.4', '8.0'], [successfulHelpBuild])
+        expect(table).toContain(`<td align='center'>8.0 :information_source:</td>`)
         expect(table).toContain(
-            `<td align='center'>8.0 <span title="Patch update available: Gradle 8.0.1">:information_source:</span></td>`
+            `:information_source: <strong>8.0</strong> <a href="${DOC}">Out of date</a> — update Gradle to at least <strong>8.4</strong>`
         )
-        expect(table).not.toContain('outdated Gradle version')
+    })
+    it('adds nothing for a version inside the grace band', async () => {
+        const table = await renderWith(['8.2', '8.0'], [successfulHelpBuild])
+        expect(table).toContain(`<td align='center'>8.0</td>`)
+        expect(table).not.toContain(':information_source:')
+        expect(table).not.toContain('<details>')
     })
 })
 

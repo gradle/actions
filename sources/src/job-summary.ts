@@ -6,9 +6,7 @@ import {CacheReport} from './cache-service'
 import {ProviderNote, renderCachingReport} from './caching-report'
 import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
-import {SupportStatusKind, supportStatusOf} from './gradle-support-status'
-
-const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
+import {renderSupportStatus, supportSignOf} from './gradle-support-status'
 
 export async function generateJobSummary(
     buildResults: BuildResult[],
@@ -100,7 +98,7 @@ Note that this permission is never available for a workflow triggered from a rep
 }
 
 export function renderSummaryTable(results: BuildResult[]): string {
-    return `${renderDeprecations()}\n${renderBuildResults(results)}\n${renderOutdatedVersions(results)}`
+    return `${renderDeprecations()}\n${renderBuildResults(results)}\n${renderSupportStatus(results.map(result => result.gradleVersion))}`
 }
 
 function renderActionHeading(): string {
@@ -169,41 +167,8 @@ function renderBuildResultRow(result: BuildResult): string {
 }
 
 function renderGradleVersion(gradleVersion: string): string {
-    const support = supportStatusOf(gradleVersion)
-    switch (support.kind) {
-        case SupportStatusKind.Eol:
-            return `${gradleVersion} <span title="End-of-life: no longer receives bug fixes or security fixes">:warning:</span>`
-        case SupportStatusKind.Maintenance:
-            return `${gradleVersion} <span title="Maintenance only: receives critical bug fixes and security fixes only">:information_source:</span>`
-        case SupportStatusKind.PatchAvailable:
-            return `${gradleVersion} <span title="Patch update available: Gradle ${support.newerPatch}">:information_source:</span>`
-        default:
-            return gradleVersion
-    }
-}
-
-function renderOutdatedVersions(results: BuildResult[]): string {
-    const hasOutdatedVersion = results
-        .map(result => supportStatusOf(result.gradleVersion))
-        .some(support => support.kind === SupportStatusKind.Eol || support.kind === SupportStatusKind.Maintenance)
-    if (!hasOutdatedVersion) {
-        return ''
-    }
-
-    return `
-<h4>:warning: This Job uses an outdated Gradle version</h4>
-<details>
-    <summary>Gradle release end-of-life policy</summary>
-    <p>For major versions, Gradle will backport critical fixes and security fixes to the last minor in the
-    previous major version. As such, each major Gradle release causes:</p>
-    <ul>
-        <li>The previous major version becomes maintenance only. It will only receive critical bug fixes
-        and security fixes.</li>
-        <li>The major version before the previous one to become end-of-life (EOL), and that release line
-        will not receive any new fixes.</li>
-    </ul>
-    <a href="${FEATURE_LIFECYCLE_DOC}" target="_blank">Gradle feature lifecycle</a>
-</details>`
+    const sign = supportSignOf(gradleVersion)
+    return sign ? `${gradleVersion} ${sign}` : gradleVersion
 }
 
 function renderOutcome(result: BuildResult): string {
