@@ -6,36 +6,27 @@ import wrapperChecksums from './wrapper-validation/wrapper-checksums.json'
 /** Minor lines behind the latest that stay unreported on the current major. */
 const MINOR_GRACE = 2
 
-const SECURITY_SUBSCRIPTION =
-    'https://fantastic-bassoon-z4jm99l.pages.github.io/dotorg-site/pull/1172/security-subscription/'
+const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/'
 const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
 
 export enum SupportStatusKind {
     Current = 'current',
     Behind = 'behind',
-    Maintenance = 'maintenance',
-    Unpatched = 'unpatched',
-    Unmaintained = 'unmaintained',
     Eol = 'eol'
 }
 
 const SIGN: Record<SupportStatusKind, string> = {
     [SupportStatusKind.Current]: '',
     [SupportStatusKind.Behind]: ':information_source:',
-    [SupportStatusKind.Maintenance]: ':information_source:',
-    [SupportStatusKind.Unpatched]: ':warning:',
-    [SupportStatusKind.Unmaintained]: ':warning:',
-    [SupportStatusKind.Eol]: ':octagonal_sign:'
+    [SupportStatusKind.Eol]: ':warning:'
 }
 
-const WARN_KINDS = [SupportStatusKind.Unmaintained, SupportStatusKind.Unpatched]
-const INFO_KINDS = [SupportStatusKind.Maintenance, SupportStatusKind.Behind]
+const UPGRADE_LEGEND = `<p>${SIGN[SupportStatusKind.Behind]} Consider upgrading — See <a href="${FEATURE_LIFECYCLE_DOC}">Gradle release lifecycle</a></p>`
 
 class ReleaseIndex {
     readonly latestMajor: number
     private readonly latest: GradleVersion | undefined
     private readonly latestByMajor = new Map<number, GradleVersion>()
-    private readonly latestByLine = new Map<string, GradleVersion>()
 
     constructor(releasedVersions: string[]) {
         const finals = releasedVersions
@@ -46,18 +37,9 @@ class ReleaseIndex {
         // Ascending, so the last write per key wins.
         for (const version of finals) {
             this.latestByMajor.set(version.major, version)
-            this.latestByLine.set(version.line, version)
         }
         this.latest = finals[finals.length - 1]
         this.latestMajor = this.latest?.major ?? 0
-    }
-
-    get knownLatest(): string | undefined {
-        return this.latest?.version
-    }
-
-    latestOfMajor(major: number): string | undefined {
-        return this.latestByMajor.get(major)?.version
     }
 
     private latestMinorOf(major: number): number {
@@ -74,13 +56,7 @@ class ReleaseIndex {
             return SupportStatusKind.Eol
         }
         if (majorsBehind === 1) {
-            if (version.minor !== this.latestMinorOf(version.major)) {
-                return SupportStatusKind.Unmaintained
-            }
-            const lineLatest = this.latestByLine.get(version.line)
-            return lineLatest !== undefined && lineLatest.patch > version.patch
-                ? SupportStatusKind.Unpatched
-                : SupportStatusKind.Maintenance
+            return SupportStatusKind.Behind
         }
         if (version.major !== this.latestMajor) {
             return SupportStatusKind.Current // newer than the bundled data knows about
@@ -110,95 +86,37 @@ function classified(gradleVersions: string[], releases: ReleaseIndex): Map<Suppo
     return byKind
 }
 
-function list(versions: GradleVersion[]): string {
-    return versions.map(version => version.version).join(', ')
-}
-
-function eolFold(version: GradleVersion, knownLatest: string): string {
+function eolFold(version: GradleVersion): string {
     return `
 <details>
     <summary>${SIGN[SupportStatusKind.Eol]} Gradle ${version.version} is end-of-life</summary>
-    <p>The ${version.major}.x release line receives no new fixes of any kind. Update to at least Gradle <strong>${knownLatest}</strong>.</p>
-    <p>Options for staying secure on an end-of-life version: <a href="${SECURITY_SUBSCRIPTION}">Gradle security subscription</a></p>
+    <p>The ${version.major}.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
+    <p>Options for staying secure on an end-of-life version: <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a></p>
 </details>`
 }
 
-function labelLink(text: string): string {
-    return `<a href="${FEATURE_LIFECYCLE_DOC}">${text}</a>`
-}
-
-function warnEntry(
-    versions: GradleVersion[],
-    onlyKind: SupportStatusKind | undefined,
-    knownLatest: string,
-    lastMinorPatch: string
-): string {
-    // Grouped entries always read 'Unmaintained': the likelier case once versions collapse.
-    const label = labelLink(onlyKind === SupportStatusKind.Unpatched ? 'Unpatched' : 'Unmaintained')
-    return `<p>${SIGN[SupportStatusKind.Unmaintained]} <strong>${list(versions)}</strong> ${label} — update Gradle to at least <strong>${knownLatest}</strong>, or at least <strong>${lastMinorPatch}</strong></p>`
-}
-
-function infoEntry(versions: GradleVersion[], onlyKind: SupportStatusKind | undefined, knownLatest: string): string {
-    const sign = SIGN[SupportStatusKind.Behind]
-    if (onlyKind === SupportStatusKind.Maintenance) {
-        return `<p>${sign} <strong>${list(versions)}</strong> ${labelLink('Maintenance only')} — Update Gradle to at least <strong>${knownLatest}</strong></p>`
-    }
-    return `<p>${sign} <strong>${list(versions)}</strong> ${labelLink('Out of date')} — update Gradle to at least <strong>${knownLatest}</strong></p>`
-}
-
-function collect(
-    byKind: Map<SupportStatusKind, GradleVersion[]>,
-    kinds: SupportStatusKind[]
-): {versions: GradleVersion[]; onlyKind: SupportStatusKind | undefined} {
-    const present = kinds.filter(kind => (byKind.get(kind) ?? []).length > 0)
-    const versions = present.flatMap(kind => byKind.get(kind) ?? []).sort(GradleVersion.compare)
-    return {versions, onlyKind: versions.length === 1 ? present[0] : undefined}
-}
-
 function render(gradleVersions: string[], releases: ReleaseIndex): string {
-    const knownLatest = releases.knownLatest
-    if (knownLatest === undefined) {
-        return ''
-    }
-
     const byKind = classified(gradleVersions, releases)
-    const blocks = (byKind.get(SupportStatusKind.Eol) ?? []).map(version => eolFold(version, knownLatest))
-
-    const warn = collect(byKind, WARN_KINDS)
-    if (warn.versions.length > 0) {
-        const major = warn.versions[0].major
-        blocks.push(warnEntry(warn.versions, warn.onlyKind, knownLatest, releases.latestOfMajor(major) ?? knownLatest))
+    const blocks = (byKind.get(SupportStatusKind.Eol) ?? []).map(version => eolFold(version))
+    if ([...byKind.keys()].some(kind => kind !== SupportStatusKind.Eol)) {
+        blocks.push(UPGRADE_LEGEND)
     }
-
-    const info = collect(byKind, INFO_KINDS)
-    if (info.versions.length > 0) {
-        blocks.push(infoEntry(info.versions, info.onlyKind, knownLatest))
-    }
-
     return blocks.length > 0 ? `${blocks.join('\n')}\n` : ''
 }
 
 function report(gradleVersions: string[], releases: ReleaseIndex): void {
-    const knownLatest = releases.knownLatest
-    if (knownLatest === undefined) {
-        return
-    }
-
     const byKind = classified(gradleVersions, releases)
     for (const version of byKind.get(SupportStatusKind.Eol) ?? []) {
         core.warning(
-            `Gradle ${version.version} is end-of-life: the ${version.major}.x release line receives no new fixes of any kind, including security fixes. Update to at least Gradle ${knownLatest}. See ${FEATURE_LIFECYCLE_DOC}`,
+            `Gradle ${version.version} is end-of-life: the ${version.major}.x release line receives no new fixes of any kind, including security fixes. Update to the latest Gradle version. Options for staying secure on an end-of-life version: ${SECURITY_SUBSCRIPTION}`,
             {title: 'Gradle version at end-of-life'}
         )
     }
-    for (const kind of WARN_KINDS) {
-        for (const version of byKind.get(kind) ?? []) {
-            const lastMinorPatch = releases.latestOfMajor(version.major) ?? knownLatest
-            core.warning(
-                `Gradle ${version.version} is not the maintained ${version.major}.x line and receives no fixes. Update to at least Gradle ${knownLatest}, or at least ${lastMinorPatch} to stay on ${version.major}.x. See ${FEATURE_LIFECYCLE_DOC}`,
-                {title: 'Gradle version missing fixes'}
-            )
-        }
+    for (const version of byKind.get(SupportStatusKind.Behind) ?? []) {
+        core.notice(
+            `Gradle ${version.version} is out of date: consider updating to the latest Gradle version. See ${FEATURE_LIFECYCLE_DOC}`,
+            {title: 'Gradle version out of date'}
+        )
     }
 }
 

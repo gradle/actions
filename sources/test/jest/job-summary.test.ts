@@ -203,7 +203,7 @@ describe('renderSummaryTable', () => {
 })
 
 describe('Gradle version support status', () => {
-    it('signs an end-of-life version and folds the detail below the table', async () => {
+    it('warns on an end-of-life version and folds the detail below the table', async () => {
         const table = await renderWith(['10.0.0', '8.0'], [successfulHelpBuild])
         expect(table.trim()).toBe(dedent`
             <table>
@@ -217,38 +217,32 @@ describe('Gradle version support status', () => {
                 <tr>
                     <td>root</td>
                     <td>help</td>
-                    <td align='center'>8.0 :octagonal_sign:</td>
+                    <td align='center'>8.0 :warning:</td>
                     <td align='center'>:white_check_mark:</td>
                     <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                 </tr>
             </table>
 
             <details>
-                <summary>:octagonal_sign: Gradle 8.0 is end-of-life</summary>
-                <p>The 8.x release line receives no new fixes of any kind. Update to at least Gradle <strong>10.0.0</strong>.</p>
-                <p>Options for staying secure on an end-of-life version: <a href="https://fantastic-bassoon-z4jm99l.pages.github.io/dotorg-site/pull/1172/security-subscription/">Gradle security subscription</a></p>
+                <summary>:warning: Gradle 8.0 is end-of-life</summary>
+                <p>The 8.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
+                <p>Options for staying secure on an end-of-life version: <a href="https://gradle.org/security-subscription/">Gradle Security Subscription</a></p>
             </details>
         `);
     })
-    it('signs an unmaintained version with a warning', async () => {
+    it('signs a still-supported but outdated version with the info sign and one legend', async () => {
         const table = await renderWith(['9.0.0', '8.1', '8.0'], [successfulHelpBuild])
-        expect(table).toContain(`<td align='center'>8.0 :warning:</td>`)
-        expect(table).toContain(
-            `:warning: <strong>8.0</strong> <a href="${DOC}">Unmaintained</a> — update Gradle to at least <strong>9.0.0</strong>, or at least <strong>8.1</strong>`
-        )
-    })
-    it('signs a version behind the latest with an info sign', async () => {
-        const table = await renderWith(['8.4', '8.0'], [successfulHelpBuild])
         expect(table).toContain(`<td align='center'>8.0 :information_source:</td>`)
         expect(table).toContain(
-            `:information_source: <strong>8.0</strong> <a href="${DOC}">Out of date</a> — update Gradle to at least <strong>8.4</strong>`
+            `<p>:information_source: Consider upgrading — See <a href="${DOC}">Gradle release lifecycle</a></p>`
         )
+        expect(table).not.toContain('<details>')
     })
     it('adds nothing for a version inside the grace band', async () => {
         const table = await renderWith(['8.2', '8.0'], [successfulHelpBuild])
         expect(table).toContain(`<td align='center'>8.0</td>`)
         expect(table).not.toContain(':information_source:')
-        expect(table).not.toContain('<details>')
+        expect(table).not.toContain('Consider upgrading')
     })
 })
 

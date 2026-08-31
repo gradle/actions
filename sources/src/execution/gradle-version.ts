@@ -24,11 +24,6 @@ export class GradleVersion {
         this.patch = parts.length > 2 ? Number(parts[2]) : 0
     }
 
-    /** The `major.minor` release line this version belongs to. */
-    get line(): string {
-        return `${this.major}.${this.minor}`
-    }
-
     isFinalRelease(): boolean {
         return !this.stagePart && !this.snapshotPart
     }

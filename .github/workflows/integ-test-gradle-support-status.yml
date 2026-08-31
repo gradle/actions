@@ -21,10 +21,8 @@ jobs:
   report-outdated-versions:
     runs-on: ubuntu-latest
     outputs:
-      known-latest: ${{ steps.versions.outputs.known-latest }}
-      unmaintained: ${{ steps.versions.outputs.unmaintained }}
-      unpatched: ${{ steps.versions.outputs.unpatched }}
-      maintenance: ${{ steps.versions.outputs.maintenance }}
+      prev-oldest: ${{ steps.versions.outputs.prev-oldest }}
+      prev-newest: ${{ steps.versions.outputs.prev-newest }}
     steps:
     - name: Checkout sources
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -46,21 +44,17 @@ jobs:
           | [$finals[] | select(.k[0] == $latest.k[0] - 1)] as $prev
           | [$prev[] | select(.k[1] == ($prev | last | .k[1]))] as $line
           | "KNOWN_LATEST=\($latest.v)",
-            "UNMAINTAINED=\($prev | first | .v)",
-            "MAINTENANCE=\($line | last | .v)",
-            "UNPATCHED=\(if ($line | length) > 1 then ($line | first | .v) else "" end)"
+            "PREV_OLDEST=\($prev | first | .v)",
+            "PREV_NEWEST=\($line | last | .v)"
         ' sources/src/wrapper-validation/wrapper-checksums.json)"
 
         echo "Known latest : ${KNOWN_LATEST}"
-        echo "Unmaintained : ${UNMAINTAINED}"
-        echo "Unpatched    : ${UNPATCHED:-(none: the maintained line has a single release)}"
-        echo "Maintenance  : ${MAINTENANCE}"
+        echo "Previous major, oldest : ${PREV_OLDEST}"
+        echo "Previous major, newest : ${PREV_NEWEST}"
 
         {
-          echo "known-latest=${KNOWN_LATEST}"
-          echo "unmaintained=${UNMAINTAINED}"
-          echo "unpatched=${UNPATCHED}"
-          echo "maintenance=${MAINTENANCE}"
+          echo "prev-oldest=${PREV_OLDEST}"
+          echo "prev-newest=${PREV_NEWEST}"
         } >> "$GITHUB_OUTPUT"
 
     - name: Setup Gradle with an end-of-life version
@@ -72,31 +66,21 @@ jobs:
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help "-DgradleVersionCheck=7.6.4"
 
-    - name: Setup Gradle with an unmaintained version
+    - name: Setup Gradle with the oldest release of the previous major
       uses: ./setup-gradle
       with:
-        gradle-version: ${{ steps.versions.outputs.unmaintained }}
-    - name: Build with the unmaintained version
+        gradle-version: ${{ steps.versions.outputs.prev-oldest }}
+    - name: Build with the oldest release of the previous major
       working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help "-DgradleVersionCheck=${{ steps.versions.outputs.unmaintained }}"
+      run: gradle help "-DgradleVersionCheck=${{ steps.versions.outputs.prev-oldest }}"
 
-    - name: Setup Gradle with an unpatched version
-      if: ${{ steps.versions.outputs.unpatched != '' }}
+    - name: Setup Gradle with the newest release of the previous major
       uses: ./setup-gradle
       with:
-        gradle-version: ${{ steps.versions.outputs.unpatched }}
-    - name: Build with the unpatched version
-      if: ${{ steps.versions.outputs.unpatched != '' }}
+        gradle-version: ${{ steps.versions.outputs.prev-newest }}
+    - name: Build with the newest release of the previous major
       working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help "-DgradleVersionCheck=${{ steps.versions.outputs.unpatched }}"
-
-    - name: Setup Gradle with the maintained version
-      uses: ./setup-gradle
-      with:
-        gradle-version: ${{ steps.versions.outputs.maintenance }}
-    - name: Build with the maintained version
-      working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help "-DgradleVersionCheck=${{ steps.versions.outputs.maintenance }}"
+      run: gradle help "-DgradleVersionCheck=${{ steps.versions.outputs.prev-newest }}"
 
   verify-report:
     needs: report-outdated-versions
@@ -108,10 +92,8 @@ jobs:
     - name: Check the support-status report was emitted
       env:
         GH_TOKEN: ${{ github.token }}
-        KNOWN_LATEST: ${{ needs.report-outdated-versions.outputs.known-latest }}
-        UNMAINTAINED: ${{ needs.report-outdated-versions.outputs.unmaintained }}
-        UNPATCHED: ${{ needs.report-outdated-versions.outputs.unpatched }}
-        MAINTENANCE: ${{ needs.report-outdated-versions.outputs.maintenance }}
+        PREV_OLDEST: ${{ needs.report-outdated-versions.outputs.prev-oldest }}
+        PREV_NEWEST: ${{ needs.report-outdated-versions.outputs.prev-newest }}
       run: |
         set -euo pipefail
 
@@ -128,7 +110,7 @@ jobs:
           if ! grep -qF -- "$1" job.log; then
             echo "Expected the Job log to contain: $1"
             echo "--- support-status output found instead ---"
-            grep -E '##\[warning\]|:octagonal_sign:|<p>:warning:|<p>:information_source:' job.log || echo "(none)"
+            grep -E '##\[(warning|notice)\]|<summary>:warning:|Consider upgrading' job.log || echo "(none)"
             exit 1
           fi
         }
@@ -139,20 +121,34 @@ jobs:
           fi
         }
 
-        # The runner renders '::warning::' into the log as '##[warning]'.
+        # The runner renders '::warning::'/'::notice::' into the log as '##[warning]'/'##[notice]'.
         assert_logged "##[warning]Gradle 7.6.4 is end-of-life"
+        assert_logged "##[notice]Gradle ${PREV_OLDEST} is out of date: consider updating to the latest Gradle version."
+        assert_logged "##[notice]Gradle ${PREV_NEWEST} is out of date: consider updating to the latest Gradle version."
+
+        # Out-of-date versions get a notice, never a warning.
+        refute_logged "##[warning]Gradle ${PREV_OLDEST}"
+        refute_logged "##[warning]Gradle ${PREV_NEWEST}"
 
         # The job summary is echoed to the log, so the rendered report can be checked directly.
-        assert_logged ":octagonal_sign: Gradle 7.6.4 is end-of-life</summary>"
-        assert_logged "Gradle security subscription</a>"
+        assert_logged "<summary>:warning: Gradle 7.6.4 is end-of-life</summary>"
+        assert_logged "Update to the latest Gradle version."
+        assert_logged "<a href=\"https://gradle.org/security-subscription/\">Gradle Security Subscription</a>"
 
-        if [ -n "${UNPATCHED}" ]; then
-          warned="${UNMAINTAINED}, ${UNPATCHED}"
-        else
-          warned="${UNMAINTAINED}"
+        # Table signs: a warning for end-of-life, the info sign for everything still supported.
+        assert_logged "<td align='center'>7.6.4 :warning:</td>"
+        assert_logged "<td align='center'>${PREV_OLDEST} :information_source:</td>"
+        assert_logged "<td align='center'>${PREV_NEWEST} :information_source:</td>"
+
+        # One legend for the whole job, no matter how many versions carry the info sign.
+        legends=$(grep -cF -- "Consider upgrading" job.log || true)
+        if [ "$legends" != "1" ]; then
+          echo "Expected exactly one upgrade legend, found ${legends}"
+          exit 1
         fi
-        assert_logged ":warning: <strong>${warned}</strong> Unmaintained — update Gradle to at least <strong>${KNOWN_LATEST}</strong>"
-        assert_logged ":information_source: <strong>${MAINTENANCE}</strong> — Maintenance only. Update Gradle to at least <strong>${KNOWN_LATEST}</strong>"
+        assert_logged "<p>:information_source: Consider upgrading — See <a href=\"https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support\">Gradle release lifecycle</a></p>"
 
-        # The maintained line is current, so it must not be warned about.
-        refute_logged "<strong>${MAINTENANCE}</strong> Unmaintained"
+        # The per-version wording of the earlier scheme must be gone.
+        # Matched against markup, not bare words: this Job's own log echoes the chosen versions.
+        refute_logged "</strong> Unmaintained"
+        refute_logged "Maintenance only"
