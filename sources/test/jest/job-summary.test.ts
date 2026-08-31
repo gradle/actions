@@ -226,9 +226,9 @@ describe('Gradle version support status', () => {
             <details>
                 <summary>:warning: Gradle 8.0 is end-of-life</summary>
                 <p>The 8.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
-                <p>Options for staying secure on an end-of-life version: <a href="https://gradle.org/security-subscription/">Gradle Security Subscription</a></p>
+                <p>Options for staying secure on an end-of-life version: <a href="https://gradle.org/security-subscription/?utm_source=github-action">Gradle Security Subscription</a></p>
             </details>
-        `);
+        `)
     })
     it('signs a still-supported but outdated version with the info sign and one legend', async () => {
         const table = await renderWith(['9.0.0', '8.1', '8.0'], [successfulHelpBuild])

@@ -99,7 +99,9 @@ describe('renderSupportStatus', () => {
         expect(rendered).toContain(
             'The 7.x release line receives no new fixes of any kind. Update to the latest Gradle version.'
         )
-        expect(rendered).toContain('<a href="https://gradle.org/security-subscription/">Gradle Security Subscription</a>')
+        expect(rendered).toContain(
+            '<a href="https://gradle.org/security-subscription/?utm_source=github-action">Gradle Security Subscription</a>'
+        )
         expect(rendered).not.toContain(LEGEND)
     })
 

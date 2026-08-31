@@ -6,7 +6,7 @@ import wrapperChecksums from './wrapper-validation/wrapper-checksums.json'
 /** Minor lines behind the latest that stay unreported on the current major. */
 const MINOR_GRACE = 2
 
-const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/'
+const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/?utm_source=github-action'
 const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
 
 export enum SupportStatusKind {
