@@ -19,6 +19,53 @@ describe('short lived tokens', () => {
         expect(develocityAccessCredentials).toBeNull()
     })
 
+    it('parse access key with an OIDC token value should return an object', async () => {
+        const oidcToken = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJyZXBvOmZvby9iYXI_-x=.c2lnbmF0dXJl=='
+        let develocityAccessCredentials = DevelocityAccessCredentials.parse(`some-host.local=${oidcToken}`);
+
+        expect(develocityAccessCredentials).toStrictEqual(DevelocityAccessCredentials.of([
+            {hostname: 'some-host.local', key: oidcToken}])
+        )
+    })
+
+    it('parse access key splits each entry on the first separator only', async () => {
+        let develocityAccessCredentials = DevelocityAccessCredentials.parse('host1=a=b==;host2=c=d');
+
+        expect(develocityAccessCredentials).toStrictEqual(DevelocityAccessCredentials.of([
+            {hostname: 'host1', key: 'a=b=='},
+            {hostname: 'host2', key: 'c=d'}])
+        )
+    })
+
+    it('parse access key tolerates surrounding whitespace', async () => {
+        let develocityAccessCredentials = DevelocityAccessCredentials.parse(' host1=key1\n');
+
+        expect(develocityAccessCredentials).toStrictEqual(DevelocityAccessCredentials.of([
+            {hostname: 'host1', key: 'key1'}])
+        )
+    })
+
+    it.each([
+        ['no separator', 'host1'],
+        ['a trailing separator', 'host1=key1;'],
+        ['a leading separator', ';host1=key1'],
+        ['an empty hostname', '=key1'],
+        ['an empty key', 'host1='],
+        ['whitespace in the hostname', 'ho st1=key1'],
+        ['whitespace in the key', 'host1=ke y1'],
+        ['whitespace around a separator', 'host1=key1; host2=key2'],
+        ['one invalid entry', 'host1=key1;random'],
+    ])('parse access key with %s should return null', async (_description, rawKey) => {
+        expect(DevelocityAccessCredentials.parse(rawKey)).toBeNull()
+    })
+
+    it('access key with an OIDC token value as raw string', async () => {
+        const rawKey = 'host1=eyJhbGciOiJSUzI1NiJ9.payload.signature==;host2=key2'
+        let develocityAccessCredentials = DevelocityAccessCredentials.parse(rawKey);
+
+        expect(develocityAccessCredentials?.raw()).toBe(rawKey)
+    })
+
     it('parse empty access key should return null', async () => {
         let develocityAccessCredentials = DevelocityAccessCredentials.parse('');
 
