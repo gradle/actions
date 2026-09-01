@@ -1,7 +1,64 @@
 import nock from "nock";
-import {describe, expect, it} from '@jest/globals'
+import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals'
 
 import {DevelocityAccessCredentials, getToken, resolveTokenForServer} from "../../src/develocity/short-lived-token";
+
+describe('access key format warnings', () => {
+    // `core.warning` is an ESM export and cannot be spied on, so capture the workflow command it
+    // writes to stdout instead.
+    let stdout: jest.SpiedFunction<typeof process.stdout.write>
+
+    const warnings = (): string[] =>
+        stdout.mock.calls
+            .map(call => String(call[0]))
+            .filter(line => line.startsWith('::warning::'))
+            .map(line => line.substring('::warning::'.length).trim())
+
+    beforeEach(() => {
+        stdout = jest.spyOn(process.stdout, 'write').mockImplementation(() => true)
+    })
+
+    afterEach(() => {
+        stdout.mockRestore()
+    })
+
+    it.each([
+        ['no separator', 'host1', "no '=' separator in the value"],
+        ['a trailing separator', 'host1=key1;', "no '=' separator in entry 2 of 2"],
+        ['a leading separator', ';host1=key1', "no '=' separator in entry 1 of 2"],
+        ['an empty hostname', '=key1', 'empty server name in the value'],
+        ['an empty key', 'host1=', 'empty key in the value'],
+        ['whitespace in the hostname', 'ho st1=key1', 'whitespace in the server name in the value'],
+        ['whitespace in the key', 'host1=ke y1', 'whitespace in the key in the value'],
+        ['whitespace around a separator', 'host1=key1; host2=key2', 'whitespace in the server name in entry 2 of 2'],
+    ])('warns about %s', (_description, rawKey, expectedReason) => {
+        expect(DevelocityAccessCredentials.parse(rawKey)).toBeNull()
+
+        expect(warnings()).toEqual([
+            `Ignoring badly formed Develocity access key: ${expectedReason}. The expected format is 'server=key[;server=key]*'.`
+        ])
+    })
+
+    it('never includes any part of the access key value in the warning', () => {
+        expect(DevelocityAccessCredentials.parse('my-host=my sec ret')).toBeNull()
+
+        const message = warnings()[0]
+        expect(message).not.toContain('my-host')
+        expect(message).not.toContain('sec')
+    })
+
+    it('does not warn for a valid access key', () => {
+        expect(DevelocityAccessCredentials.parse('host1=key1;host2=key2')).not.toBeNull()
+
+        expect(warnings()).toEqual([])
+    })
+
+    it('does not warn for an empty access key', () => {
+        expect(DevelocityAccessCredentials.parse('  ')).toBeNull()
+
+        expect(warnings()).toEqual([])
+    })
+})
 
 describe('short lived tokens', () => {
     it('parse valid access key should return an object', async () => {

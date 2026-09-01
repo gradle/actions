@@ -168,7 +168,9 @@ export class DevelocityAccessCredentials {
      * each entry is a hostname followed by `=` and a key, where the hostname contains no `=`, `;` or
      * whitespace, and the key is non-empty and contains no `;` or whitespace. Nothing else is
      * assumed about the key: it may be an OIDC token containing `.`, `-`, `_` and `=` padding, so
-     * each entry is split on its _first_ `=` only. Returns `null` if the value doesn't match.
+     * each entry is split on its _first_ `=` only.
+     *
+     * Returns `null` if the value doesn't match, emitting a warning that describes what is wrong.
      */
     static parse(rawKey: string): DevelocityAccessCredentials | null {
         const trimmedKey = rawKey.trim()
@@ -176,20 +178,44 @@ export class DevelocityAccessCredentials {
             return null
         }
         const keys = new Array<HostnameAccessKey>()
-        for (const entry of trimmedKey.split(this.keyDelimiter)) {
+        const entries = trimmedKey.split(this.keyDelimiter)
+        for (const [index, entry] of entries.entries()) {
             const separatorIndex = entry.indexOf(this.hostDelimiter)
-            if (separatorIndex < 1) {
-                // No `=` separator, or an empty hostname
-                return null
+            if (separatorIndex === -1) {
+                return this.warnBadlyFormed(index, entries.length, `no '${this.hostDelimiter}' separator`)
             }
             const hostname = entry.substring(0, separatorIndex)
             const key = entry.substring(separatorIndex + 1)
-            if (!key || this.whitespace.test(hostname) || this.whitespace.test(key)) {
-                return null
+            if (!hostname) {
+                return this.warnBadlyFormed(index, entries.length, 'empty server name')
+            }
+            if (!key) {
+                return this.warnBadlyFormed(index, entries.length, 'empty key')
+            }
+            if (this.whitespace.test(hostname)) {
+                return this.warnBadlyFormed(index, entries.length, 'whitespace in the server name')
+            }
+            if (this.whitespace.test(key)) {
+                return this.warnBadlyFormed(index, entries.length, 'whitespace in the key')
             }
             keys.push({hostname, key})
         }
         return new DevelocityAccessCredentials(keys)
+    }
+
+    /**
+     * Warn that an access key value is badly formed and cannot be parsed. Reports only the position
+     * of the offending entry and the reason: the value is a secret, and is not yet registered for
+     * masking at this point, so no part of it is ever included in the message.
+     */
+    private static warnBadlyFormed(index: number, entryCount: number, reason: string): null {
+        const location = entryCount > 1 ? `entry ${index + 1} of ${entryCount}` : 'the value'
+        core.warning(
+            `Ignoring badly formed Develocity access key: ${reason} in ${location}. ` +
+                `The expected format is 'server${this.hostDelimiter}key` +
+                `[${this.keyDelimiter}server${this.hostDelimiter}key]*'.`
+        )
+        return null
     }
 
     isEmpty(): boolean {
