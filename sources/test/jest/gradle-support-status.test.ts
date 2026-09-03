@@ -50,9 +50,9 @@ describe('classification', () => {
         }
     )
 
-    it.each(['8.15', '8.15.1'])('treats %s as behind, not as something worse', version => {
-        // Gradle has shipped a minor of the previous major after the new major: 7.0 (Apr 2021), then 6.9
-        // (May 2021) and 6.9.1-6.9.4. Such a version is newer than the release data knows about.
+    it.each(['8.15', '8.15.1'])('treats %s, a previous-major minor newer than the release data, as behind', version => {
+        // Gradle sometimes ships a minor of the previous major after a new major (e.g. 7.0 in Apr 2021,
+        // then 6.9 in May 2021 with 6.9.1-6.9.4). Being on the previous major, it is still simply behind.
         expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Behind)
     })
 
@@ -64,7 +64,7 @@ describe('classification', () => {
         expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Behind)
     })
 
-    it.each(['9.5.0', '9.5.1', '9.6.1', '9.7.1'])('says nothing about %s, inside the grace band', version => {
+    it.each(['9.5.0', '9.5.1', '9.6.1', '9.7.1'])('treats %s as current, inside the grace band', version => {
         expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Current)
     })
 
@@ -73,13 +73,16 @@ describe('classification', () => {
         expect(supportStatusUsing('9.7.0', RELEASED)).toBe(SupportStatusKind.Current)
     })
 
-    it.each(['10.0', '10.4.2'])('says nothing about %s, newer than the release data', version => {
+    it.each(['10.0', '10.4.2'])('treats %s as current, newer than the release data', version => {
         expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Current)
     })
 
-    it.each(['9.8.0-rc-1', '7.0-milestone-1', '9.8-20260101120000+0000'])('says nothing about %s', version => {
-        expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Current)
-    })
+    it.each(['9.8.0-rc-1', '7.0-milestone-1', '9.8-20260101120000+0000'])(
+        'treats non-final version %s as current',
+        version => {
+            expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Current)
+        }
+    )
 
     it('does not throw on an unparseable version', () => {
         expect(supportStatusUsing('', RELEASED)).toBe(SupportStatusKind.Current)
@@ -103,6 +106,7 @@ describe('reportSupportStatus', () => {
         reportSupportStatusUsing(['7.6.4'], RELEASED)
 
         expect(mockWarning).toHaveBeenCalledTimes(1)
+        expect(mockNotice).not.toHaveBeenCalled()
         const [message, properties] = mockWarning.mock.calls[0]
         expect(message).toContain('Gradle 7.6.4 is end-of-life')
         expect(message).toContain('Update to the latest Gradle version.')
