@@ -17,8 +17,7 @@ export enum SupportStatusKind {
 
 class ReleaseIndex {
     readonly latestMajor: number
-    private readonly latest: GradleVersion | undefined
-    private readonly latestByMajor = new Map<number, GradleVersion>()
+    private readonly latestMinor: number
 
     constructor(releasedVersions: string[]) {
         const finals = releasedVersions
@@ -26,20 +25,20 @@ class ReleaseIndex {
             .filter((version): version is GradleVersion => version !== undefined && version.isFinalRelease())
             .sort(GradleVersion.compare)
 
-        // Ascending, so the last write per key wins.
-        for (const version of finals) {
-            this.latestByMajor.set(version.major, version)
+        // The release data must contain a final release. If it does not, the data is broken; fail loudly
+        // rather than silently classifying every version as current.
+        if (finals.length === 0) {
+            throw new Error('The Gradle release data contains no final release')
         }
-        this.latest = finals[finals.length - 1]
-        this.latestMajor = this.latest?.major ?? 0
-    }
 
-    private latestMinorOf(major: number): number {
-        return this.latestByMajor.get(major)?.minor ?? -1
+        // Sorted ascending, so the last entry is the latest final release.
+        const latest = finals[finals.length - 1]
+        this.latestMajor = latest.major
+        this.latestMinor = latest.minor
     }
 
     classify(version: GradleVersion): SupportStatusKind {
-        if (this.latest === undefined || !version.isFinalRelease()) {
+        if (!version.isFinalRelease()) {
             return SupportStatusKind.Current
         }
 
@@ -50,12 +49,11 @@ class ReleaseIndex {
         if (majorsBehind === 1) {
             return SupportStatusKind.Behind
         }
-        if (version.major !== this.latestMajor) {
+        if (version.major > this.latestMajor) {
             return SupportStatusKind.Current // newer than the bundled data knows about
         }
-        return this.latestMinorOf(version.major) - version.minor > MINOR_GRACE
-            ? SupportStatusKind.Behind
-            : SupportStatusKind.Current
+        // Same major as the latest release: only minor distance matters, patch drift inside the grace band is silent.
+        return this.latestMinor - version.minor > MINOR_GRACE ? SupportStatusKind.Behind : SupportStatusKind.Current
     }
 }
 

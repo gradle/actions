@@ -1,5 +1,7 @@
 import {beforeEach, describe, expect, it, jest} from '@jest/globals'
 
+import wrapperChecksums from '../../src/wrapper-validation/wrapper-checksums.json'
+
 const mockWarning = jest.fn<(message: string, properties?: {title?: string}) => void>()
 const mockNotice = jest.fn<(message: string, properties?: {title?: string}) => void>()
 jest.unstable_mockModule('@actions/core', () => ({
@@ -79,13 +81,16 @@ describe('classification', () => {
         expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Current)
     })
 
-    it('says nothing when the release data holds no final release', () => {
-        expect(supportStatusUsing('1.0', ['9.0.0-rc-1', '10.0.0-SNAPSHOT'])).toBe(SupportStatusKind.Current)
-    })
-
     it('does not throw on an unparseable version', () => {
         expect(supportStatusUsing('', RELEASED)).toBe(SupportStatusKind.Current)
         expect(supportStatusUsing('unknown', RELEASED)).toBe(SupportStatusKind.Current)
+    })
+})
+
+describe('bundled release data', () => {
+    it('contains a final release, so the release index builds instead of failing', () => {
+        const released = wrapperChecksums.map(entry => entry.version)
+        expect(() => supportStatusUsing('1.0', released)).not.toThrow()
     })
 })
 
