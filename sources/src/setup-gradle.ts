@@ -19,6 +19,7 @@ import {
 } from './configuration'
 import * as wrapperValidator from './wrapper-validation/wrapper-validator'
 import {initializeGradleUserHome} from './gradle-user-home'
+import {reportSupportStatus} from './gradle-support-status'
 
 const GRADLE_SETUP_VAR = 'GRADLE_BUILD_ACTION_SETUP_COMPLETED'
 const GRADLE_USER_HOME = 'GRADLE_USER_HOME'
@@ -88,6 +89,8 @@ export async function complete(
     await jobSummary.generateJobSummary(buildResults, cacheReport, getProviderNote(cacheConfig), summaryConfig)
 
     markBuildResultsProcessed()
+
+    reportSupportStatus(buildResults.map(result => result.gradleVersion))
 
     core.info('Completed post-action step')
 

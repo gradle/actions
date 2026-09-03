@@ -36,6 +36,7 @@ jobs:
   other-integ-tests:
     permissions:
       contents: write
+      actions: read
     needs: caching-integ-tests
     uses: ./.github/workflows/suite-integ-test-other.yml
     concurrency:
