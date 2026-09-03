@@ -8,10 +8,10 @@ jest.unstable_mockModule('@actions/core', () => ({
 }))
 
 const DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
+const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/?utm_source=github-action'
 
-const {SupportStatusKind, renderSupportStatusUsing, reportSupportStatusUsing, supportStatusUsing} = await import(
-    '../../src/gradle-support-status'
-)
+const {SupportStatusKind, reportSupportStatusUsing, supportStatusUsing} =
+    await import('../../src/gradle-support-status')
 
 // Mirrors the real release shape: latest 9.7.1, last 8.x minor is 8.14 with patches up to 8.14.5.
 const RELEASED = [
@@ -89,59 +89,6 @@ describe('classification', () => {
     })
 })
 
-describe('renderSupportStatus', () => {
-    const LEGEND = `<p>:information_source: Consider upgrading — See <a href="${DOC}">Gradle release lifecycle</a></p>`
-
-    it('folds an end-of-life version under a warning sign, linking the security subscription', () => {
-        const rendered = renderSupportStatusUsing(['7.6.4'], RELEASED)
-
-        expect(rendered).toContain('<summary>:warning: Gradle 7.6.4 is end-of-life</summary>')
-        expect(rendered).toContain(
-            'The 7.x release line receives no new fixes of any kind. Update to the latest Gradle version.'
-        )
-        expect(rendered).toContain(
-            '<a href="https://gradle.org/security-subscription/?utm_source=github-action">Gradle Security Subscription</a>'
-        )
-        expect(rendered).not.toContain(LEGEND)
-    })
-
-    it('names no version in the fold beyond the one that is end-of-life', () => {
-        expect(renderSupportStatusUsing(['7.6.4'], RELEASED)).not.toContain('9.7.1')
-    })
-
-    it.each(['8.0', '8.14.3', '8.14.5', '9.2.1'])('adds only the legend for %s', version => {
-        expect(renderSupportStatusUsing([version], RELEASED).trim()).toBe(LEGEND)
-    })
-
-    it('adds the legend exactly once however many versions are flagged', () => {
-        const rendered = renderSupportStatusUsing(['9.2.1', '9.4.1', '8.14.5', '8.14.3', '8.3', '8.0'], RELEASED)
-
-        expect(rendered.trim()).toBe(LEGEND)
-    })
-
-    it('emits one fold per end-of-life version plus the single legend', () => {
-        const rendered = renderSupportStatusUsing(['9.6.1', '9.2.1', '8.14.5', '8.0', '7.6.4', '1.0'], RELEASED)
-
-        expect(rendered.match(/<details>/g)).toHaveLength(2)
-        expect(rendered.match(/Consider upgrading/g)).toHaveLength(1)
-    })
-
-    it('names no version outside the fold', () => {
-        const rendered = renderSupportStatusUsing(['8.0', '9.2.1'], RELEASED)
-
-        expect(rendered).not.toContain('8.0')
-        expect(rendered).not.toContain('9.2.1')
-    })
-
-    it('renders nothing when every version is inside the grace band', () => {
-        expect(renderSupportStatusUsing(['9.5.1', '9.6.1', '9.7.1'], RELEASED)).toBe('')
-    })
-
-    it('renders nothing when no Gradle build ran', () => {
-        expect(renderSupportStatusUsing([], RELEASED)).toBe('')
-    })
-})
-
 describe('reportSupportStatus', () => {
     beforeEach(() => {
         jest.clearAllMocks()
@@ -154,7 +101,7 @@ describe('reportSupportStatus', () => {
         const [message, properties] = mockWarning.mock.calls[0]
         expect(message).toContain('Gradle 7.6.4 is end-of-life')
         expect(message).toContain('Update to the latest Gradle version.')
-        expect(message).toContain('https://gradle.org/security-subscription/')
+        expect(message).toContain(SECURITY_SUBSCRIPTION)
         expect(properties?.title).toBe('Gradle version at end-of-life')
     })
 

@@ -6,22 +6,14 @@ import wrapperChecksums from './wrapper-validation/wrapper-checksums.json'
 /** Minor lines behind the latest that stay unreported on the current major. */
 const MINOR_GRACE = 2
 
-const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/?utm_source=github-action'
-const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
+export const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/?utm_source=github-action'
+export const FEATURE_LIFECYCLE_DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
 
 export enum SupportStatusKind {
     Current = 'current',
     Behind = 'behind',
     Eol = 'eol'
 }
-
-const SIGN: Record<SupportStatusKind, string> = {
-    [SupportStatusKind.Current]: '',
-    [SupportStatusKind.Behind]: ':information_source:',
-    [SupportStatusKind.Eol]: ':warning:'
-}
-
-const UPGRADE_LEGEND = `<p>${SIGN[SupportStatusKind.Behind]} Consider upgrading — See <a href="${FEATURE_LIFECYCLE_DOC}">Gradle release lifecycle</a></p>`
 
 class ReleaseIndex {
     readonly latestMajor: number
@@ -61,7 +53,6 @@ class ReleaseIndex {
         if (version.major !== this.latestMajor) {
             return SupportStatusKind.Current // newer than the bundled data knows about
         }
-        // Minor distance is the only question here: patch drift inside the grace band is silent.
         return this.latestMinorOf(version.major) - version.minor > MINOR_GRACE
             ? SupportStatusKind.Behind
             : SupportStatusKind.Current
@@ -86,24 +77,6 @@ function classified(gradleVersions: string[], releases: ReleaseIndex): Map<Suppo
     return byKind
 }
 
-function eolFold(version: GradleVersion): string {
-    return `
-<details>
-    <summary>${SIGN[SupportStatusKind.Eol]} Gradle ${version.version} is end-of-life</summary>
-    <p>The ${version.major}.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
-    <p>Options for staying secure on an end-of-life version: <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a></p>
-</details>`
-}
-
-function render(gradleVersions: string[], releases: ReleaseIndex): string {
-    const byKind = classified(gradleVersions, releases)
-    const blocks = (byKind.get(SupportStatusKind.Eol) ?? []).map(version => eolFold(version))
-    if ([...byKind.keys()].some(kind => kind !== SupportStatusKind.Eol)) {
-        blocks.push(UPGRADE_LEGEND)
-    }
-    return blocks.length > 0 ? `${blocks.join('\n')}\n` : ''
-}
-
 function report(gradleVersions: string[], releases: ReleaseIndex): void {
     const byKind = classified(gradleVersions, releases)
     for (const version of byKind.get(SupportStatusKind.Eol) ?? []) {
@@ -120,15 +93,15 @@ function report(gradleVersions: string[], releases: ReleaseIndex): void {
     }
 }
 
-/** The status sign shown beside a version in the build-results table, or '' when there is nothing to say. */
-export function supportSignOf(gradleVersion: string): string {
-    const version = GradleVersion.parse(gradleVersion)
-    return version ? SIGN[RELEASES.classify(version)] : ''
+/** Flagged versions grouped by kind (Current omitted), for the job-summary report. */
+export function classifySupportStatus(gradleVersions: string[]): Map<SupportStatusKind, GradleVersion[]> {
+    return classified(gradleVersions, RELEASES)
 }
 
-/** The fold-and-paragraph report placed under the build-results table. */
-export function renderSupportStatus(gradleVersions: string[]): string {
-    return render(gradleVersions, RELEASES)
+/** The support status of a single version. */
+export function supportStatusOf(gradleVersion: string): SupportStatusKind {
+    const version = GradleVersion.parse(gradleVersion)
+    return version ? RELEASES.classify(version) : SupportStatusKind.Current
 }
 
 export function reportSupportStatus(gradleVersions: string[]): void {
@@ -141,8 +114,11 @@ export function supportStatusUsing(gradleVersion: string, releasedVersions: stri
     return version ? new ReleaseIndex(releasedVersions).classify(version) : SupportStatusKind.Current
 }
 
-export function renderSupportStatusUsing(gradleVersions: string[], releasedVersions: string[]): string {
-    return render(gradleVersions, new ReleaseIndex(releasedVersions))
+export function classifySupportStatusUsing(
+    gradleVersions: string[],
+    releasedVersions: string[]
+): Map<SupportStatusKind, GradleVersion[]> {
+    return classified(gradleVersions, new ReleaseIndex(releasedVersions))
 }
 
 export function reportSupportStatusUsing(gradleVersions: string[], releasedVersions: string[]): void {

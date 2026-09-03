@@ -6,7 +6,15 @@ import {CacheReport} from './cache-service'
 import {ProviderNote, renderCachingReport} from './caching-report'
 import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
-import {renderSupportStatus, supportSignOf} from './gradle-support-status'
+import {GradleVersion} from './execution/gradle-version'
+import {
+    classifySupportStatus,
+    classifySupportStatusUsing,
+    FEATURE_LIFECYCLE_DOC,
+    SECURITY_SUBSCRIPTION,
+    SupportStatusKind,
+    supportStatusOf
+} from './gradle-support-status'
 
 export async function generateJobSummary(
     buildResults: BuildResult[],
@@ -169,6 +177,46 @@ function renderBuildResultRow(result: BuildResult): string {
 function renderGradleVersion(gradleVersion: string): string {
     const sign = supportSignOf(gradleVersion)
     return sign ? `${gradleVersion} ${sign}` : gradleVersion
+}
+
+const SIGN: Record<SupportStatusKind, string> = {
+    [SupportStatusKind.Current]: '',
+    [SupportStatusKind.Behind]: ':information_source:',
+    [SupportStatusKind.Eol]: ':warning:'
+}
+
+const UPGRADE_LEGEND = `<p>${SIGN[SupportStatusKind.Behind]} Consider upgrading — See <a href="${FEATURE_LIFECYCLE_DOC}">Gradle release lifecycle</a></p>`
+
+/** The status sign shown beside a version in the build-results table, or '' when there is nothing to say. */
+function supportSignOf(gradleVersion: string): string {
+    return SIGN[supportStatusOf(gradleVersion)]
+}
+
+function eolFold(version: GradleVersion): string {
+    return `
+<details>
+    <summary>${SIGN[SupportStatusKind.Eol]} Gradle ${version.version} is end-of-life</summary>
+    <p>The ${version.major}.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
+    <p>Options for staying secure on an end-of-life version: <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a></p>
+</details>`
+}
+
+function renderSupportStatusFrom(byKind: Map<SupportStatusKind, GradleVersion[]>): string {
+    const blocks = (byKind.get(SupportStatusKind.Eol) ?? []).map(version => eolFold(version))
+    if ([...byKind.keys()].some(kind => kind !== SupportStatusKind.Eol)) {
+        blocks.push(UPGRADE_LEGEND)
+    }
+    return blocks.length > 0 ? `${blocks.join('\n')}\n` : ''
+}
+
+/** The fold-and-paragraph report placed under the build-results table. */
+function renderSupportStatus(gradleVersions: string[]): string {
+    return renderSupportStatusFrom(classifySupportStatus(gradleVersions))
+}
+
+/** Entry point for tests: render with injected release data. */
+export function renderSupportStatusUsing(gradleVersions: string[], releasedVersions: string[]): string {
+    return renderSupportStatusFrom(classifySupportStatusUsing(gradleVersions, releasedVersions))
 }
 
 function renderOutcome(result: BuildResult): string {
