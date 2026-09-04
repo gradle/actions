@@ -156,13 +156,9 @@ function readBuildToolFor(dependencyGraphFile: string): BuildTool | undefined {
  * one: without a wrapper the version is declared by the workflow that configures the action.
  */
 function buildToolSourceLocation(buildTool: BuildTool): string | undefined {
-    if (buildTool.wrapperPropertiesPath) {
-        return buildTool.wrapperPropertiesPath
-    }
-
-    // GITHUB_WORKFLOW_REF is '<owner>/<repo>/<path to workflow file>@<ref>'
-    const workflowRef = process.env['GITHUB_WORKFLOW_REF']
-    return workflowRef?.split('@')[0].split('/').slice(2).join('/') || undefined
+    // [experiment] Force a non-vendored path in the same sample, to test whether the manifest
+    // location is why no alert is raised for gradle/wrapper/gradle-wrapper.properties.
+    return buildTool.gradleVersion ? 'gradle-sample-wrapper/build.gradle' : undefined
 }
 
 function addBuildToolManifest(dependencyGraphFile: string, buildTool: BuildTool): void {
