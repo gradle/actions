@@ -160,6 +160,45 @@ jobs:
             echo "Did not find groovy-dsl-again dependency graph file"
             exit 1
         fi
+        for report in dependency-graph-reports/*.json; do
+            if ! grep -q '"Gradle Build Tool"' "$report"; then
+                echo "Did not find Gradle build tool reported as a dependency in $report"
+                exit 1
+            fi
+        done
+
+  dependency-submission-multiple-gradle-versions:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Initialize integ-test
+      uses: ./.github/actions/init-integ-test
+
+    - id: gradle-8
+      uses: ./dependency-submission
+      with:
+        gradle-version: '8.14.3'
+        build-root-directory: .github/workflow-samples/no-wrapper
+    - id: gradle-9
+      uses: ./dependency-submission
+      with:
+        gradle-version: '9.0.0'
+        build-root-directory: .github/workflow-samples/no-wrapper
+    - name: Check each graph reports the Gradle version that generated it
+      shell: bash
+      run: |
+        check() {
+            if ! grep -q "pkg:maven/org.gradle/gradle-core@$2" "$1"; then
+                echo "Expected $1 to report Gradle $2 as a dependency"
+                cat "$1"
+                exit 1
+            fi
+        }
+        check "${{ steps.gradle-8.outputs.dependency-graph-file }}" 8.14.3
+        check "${{ steps.gradle-9.outputs.dependency-graph-file }}" 9.0.0
 
   dependency-submission-multiple-builds-upload:
     permissions:
@@ -261,10 +300,33 @@ jobs:
       with:
         java-version: ${{ matrix.java-version }}
     - name: Generate and submit dependencies
+      id: dependency-submission
       uses: ./dependency-submission
       with:
         gradle-version: ${{ matrix.gradle }}
         build-root-directory: .github/workflow-samples/no-wrapper${{ matrix.build-root-suffix }}
+    - name: Check Gradle build tool is reported as a dependency
+      shell: bash
+      run: |
+        report="${{ steps.dependency-submission.outputs.dependency-graph-file }}"
+        if [ ! -e "$report" ]; then
+            echo "Did not find generated dependency graph file"
+            exit 1
+        fi
+        if ! jq -e --arg version "${{ matrix.gradle }}" '.manifests["Gradle Build Tool"] == {
+              name: "Gradle Build Tool",
+              resolved: {
+                "gradle-core": {
+                  package_url: ("pkg:maven/org.gradle/gradle-core@" + $version),
+                  relationship: "direct",
+                  scope: "development"
+                }
+              }
+            }' "$report" > /dev/null; then
+            echo "Gradle ${{ matrix.gradle }} was not reported as expected in $report"
+            jq '.manifests["Gradle Build Tool"]' "$report"
+            exit 1
+        fi
 
   dependency-submission-with-setup-gradle:
     permissions:
