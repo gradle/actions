@@ -53,7 +53,7 @@ class ReleaseIndex {
 
     /** Support status of a single version; an unparseable string is treated as current. */
     classify(gradleVersion: string): SupportStatusKind {
-        const version = GradleVersion.parse(gradleVersion)
+        const version = GradleVersion.parseUntrusted(gradleVersion)
         return version ? this.classifyVersion(version) : SupportStatusKind.Current
     }
 
@@ -61,7 +61,7 @@ class ReleaseIndex {
     classified(gradleVersions: string[]): Map<SupportStatusKind, GradleVersion[]> {
         const byKind = new Map<SupportStatusKind, GradleVersion[]>()
         const parsed = [...new Set(gradleVersions)]
-            .map(version => GradleVersion.parse(version))
+            .map(version => GradleVersion.parseUntrusted(version))
             .filter((version): version is GradleVersion => version !== undefined)
             .sort(GradleVersion.compare)
 

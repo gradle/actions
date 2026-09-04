@@ -72,9 +72,9 @@ describe('GradleVersion', () => {
         )
     })
 
-    describe('parse', () => {
+    describe('parseUntrusted', () => {
         it.each(['', 'unknown', 'v1.0'])('returns undefined for the invalid version %s', version => {
-            expect(GradleVersion.parse(version)).toBeUndefined()
+            expect(GradleVersion.parseUntrusted(version)).toBeUndefined()
         })
     })
 })

@@ -1,4 +1,3 @@
-/** A pre-release stage of a Gradle version, ranked so lower ranks order earlier. */
 interface Stage {
     readonly rank: number
     readonly number: number
@@ -6,9 +5,7 @@ interface Stage {
 }
 
 /**
- * A Gradle version, parsed and ordered the same way Gradle's own `org.gradle.util.GradleVersion` does:
- * base version numbers first, then pre-release stage (milestone < preview < rc < final), then snapshot
- * (a snapshot precedes the release it leads to; timestamps order by their actual instant).
+ * A Gradle version, parsed and ordered the same way Gradle's own `org.gradle.util.GradleVersion` does
  */
 export class GradleVersion {
     private static readonly PATTERN = /^((\d+)(\.\d+)+)(-([a-zA-Z]+)-(\w+))?(-(SNAPSHOT|\d{14}([-+]\d{4})?))?$/
@@ -45,7 +42,6 @@ export class GradleVersion {
         return this.stage === undefined && this.snapshot === undefined
     }
 
-    /** Orders this version against another, following Gradle's own comparison rules. */
     compareTo(other: GradleVersion): number {
         const parts = this.versionPart.split('.')
         const otherParts = other.versionPart.split('.')
@@ -78,8 +74,7 @@ export class GradleVersion {
         return this.version < other.version ? -1 : this.version > other.version ? 1 : 0
     }
 
-    /** Returns undefined rather than throwing, for versions from an untrusted source. */
-    static parse(version: string): GradleVersion | undefined {
+    static parseUntrusted(version: string): GradleVersion | undefined {
         try {
             return new GradleVersion(version)
         } catch {
