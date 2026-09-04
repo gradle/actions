@@ -29,7 +29,9 @@ if (isTopLevelBuild) {
 
   logger.lifecycle("Generating dependency graph into '${reportFile}'")
 
-  recordGradleVersionFor(reportFile)
+  settingsEvaluated { settings ->
+    recordBuildToolFor(reportFile, settings.rootDir)
+  }
 }
 
 apply from: 'gradle-actions.github-dependency-graph-gradle-plugin-apply.groovy'
@@ -59,15 +61,49 @@ File getUniqueReportFile(String jobCorrelator) {
     return null
 }
 
-void recordGradleVersionFor(File reportFile) {
+void recordBuildToolFor(File reportFile, File rootDir) {
     def runnerTemp = getVariable('RUNNER_TEMP')
     if (!runnerTemp) {
         return
     }
 
-    def versionsDir = new File(runnerTemp, '.gradle-actions/dependency-graph-versions')
-    versionsDir.mkdirs()
-    new File(versionsDir, reportFile.name).text = GradleVersion.current().version
+    def gradleVersion = GradleVersion.current().version
+    def buildTool = [gradleVersion: gradleVersion]
+    def wrapperPropertiesPath = wrapperPropertiesDeclaring(gradleVersion, rootDir)
+    if (wrapperPropertiesPath) {
+        buildTool.wrapperPropertiesPath = wrapperPropertiesPath
+    }
+
+    def buildToolDir = new File(runnerTemp, '.gradle-actions/dependency-graph-build-tool')
+    buildToolDir.mkdirs()
+    new File(buildToolDir, reportFile.name).text = groovy.json.JsonOutput.toJson(buildTool)
+}
+
+/**
+* Return the wrapper properties file relative to the workspace, but only when it declares the
+* version that is running: a Gradle version provisioned by the action overrides any wrapper.
+*/
+String wrapperPropertiesDeclaring(String gradleVersion, File rootDir) {
+    def workspace = getVariable('GITHUB_DEPENDENCY_GRAPH_WORKSPACE')
+    def propertiesFile = new File(rootDir, 'gradle/wrapper/gradle-wrapper.properties')
+    if (!workspace || !propertiesFile.exists()) {
+        return null
+    }
+
+    def properties = new Properties()
+    propertiesFile.withInputStream { properties.load(it) }
+    def distributionUrl = properties.getProperty('distributionUrl')
+    if (!distributionUrl) {
+        return null
+    }
+
+    def declaredVersion = distributionUrl =~ /gradle-(.+?)-(bin|all)\.zip/
+    if (!declaredVersion.find() || declaredVersion.group(1) != gradleVersion) {
+        return null
+    }
+
+    def relativePath = new File(workspace).toPath().relativize(propertiesFile.toPath())
+    return relativePath.startsWith('..') ? null : relativePath.toString().replace(File.separator, '/')
 }
 
 /**

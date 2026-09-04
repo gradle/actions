@@ -313,18 +313,23 @@ jobs:
             echo "Did not find generated dependency graph file"
             exit 1
         fi
-        if ! jq -e --arg version "${{ matrix.gradle }}" '.manifests["Gradle Build Tool"] == {
-              name: "Gradle Build Tool",
-              resolved: {
+        buildTool=$(jq -c '.manifests["Gradle Build Tool"]' "$report")
+        echo "Reported build tool: $buildTool"
+        if ! jq -e --arg version "${{ matrix.gradle }}" '.manifests["Gradle Build Tool"]
+            | .name == "Gradle Build Tool" and .resolved == {
                 "gradle-core": {
                   package_url: ("pkg:maven/org.gradle/gradle-core@" + $version),
                   relationship: "direct",
                   scope: "development"
                 }
-              }
-            }' "$report" > /dev/null; then
+              }' "$report" > /dev/null; then
             echo "Gradle ${{ matrix.gradle }} was not reported as expected in $report"
-            jq '.manifests["Gradle Build Tool"]' "$report"
+            exit 1
+        fi
+        # GitHub renders the manifest location as a link to a file in the repository
+        location=$(jq -r '.manifests["Gradle Build Tool"].file.source_location' "$report")
+        if [ ! -f "$location" ]; then
+            echo "Manifest location '$location' is not a file in the repository"
             exit 1
         fi
 
@@ -348,11 +353,17 @@ jobs:
     - name: Check and delete generated dependency graph
       shell: bash
       run: |
-        if [ ! -e "${{ steps.dependency-submission.outputs.dependency-graph-file }}" ]; then
+        report="${{ steps.dependency-submission.outputs.dependency-graph-file }}"
+        if [ ! -e "$report" ]; then
             echo "Did not find generated dependency graph files"
             exit 1
         fi
-        rm ${{ steps.dependency-submission.outputs.dependency-graph-file }}*
+        location=$(jq -r '.manifests["Gradle Build Tool"].file.source_location' "$report")
+        if [ "$location" != ".github/workflow-samples/groovy-dsl/gradle/wrapper/gradle-wrapper.properties" ]; then
+            echo "Expected the build tool to be reported against the wrapper, but got '$location'"
+            exit 1
+        fi
+        rm "$report"*
     - name: Run Gradle build
       run: ./gradlew build
       working-directory: .github/workflow-samples/groovy-dsl

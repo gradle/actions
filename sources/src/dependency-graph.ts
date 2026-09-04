@@ -14,6 +14,11 @@ import {DependencyGraphConfig, DependencyGraphOption, getGithubToken, getWorkspa
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
 const BUILD_TOOL_MANIFEST_NAME = 'Gradle Build Tool'
 
+interface BuildTool {
+    gradleVersion: string
+    wrapperPropertiesPath?: string
+}
+
 export async function setup(config: DependencyGraphConfig): Promise<void> {
     const option = config.getDependencyGraphOption()
     if (option === DependencyGraphOption.Disabled) {
@@ -127,34 +132,50 @@ async function findAndUploadDependencyGraphs(config: DependencyGraphConfig): Pro
 
 function addBuildToolDependency(dependencyGraphFiles: string[]): void {
     for (const dependencyGraphFile of dependencyGraphFiles) {
-        const gradleVersion = readGradleVersionFor(dependencyGraphFile)
-        if (gradleVersion) {
-            addBuildToolManifest(dependencyGraphFile, gradleVersion)
+        const buildTool = readBuildToolFor(dependencyGraphFile)
+        if (buildTool) {
+            addBuildToolManifest(dependencyGraphFile, buildTool)
         } else {
             core.info(`No Gradle version recorded for ${dependencyGraphFile}: build tool will not be reported`)
         }
     }
 }
 
-function readGradleVersionFor(dependencyGraphFile: string): string | undefined {
-    const versionFile = path.resolve(
+function readBuildToolFor(dependencyGraphFile: string): BuildTool | undefined {
+    const buildToolFile = path.resolve(
         process.env['RUNNER_TEMP']!,
         '.gradle-actions',
-        'dependency-graph-versions',
+        'dependency-graph-build-tool',
         path.basename(dependencyGraphFile)
     )
-    return fs.existsSync(versionFile) ? fs.readFileSync(versionFile, 'utf8').trim() : undefined
+    return fs.existsSync(buildToolFile) ? JSON.parse(fs.readFileSync(buildToolFile, 'utf8')) : undefined
 }
 
-function addBuildToolManifest(dependencyGraphFile: string, gradleVersion: string): void {
+/**
+ * GitHub renders the manifest location as a link to a file in the repository, so it must point at
+ * one: without a wrapper the version is declared by the workflow that configures the action.
+ */
+function buildToolSourceLocation(buildTool: BuildTool): string | undefined {
+    if (buildTool.wrapperPropertiesPath) {
+        return buildTool.wrapperPropertiesPath
+    }
+
+    // GITHUB_WORKFLOW_REF is '<owner>/<repo>/<path to workflow file>@<ref>'
+    const workflowRef = process.env['GITHUB_WORKFLOW_REF']
+    return workflowRef?.split('@')[0].split('/').slice(2).join('/') || undefined
+}
+
+function addBuildToolManifest(dependencyGraphFile: string, buildTool: BuildTool): void {
+    const sourceLocation = buildToolSourceLocation(buildTool)
     const snapshot = JSON.parse(fs.readFileSync(dependencyGraphFile, 'utf8'))
     snapshot.manifests = {
         ...snapshot.manifests,
         [BUILD_TOOL_MANIFEST_NAME]: {
             name: BUILD_TOOL_MANIFEST_NAME,
+            ...(sourceLocation ? {file: {source_location: sourceLocation}} : {}),
             resolved: {
                 'gradle-core': {
-                    package_url: `pkg:maven/org.gradle/gradle-core@${gradleVersion}`,
+                    package_url: `pkg:maven/org.gradle/gradle-core@${buildTool.gradleVersion}`,
                     relationship: 'direct',
                     scope: 'development'
                 }
