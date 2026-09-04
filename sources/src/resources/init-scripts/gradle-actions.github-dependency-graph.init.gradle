@@ -28,6 +28,8 @@ if (isTopLevelBuild) {
   }
 
   logger.lifecycle("Generating dependency graph into '${reportFile}'")
+
+  recordGradleVersionFor(reportFile)
 }
 
 apply from: 'gradle-actions.github-dependency-graph-gradle-plugin-apply.groovy'
@@ -55,6 +57,17 @@ File getUniqueReportFile(String jobCorrelator) {
 
     // Could not determine unique job correlator
     return null
+}
+
+void recordGradleVersionFor(File reportFile) {
+    def runnerTemp = getVariable('RUNNER_TEMP')
+    if (!runnerTemp) {
+        return
+    }
+
+    def versionsDir = new File(runnerTemp, '.gradle-actions/dependency-graph-versions')
+    versionsDir.mkdirs()
+    new File(versionsDir, reportFile.name).text = GradleVersion.current().version
 }
 
 /**

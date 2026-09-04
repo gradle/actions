@@ -12,6 +12,7 @@ import {JobFailure} from './errors'
 import {DependencyGraphConfig, DependencyGraphOption, getGithubToken, getWorkspaceDirectory} from './configuration'
 
 const DEPENDENCY_GRAPH_PREFIX = 'dependency-graph_'
+const BUILD_TOOL_MANIFEST_SUFFIX = '-gradle-build-tool'
 
 export async function setup(config: DependencyGraphConfig): Promise<void> {
     const option = config.getDependencyGraphOption()
@@ -96,6 +97,7 @@ async function findAndSubmitDependencyGraphs(config: DependencyGraphConfig, uplo
     }
 
     const dependencyGraphFiles = await findDependencyGraphFiles()
+    addBuildToolDependency(dependencyGraphFiles)
     try {
         await submitDependencyGraphs(dependencyGraphFiles)
     } catch (e) {
@@ -118,7 +120,56 @@ async function findAndUploadDependencyGraphs(config: DependencyGraphConfig): Pro
         return
     }
 
-    await uploadDependencyGraphs(await findDependencyGraphFiles(), config)
+    const dependencyGraphFiles = await findDependencyGraphFiles()
+    addBuildToolDependency(dependencyGraphFiles)
+    await uploadDependencyGraphs(dependencyGraphFiles, config)
+}
+
+function addBuildToolDependency(dependencyGraphFiles: string[]): void {
+    for (const dependencyGraphFile of dependencyGraphFiles) {
+        const gradleVersion = readGradleVersionFor(dependencyGraphFile)
+        if (gradleVersion) {
+            addBuildToolManifest(dependencyGraphFile, gradleVersion)
+        } else {
+            core.info(`No Gradle version recorded for ${dependencyGraphFile}: build tool will not be reported`)
+        }
+    }
+}
+
+function readGradleVersionFor(dependencyGraphFile: string): string | undefined {
+    const versionFile = path.resolve(
+        process.env['RUNNER_TEMP']!,
+        '.gradle-actions',
+        'dependency-graph-versions',
+        path.basename(dependencyGraphFile)
+    )
+    return fs.existsSync(versionFile) ? fs.readFileSync(versionFile, 'utf8').trim() : undefined
+}
+
+function addBuildToolManifest(dependencyGraphFile: string, gradleVersion: string): void {
+    const snapshot = JSON.parse(fs.readFileSync(dependencyGraphFile, 'utf8'))
+    const manifestName = `${snapshot.job.correlator}${BUILD_TOOL_MANIFEST_SUFFIX}`
+
+    // reusing the existing location because action workflow location has a weird example, and wrapper location is not reported by dependabot for some reason
+    const file = Object.values(snapshot.manifests ?? {})
+        .map(manifest => manifest.file)
+        .find(manifestFile => manifestFile?.source_location)
+
+    snapshot.manifests = {
+        ...snapshot.manifests,
+        [manifestName]: {
+            name: manifestName,
+            ...(file ? {file} : {}),
+            resolved: {
+                'gradle-core': {
+                    package_url: `pkg:maven/org.gradle/gradle-core@${gradleVersion}`,
+                    relationship: 'direct',
+                    scope: 'development'
+                }
+            }
+        }
+    }
+    fs.writeFileSync(dependencyGraphFile, JSON.stringify(snapshot))
 }
 
 async function downloadDependencyGraphs(config: DependencyGraphConfig): Promise<string[]> {
