@@ -176,7 +176,7 @@ function addBuildToolManifest(dependencyGraphFile: string, buildTool: BuildTool)
             resolved: {
                 'gradle-core': {
                     package_url: `pkg:maven/org.gradle/gradle-core@${buildTool.gradleVersion}`,
-                    relationship: 'direct',
+                    relationship: 'indirect',
                     scope: 'development'
                 }
             }
