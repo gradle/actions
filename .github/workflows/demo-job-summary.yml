@@ -57,9 +57,11 @@ jobs:
         build-root-directory: .github/workflow-samples/groovy-dsl
         dependency-graph: generate-and-upload
 
-  # Exercises every Gradle version support status in a single Job Summary: end-of-life versions
-  # each get a warning sign and an expandable section, out-of-date versions share a single info
-  # sign and legend, and the current version is left unmarked.
+  # Exercises every Gradle version support status in a single Job Summary: end-of-life versions all
+  # share one expandable section and are each marked with a warning sign, out-of-date versions share
+  # a single info sign and legend, and the current version is left unmarked.
+  # Two 7.x versions alongside a 6.x one check that the section names each affected release line
+  # once, as "Gradle 6.x and 7.x releases".
   # Versions are picked relative to Gradle 9.x being current; revisit once Gradle 10 is released.
   support-status-eol-and-outdated:
     needs: build-distribution
@@ -67,8 +69,19 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    # Java 11, since Gradle 6.x cannot run on the Java 17 used elsewhere in this workflow.
     - name: Initialize integ-test
       uses: ./.github/actions/init-integ-test
+      with:
+        java-version: '11'
+
+    - name: Setup Gradle 6.9.4 (end-of-life)
+      uses: ./setup-gradle
+      with:
+        gradle-version: '6.9.4'
+    - name: Build with Gradle 6.9.4
+      working-directory: .github/workflow-samples/no-wrapper
+      run: gradle help
 
     - name: Setup Gradle 7.4 (end-of-life)
       uses: ./setup-gradle
@@ -94,6 +107,12 @@ jobs:
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help
 
+    # Gradle 9 and later require Java 17
+    - name: Setup Java 17
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+      with:
+        distribution: temurin
+        java-version: 17
     - name: Setup Gradle current (no status reported)
       uses: ./setup-gradle
       with:
