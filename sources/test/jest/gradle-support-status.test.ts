@@ -51,8 +51,6 @@ describe('classification', () => {
     )
 
     it.each(['8.15', '8.15.1'])('treats %s, a previous-major minor newer than the release data, as behind', version => {
-        // Gradle sometimes ships a minor of the previous major after a new major (e.g. 7.0 in Apr 2021,
-        // then 6.9 in May 2021 with 6.9.1-6.9.4). Being on the previous major, it is still simply behind.
         expect(supportStatusUsing(version, RELEASED)).toBe(SupportStatusKind.Behind)
     })
 

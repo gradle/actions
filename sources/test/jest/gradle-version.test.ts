@@ -9,8 +9,6 @@ function order(a: string, b: string): number {
 
 describe('GradleVersion', () => {
     describe('orders', () => {
-        // Asserts the list is in strictly ascending order: every pair compares to sign(i - j),
-        // which also covers equality (a version compared with itself is 0).
         function ascending(versions: string[]): void {
             for (let i = 0; i < versions.length; i++) {
                 for (let j = 0; j < versions.length; j++) {
@@ -53,8 +51,6 @@ describe('GradleVersion', () => {
         })
 
         describe('snapshots order by instant, accounting for timezone', () => {
-            // 8.10.2-20240828010000+1000 is 2024-08-27T15:00:00Z, before 8.10.2-20240828012138+0000.
-            // A milestone (a stage) precedes any snapshot of the same base, which precedes the release.
             ascending(['8.10.2-milestone-1', '8.10.2-20240828010000+1000', '8.10.2-20240828012138+0000', '8.10.2'])
         })
     })
