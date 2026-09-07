@@ -196,8 +196,8 @@ function eolFold(version: GradleVersion): string {
     return `
 <details>
     <summary>${SIGN[SupportStatusKind.Eol]} Gradle ${version.version} is end-of-life</summary>
-    <p>The ${version.major}.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
-    <p>Options for staying secure on an end-of-life version: <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a></p>
+    <p>The ${version.major}.x release line receives no further fixes, security fixes included. Update to the latest Gradle version.</p>
+    <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
 </details>`
 }
 

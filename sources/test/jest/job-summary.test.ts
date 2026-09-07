@@ -250,8 +250,8 @@ describe('Gradle version support status', () => {
 
             <details>
                 <summary>:warning: Gradle 8.0 is end-of-life</summary>
-                <p>The 8.x release line receives no new fixes of any kind. Update to the latest Gradle version.</p>
-                <p>Options for staying secure on an end-of-life version: <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a></p>
+                <p>The 8.x release line receives no further fixes, security fixes included. Update to the latest Gradle version.</p>
+                <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
             </details>
         `)
     })
@@ -279,7 +279,7 @@ describe('renderSupportStatus', () => {
 
         expect(rendered).toContain('<summary>:warning: Gradle 7.6.4 is end-of-life</summary>')
         expect(rendered).toContain(
-            'The 7.x release line receives no new fixes of any kind. Update to the latest Gradle version.'
+            'The 7.x release line receives no further fixes, security fixes included. Update to the latest Gradle version.'
         )
         expect(rendered).toContain(`<a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a>`)
         expect(rendered).not.toContain(LEGEND)

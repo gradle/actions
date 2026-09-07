@@ -108,10 +108,10 @@ describe('reportSupportStatus', () => {
         expect(mockWarning).toHaveBeenCalledTimes(1)
         expect(mockNotice).not.toHaveBeenCalled()
         const [message, properties] = mockWarning.mock.calls[0]
-        expect(message).toContain('Gradle 7.6.4 is end-of-life')
-        expect(message).toContain('Update to the latest Gradle version.')
-        expect(message).toContain(SECURITY_SUBSCRIPTION)
-        expect(properties?.title).toBe('Gradle version at end-of-life')
+        expect(message).toBe(
+            `Gradle 7.6.4 is end-of-life. The 7.x release line receives no further fixes, security fixes included. Update to the latest Gradle version. If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`
+        )
+        expect(properties?.title).toBe('End-of-life Gradle version')
     })
 
     it.each(['8.0', '8.14.3', '8.14.5', '9.2.1'])('notices %s as out of date', version => {
@@ -123,7 +123,7 @@ describe('reportSupportStatus', () => {
         expect(message).toBe(
             `Gradle ${version} is out of date: consider updating to the latest Gradle version. See ${DOC}`
         )
-        expect(properties?.title).toBe('Gradle version out of date')
+        expect(properties?.title).toBe('Out-of-date Gradle version')
     })
 
     it.each(['9.5.1', '9.6.1', '9.7.1'])('stays quiet about %s, inside the grace band', version => {

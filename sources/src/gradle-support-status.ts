@@ -80,14 +80,14 @@ const RELEASES = new ReleaseIndex(wrapperChecksums.map(entry => entry.version))
 function report(byKind: Map<SupportStatusKind, GradleVersion[]>): void {
     for (const version of byKind.get(SupportStatusKind.Eol) ?? []) {
         core.warning(
-            `Gradle ${version.version} is end-of-life: the ${version.major}.x release line receives no new fixes of any kind, including security fixes. Update to the latest Gradle version. Options for staying secure on an end-of-life version: ${SECURITY_SUBSCRIPTION}`,
-            {title: 'Gradle version at end-of-life'}
+            `Gradle ${version.version} is end-of-life. The ${version.major}.x release line receives no further fixes, security fixes included. Update to the latest Gradle version. If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`,
+            {title: 'End-of-life Gradle version'}
         )
     }
     for (const version of byKind.get(SupportStatusKind.Behind) ?? []) {
         core.notice(
             `Gradle ${version.version} is out of date: consider updating to the latest Gradle version. See ${FEATURE_LIFECYCLE_DOC}`,
-            {title: 'Gradle version out of date'}
+            {title: 'Out-of-date Gradle version'}
         )
     }
 }
