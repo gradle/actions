@@ -7,19 +7,20 @@ function order(a: string, b: string): number {
     return Math.sign(GradleVersion.compare(new GradleVersion(a), new GradleVersion(b)))
 }
 
+/** Asserts every pairing of `versions`, which must be listed oldest first. */
+function ascending(versions: string[]): void {
+    for (let i = 0; i < versions.length; i++) {
+        for (let j = 0; j < versions.length; j++) {
+            const expected = Math.sign(i - j)
+            it(`${versions[i]} vs ${versions[j]} is ${expected}`, () => {
+                expect(order(versions[i], versions[j])).toBe(expected)
+            })
+        }
+    }
+}
+
 describe('GradleVersion', () => {
     describe('orders', () => {
-        function ascending(versions: string[]): void {
-            for (let i = 0; i < versions.length; i++) {
-                for (let j = 0; j < versions.length; j++) {
-                    const expected = Math.sign(i - j)
-                    it(`${versions[i]} vs ${versions[j]} is ${expected}`, () => {
-                        expect(order(versions[i], versions[j])).toBe(expected)
-                    })
-                }
-            }
-        }
-
         describe('simple versions', () => {
             ascending(['6.0', '6.7', '6.7.1', '6.7.2', '7.0', '7.0.1', '7.1', '8.0', '8.12.1'])
         })
@@ -53,6 +54,48 @@ describe('GradleVersion', () => {
         describe('snapshots order by instant, accounting for timezone', () => {
             ascending(['8.10.2-milestone-1', '8.10.2-20240828010000+1000', '8.10.2-20240828012138+0000', '8.10.2'])
         })
+    })
+
+    // Gradle's `Stage.from` matches the whole stage string against /(\d+)([a-z])?/, so a stage number is
+    // read only when the string is entirely a number with an optional letter suffix.
+    describe('reads a stage number only from a fully numeric stage string', () => {
+        it('orders plain stage numbers numerically, not as text', () => {
+            // Were these compared as text, '8.11-rc-10' would sort before '8.11-rc-2'.
+            expect(order('8.11-rc-2', '8.11-rc-10')).toBe(-1)
+        })
+
+        describe('a letter suffix orders after the bare number', () => {
+            ascending(['8.11-rc-1', '8.11-rc-1a', '8.11-rc-1b', '8.11-rc-2'])
+        })
+
+        it('ignores digits embedded in a longer stage string', () => {
+            // 'issue10' and 'issue9' both rank as stage number 0, leaving the version string to break the
+            // tie; reading the digits positionally would instead sort 'issue10' after 'issue9'.
+            expect(order('8.0-branch-issue10-20240828012138+0000', '8.0-branch-issue9-20240828012138+0000')).toBe(-1)
+        })
+    })
+
+    describe('matches stage names exactly, as Gradle does', () => {
+        // 'RC' is not 'rc', so it ranks as unknown (1) and precedes preview (2) rather than following it.
+        describe('an unrecognised spelling ranks between milestone and preview', () => {
+            ascending(['8.0-milestone-1', '8.0-RC-1', '8.0-preview-1', '8.0-rc-1', '8.0'])
+        })
+    })
+
+    describe('rejects a timestamp that names no real instant', () => {
+        it.each(['8.0-99999999999999', '8.0-20241301012138', '8.0-20240828992138', '8.0-20240828012138+9999'])(
+            'throws for %s',
+            version => {
+                expect(() => new GradleVersion(version)).toThrow('is not a valid Gradle snapshot timestamp')
+            }
+        )
+
+        it.each(['8.0-99999999999999', '8.0-20240828012138+9999'])(
+            'reports %s as unparseable rather than yielding an uncomparable version',
+            version => {
+                expect(GradleVersion.parseUntrusted(version)).toBeUndefined()
+            }
+        )
     })
 
     describe('isFinalRelease', () => {

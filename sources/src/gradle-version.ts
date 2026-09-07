@@ -82,14 +82,20 @@ export class GradleVersion {
         }
     }
 
-    static readonly compare = (a: GradleVersion, b: GradleVersion): number => a.compareTo(b)
+    /** Comparator for sorting; `this: void` marks it safe to pass detached, as `Array.sort` does. */
+    static compare(this: void, a: GradleVersion, b: GradleVersion): number {
+        return a.compareTo(b)
+    }
 
     private static parseStage(name: string | undefined, numberPart: string | undefined): Stage | undefined {
         if (name === undefined) {
             return undefined
         }
-        const rank = GradleVersion.STAGE_RANK[name.toLowerCase()] ?? GradleVersion.STAGE_UNKNOWN
-        const match = /(\d+)([a-z])?/.exec(numberPart ?? '')
+        // Stage names are matched exactly, as Gradle does: 'RC' is not 'rc', and ranks as unknown.
+        const rank = GradleVersion.STAGE_RANK[name] ?? GradleVersion.STAGE_UNKNOWN
+        // The whole stage string must be a number with an optional letter suffix; anything else ranks as 0,
+        // leaving versions such as branch names to be separated by the version string itself.
+        const match = /^(\d+)([a-z])?$/.exec(numberPart ?? '')
         return {rank, number: match ? Number(match[1]) : 0, patchNo: match?.[2] ?? '_'}
     }
 
@@ -104,7 +110,13 @@ export class GradleVersion {
         const date = `${snapshot.slice(0, 4)}-${snapshot.slice(4, 6)}-${snapshot.slice(6, 8)}`
         const time = `${snapshot.slice(8, 10)}:${snapshot.slice(10, 12)}:${snapshot.slice(12, 14)}`
         const offset = timezone ? `${timezone.slice(0, 3)}:${timezone.slice(3, 5)}` : 'Z'
-        return Date.parse(`${date}T${time}${offset}`)
+        const instant = Date.parse(`${date}T${time}${offset}`)
+        if (Number.isNaN(instant)) {
+            // The digits matched the pattern but name no real instant. Rejecting here keeps a NaN out of
+            // compareTo, which would otherwise make ordering undefined. Gradle likewise fails to parse.
+            throw new Error(`'${snapshot}${timezone ?? ''}' is not a valid Gradle snapshot timestamp`)
+        }
+        return instant
     }
 
     private static compareStages(a: Stage, b: Stage): number {
