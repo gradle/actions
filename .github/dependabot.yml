@@ -20,6 +20,13 @@ updates:
         versions: ["7.x"]
       - dependency-name: "@types/node"
         versions: ["25.x", "26.x"]
+      # jest 30.5.0 reworked the ESM module registry, and nock no longer intercepts requests
+      # made through @actions/http-client (undici): every mocked test silently hits the real
+      # network instead. nock 15 does not fix it. Drop these two once they interoperate again.
+      - dependency-name: "jest"
+        versions: [">=30.5.0"]
+      - dependency-name: "@jest/globals"
+        versions: [">=30.5.0"]
   - package-ecosystem: "github-actions"
     # github-actions with directory: "/" only monitors .github/workflows
     # https://github.com/dependabot/dependabot-core/issues/6345
