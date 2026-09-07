@@ -61,14 +61,6 @@ describe('access key format warnings', () => {
 })
 
 describe('short lived tokens', () => {
-    // Several tests below register `.times(3)` interceptors that are only partly consumed by the
-    // retry loop. Without this teardown the leftovers, and any still in-flight retries, bleed into
-    // the next test and match requests it never mocked.
-    afterEach(() => {
-        nock.abortPendingRequests()
-        nock.cleanAll()
-    })
-
     it('parse valid access key should return an object', async () => {
         let develocityAccessCredentials = DevelocityAccessCredentials.parse('some-host.local=key1;host2=key2');
 
