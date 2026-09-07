@@ -1,9 +1,31 @@
 import dedent from 'dedent'
 import * as github from '@actions/github'
-import {afterEach, describe, expect, it} from '@jest/globals'
+import {afterEach, describe, expect, it, jest} from '@jest/globals'
 
 import {BuildResult} from '../../src/build-results'
-import {jobMarker, renderSummaryTable} from '../../src/job-summary'
+
+// The support-status policy itself is covered by gradle-support-status.test.ts; these tests only
+// check that its output reaches the table. '8.0' is the sole release so the tables below, all of
+// which build with Gradle 8.0, render without a status sign.
+let releasedVersions = [{version: '8.0', checksum: ''}]
+jest.unstable_mockModule('../../src/wrapper-validation/wrapper-checksums.json', () => ({
+    get default() {
+        return releasedVersions
+    }
+}))
+
+const {jobMarker, renderSummaryTable} = await import('../../src/job-summary')
+
+/** Renders the summary table with the release index built from `versions` rather than the bundled data. */
+async function renderWith(versions: string[], results: BuildResult[]): Promise<string> {
+    releasedVersions = versions.map(version => ({version, checksum: ''}))
+    jest.resetModules()
+    const {renderSummaryTable: render} = await import('../../src/job-summary')
+    return render(results)
+}
+
+const DOC = 'https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support'
+const SECURITY_SUBSCRIPTION = 'https://gradle.org/security-subscription/?utm_source=github-action'
 
 const MATRIX_INPUT_ENV = 'INPUT_WORKFLOW-JOB-CONTEXT'
 
@@ -30,19 +52,20 @@ const failedHelpBuild: BuildResult = {
 
 const longArgsBuild: BuildResult = {
     ...successfulHelpBuild,
-    requestedTasks: 'check publishMyLongNamePluginPublicationToMavenCentral publishMyLongNamePluginPublicationToPluginPortal',
+    requestedTasks:
+        'check publishMyLongNamePluginPublicationToMavenCentral publishMyLongNamePluginPublicationToPluginPortal'
 }
 
 const scanPublishDisabledBuild: BuildResult = {
     ...successfulHelpBuild,
     buildScanUri: '',
-    buildScanFailed: false,
+    buildScanFailed: false
 }
 
 const scanPublishFailedBuild: BuildResult = {
     ...successfulHelpBuild,
     buildScanUri: '',
-    buildScanFailed: true,
+    buildScanFailed: true
 }
 
 describe('renderSummaryTable', () => {
@@ -66,7 +89,7 @@ describe('renderSummaryTable', () => {
                         <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
-            `);
+            `)
         })
         it('failed build', () => {
             const table = renderSummaryTable([failedHelpBuild])
@@ -87,7 +110,7 @@ describe('renderSummaryTable', () => {
                         <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
-            `);
+            `)
         })
         describe('when build scan', () => {
             it('publishing disabled', () => {
@@ -109,7 +132,7 @@ describe('renderSummaryTable', () => {
                             <td><a href="https://scans.gradle.com" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Not%20published-lightgrey" alt="Build Scan not published" /></a></td>
                         </tr>
                     </table>
-                `);
+                `)
             })
             it('publishing failed', () => {
                 const table = renderSummaryTable([scanPublishFailedBuild])
@@ -130,7 +153,7 @@ describe('renderSummaryTable', () => {
                             <td><a href="https://docs.gradle.com/develocity/gradle-plugin/#troubleshooting" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Publish%20failed-orange" alt="Build Scan publish failed" /></a></td>
                         </tr>
                     </table>
-                `);
+                `)
             })
         })
         it('multiple builds', () => {
@@ -159,7 +182,7 @@ describe('renderSummaryTable', () => {
                         <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
-            `);
+            `)
         })
         it('truncating long requested tasks', () => {
             const table = renderSummaryTable([longArgsBuild])
@@ -180,8 +203,53 @@ describe('renderSummaryTable', () => {
                         <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
                     </tr>
                 </table>
-            `);
+            `)
         })
+    })
+})
+
+describe('Gradle version support status', () => {
+    it('warns on an end-of-life version and folds the detail below the table', async () => {
+        const table = await renderWith(['10.0.0', '8.0'], [successfulHelpBuild])
+        expect(table.trim()).toBe(dedent`
+            <table>
+                <tr>
+                    <th>Gradle Root Project</th>
+                    <th>Requested Tasks</th>
+                    <th>Gradle Version</th>
+                    <th>Build Outcome</th>
+                    <th>Build&nbsp;Scan®</th>
+                </tr>
+                <tr>
+                    <td>root</td>
+                    <td>help</td>
+                    <td align='center'>8.0 :warning:</td>
+                    <td align='center'>:white_check_mark:</td>
+                    <td><a href="https://scans.gradle.com/s/abc123" rel="nofollow" target="_blank"><img src="https://img.shields.io/badge/Build%20Scan%C2%AE-06A0CE?logo=Gradle" alt="Build Scan published" /></a></td>
+                </tr>
+            </table>
+
+            <details>
+                <summary>:warning: Gradle 8.0 is end-of-life</summary>
+                <p>Gradle 8.x releases receive no further fixes, security fixes included. Update to the latest Gradle version.</p>
+                <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
+            </details>
+        `)
+    })
+    it('signs a still-supported but outdated version with the info sign and one legend', async () => {
+        const table = await renderWith(['9.0.0', '8.1', '8.0'], [successfulHelpBuild])
+        expect(table).toContain(`<td align='center'>8.0 :information_source:</td>`)
+        expect(table).toContain(
+            `<p>:information_source: Gradle version is out of date — consider upgrading. ` +
+                `See <a href="${DOC}">Gradle release lifecycle</a></p>`
+        )
+        expect(table).not.toContain('<details>')
+    })
+    it('adds nothing for a version inside the grace band', async () => {
+        const table = await renderWith(['8.2', '8.0'], [successfulHelpBuild])
+        expect(table).toContain(`<td align='center'>8.0</td>`)
+        expect(table).not.toContain(':information_source:')
+        expect(table).not.toContain('consider upgrading')
     })
 })
 

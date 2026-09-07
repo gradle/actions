@@ -6,6 +6,7 @@ import {CacheReport} from './cache-service'
 import {ProviderNote, renderCachingReport} from './caching-report'
 import {DependencyGraphConfig, getActionId, getGithubToken, getJobMatrix, SummaryConfig} from './configuration'
 import {Deprecation, getDeprecations, getErrors} from './deprecation-collector'
+import {renderSupportStatus, supportStatusSign} from './gradle-support-status'
 
 export async function generateJobSummary(
     buildResults: BuildResult[],
@@ -97,7 +98,7 @@ Note that this permission is never available for a workflow triggered from a rep
 }
 
 export function renderSummaryTable(results: BuildResult[]): string {
-    return `${renderDeprecations()}\n${renderBuildResults(results)}`
+    return `${renderDeprecations()}\n${renderBuildResults(results)}\n${renderSupportStatus(results.map(result => result.gradleVersion))}`
 }
 
 function renderActionHeading(): string {
@@ -147,8 +148,7 @@ function renderBuildResults(results: BuildResult[]): string {
         <th>Build Outcome</th>
         <th>Build&nbsp;Scan®</th>
     </tr>${results.map(result => renderBuildResultRow(result)).join('')}
-</table>
-    `
+</table>`
 }
 
 function anyFailed(results: BuildResult[]): boolean {
@@ -160,10 +160,15 @@ function renderBuildResultRow(result: BuildResult): string {
     <tr>
         <td>${truncateString(result.rootProjectName, 30)}</td>
         <td>${truncateString(result.requestedTasks, 60)}</td>
-        <td align='center'>${result.gradleVersion}</td>
+        <td align='center'>${renderGradleVersion(result.gradleVersion)}</td>
         <td align='center'>${renderOutcome(result)}</td>
         <td>${renderBuildScan(result)}</td>
     </tr>`
+}
+
+function renderGradleVersion(gradleVersion: string): string {
+    const sign = supportStatusSign(gradleVersion)
+    return sign ? `${gradleVersion} ${sign}` : gradleVersion
 }
 
 function renderOutcome(result: BuildResult): string {

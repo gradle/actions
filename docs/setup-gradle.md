@@ -518,6 +518,30 @@ so that a Job Summary is never generated, or so that a Job Summary is only gener
 add-job-summary: 'on-failure' # Valid values are 'always' (default), 'never', and 'on-failure'
 ```
 
+### Gradle version support status
+
+The Job Summary reports the support status of each Gradle version used in the workflow, and the action adds a
+Job annotation for any version that is no longer current. The latest Gradle release is determined from release data
+bundled with the action, so no network access is required.
+
+A version is reported when it is:
+- **End-of-life** — two or more major versions behind the latest release. Each such version is marked with :warning:
+  in the build results table, a single expandable section below the table explains that the affected release lines
+  receive no further fixes (security fixes included), and a warning annotation is added to the Job for each version.
+  If you cannot upgrade, the [Gradle Security Subscription](https://gradle.org/security-subscription/) offers
+  continued support for older versions.
+- **Out of date** — one major version behind the latest release, or more than two minor versions behind on the current
+  major. The version is marked with :information_source: in the build results table and a notice annotation is added to
+  the Job. Note that a version one major behind is still in "maintenance only" support and receives critical bug fixes
+  and security fixes; an older minor of the current major has simply been superseded. See
+  [Gradle release lifecycle](https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support) for details.
+
+Patch releases are not reported: only the major and minor version are considered. Release candidates, milestones and
+snapshots are never reported, so testing against a pre-release build will not produce annotations.
+
+Note that these annotations are always emitted, independent of the `add-job-summary` setting. Setting
+`add-job-summary: 'never'` suppresses the Job Summary itself, but the warning and notice annotations remain.
+
 ### Excluding specific Gradle builds from Job Summary
 
 The Job Summary works by installing an init-script in Gradle User Home which will record details of any Gradle execution during the workflow.
