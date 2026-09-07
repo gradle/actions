@@ -230,8 +230,8 @@ describe('Gradle version support status', () => {
             </table>
 
             <details>
-                <summary>:warning: Gradle 8.0 is end-of-life</summary>
-                <p>The 8.x release line receives no further fixes, security fixes included. Update to the latest Gradle version.</p>
+                <summary>:warning: Gradle version is end-of-life</summary>
+                <p>Gradle 8.x releases receive no further fixes, security fixes included. Update to the latest Gradle version.</p>
                 <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
             </details>
         `)
@@ -240,7 +240,8 @@ describe('Gradle version support status', () => {
         const table = await renderWith(['9.0.0', '8.1', '8.0'], [successfulHelpBuild])
         expect(table).toContain(`<td align='center'>8.0 :information_source:</td>`)
         expect(table).toContain(
-            `<p>:information_source: Consider upgrading — See <a href="${DOC}">Gradle release lifecycle</a></p>`
+            `<p>:information_source: Gradle version is out of date — consider upgrading. ` +
+                `See <a href="${DOC}">Gradle release lifecycle</a></p>`
         )
         expect(table).not.toContain('<details>')
     })
@@ -248,7 +249,7 @@ describe('Gradle version support status', () => {
         const table = await renderWith(['8.2', '8.0'], [successfulHelpBuild])
         expect(table).toContain(`<td align='center'>8.0</td>`)
         expect(table).not.toContain(':information_source:')
-        expect(table).not.toContain('Consider upgrading')
+        expect(table).not.toContain('consider upgrading')
     })
 })
 

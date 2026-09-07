@@ -109,7 +109,7 @@ jobs:
           if ! grep -qF -- "$1" job.log; then
             echo "Expected the Job log to contain: $1"
             echo "--- support-status output found instead ---"
-            grep -E '##\[(warning|notice)\]|<summary>:warning:|Consider upgrading' job.log || echo "(none)"
+            grep -E '##\[(warning|notice)\]|<summary>:warning:|consider upgrading' job.log || echo "(none)"
             exit 1
           fi
         }
@@ -130,7 +130,7 @@ jobs:
         refute_logged "##[warning]Gradle ${PREV_NEWEST}"
 
         # The job summary is echoed to the log, so the rendered report can be checked directly.
-        assert_logged "<summary>:warning: Gradle 7.6.4 is end-of-life</summary>"
+        assert_logged "<summary>:warning: Gradle version is end-of-life</summary>"
         assert_logged "Update to the latest Gradle version."
         assert_logged "<a href=\"https://gradle.org/security-subscription/?utm_source=github-action\">Gradle Security Subscription</a>"
 
@@ -140,9 +140,9 @@ jobs:
         assert_logged "<td align='center'>${PREV_NEWEST} :information_source:</td>"
 
         # One legend for the whole job, no matter how many versions carry the info sign.
-        legends=$(grep -cF -- "Consider upgrading" job.log || true)
+        legends=$(grep -cF -- "consider upgrading" job.log || true)
         if [ "$legends" != "1" ]; then
           echo "Expected exactly one upgrade legend, found ${legends}"
           exit 1
         fi
-        assert_logged "<p>:information_source: Consider upgrading — See <a href=\"https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support\">Gradle release lifecycle</a></p>"
+        assert_logged "<p>:information_source: Gradle version is out of date — consider upgrading. See <a href=\"https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support\">Gradle release lifecycle</a></p>"

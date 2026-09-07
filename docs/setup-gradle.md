@@ -525,14 +525,16 @@ Job annotation for any version that is no longer current. The latest Gradle rele
 bundled with the action, so no network access is required.
 
 A version is reported when it is:
-- **End-of-life** — two or more major versions behind the latest release. The version is marked with :warning: in the
-  build results table, an expandable section below the table explains that the release line receives no further fixes
-  (security fixes included), and a warning annotation is added to the Job. If you cannot upgrade, the
-  [Gradle Security Subscription](https://gradle.org/security-subscription/) offers continued support for older versions.
+- **End-of-life** — two or more major versions behind the latest release. Each such version is marked with :warning:
+  in the build results table, a single expandable section below the table explains that the affected release lines
+  receive no further fixes (security fixes included), and a warning annotation is added to the Job for each version.
+  If you cannot upgrade, the [Gradle Security Subscription](https://gradle.org/security-subscription/) offers
+  continued support for older versions.
 - **Out of date** — one major version behind the latest release, or more than two minor versions behind on the current
   major. The version is marked with :information_source: in the build results table and a notice annotation is added to
-  the Job. See [Gradle release lifecycle](https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support)
-  for details of what this means for support.
+  the Job. Note that a version one major behind is still in "maintenance only" support and receives critical bug fixes
+  and security fixes; an older minor of the current major has simply been superseded. See
+  [Gradle release lifecycle](https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support) for details.
 
 Patch releases are not reported: only the major and minor version are considered. Release candidates, milestones and
 snapshots are never reported, so testing against a pre-release build will not produce annotations.

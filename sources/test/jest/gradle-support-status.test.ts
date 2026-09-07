@@ -141,7 +141,7 @@ describe('reportSupportStatus', () => {
         expect(mockNotice).not.toHaveBeenCalled()
         const [message, properties] = mockWarning.mock.calls[0]
         expect(message).toBe(
-            `Gradle 7.6.4 is end-of-life. The 7.x release line receives no further fixes, security fixes included. Update to the latest Gradle version. If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`
+            `Gradle 7.6.4 is end-of-life. Gradle 7.x releases receive no further fixes, security fixes included. Update to the latest Gradle version. If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`
         )
         expect(properties?.title).toBe('End-of-life Gradle version')
     })
@@ -181,20 +181,32 @@ describe('reportSupportStatus', () => {
 })
 
 describe('renderSupportStatus', () => {
-    const LEGEND = `<p>${OUT_OF_DATE} Consider upgrading — See <a href="${DOC}">Gradle release lifecycle</a></p>`
+    const LEGEND =
+        `<p>${OUT_OF_DATE} Gradle version is out of date — consider upgrading. ` +
+        `See <a href="${DOC}">Gradle release lifecycle</a></p>`
 
-    it('folds an end-of-life version under a warning sign, linking the security subscription', () => {
+    it('folds end-of-life versions under a warning sign, linking the security subscription', () => {
         const rendered = renderSupportStatus(['7.6.4'])
 
-        expect(rendered).toContain(`<summary>${END_OF_LIFE} Gradle 7.6.4 is end-of-life</summary>`)
+        expect(rendered).toContain(`<summary>${END_OF_LIFE} Gradle version is end-of-life</summary>`)
         expect(rendered).toContain(
-            'The 7.x release line receives no further fixes, security fixes included. Update to the latest Gradle version.'
+            'Gradle 7.x releases receive no further fixes, security fixes included. Update to the latest Gradle version.'
         )
         expect(rendered).toContain(`<a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a>`)
         expect(rendered).not.toContain(LEGEND)
     })
 
-    it('names no version in the fold beyond the one that is end-of-life', () => {
+    it('does not repeat the version in the summary line, which the table already marks', () => {
+        expect(renderSupportStatus(['7.6.4'])).not.toContain('Gradle 7.6.4 is end-of-life')
+    })
+
+    it('names every affected release line when versions span more than one', () => {
+        const rendered = renderSupportStatus(['7.6.4', '1.0', '4.10.3'])
+
+        expect(rendered).toContain('Gradle 1.x, 4.x and 7.x releases receive no further fixes')
+    })
+
+    it('names no version outside the versions that are end-of-life', () => {
         expect(renderSupportStatus(['7.6.4'])).not.toContain('9.7.1')
     })
 
@@ -208,11 +220,12 @@ describe('renderSupportStatus', () => {
         expect(rendered.trim()).toBe(LEGEND)
     })
 
-    it('emits one fold per end-of-life version plus the single legend', () => {
+    it('emits a single section however many versions are end-of-life, plus the single legend', () => {
         const rendered = renderSupportStatus(['9.6.1', '9.2.1', '8.14.5', '8.0', '7.6.4', '1.0'])
 
-        expect(rendered.match(/<details>/g)).toHaveLength(2)
-        expect(rendered.match(/Consider upgrading/g)).toHaveLength(1)
+        expect(rendered.match(/<details>/g)).toHaveLength(1)
+        expect(rendered.match(/consider upgrading/g)).toHaveLength(1)
+        expect(rendered).toContain('Gradle 1.x and 7.x releases receive no further fixes')
     })
 
     it('names no version outside the fold', () => {
