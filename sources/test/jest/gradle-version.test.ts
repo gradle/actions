@@ -1,6 +1,6 @@
 import {describe, expect, it} from '@jest/globals'
 
-import {GradleVersion} from '../../src/execution/gradle-version'
+import {GradleVersion} from '../../src/gradle-version'
 import {parseGradleVersionFromOutput} from '../../src/execution/gradle'
 
 function order(a: string, b: string): number {
