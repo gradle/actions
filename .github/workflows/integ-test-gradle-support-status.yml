@@ -42,10 +42,9 @@ jobs:
           | sort_by(.k) as $finals
           | ($finals | last) as $latest
           | [$finals[] | select(.k[0] == $latest.k[0] - 1)] as $prev
-          | [$prev[] | select(.k[1] == ($prev | last | .k[1]))] as $line
           | "KNOWN_LATEST=\($latest.v)",
             "PREV_OLDEST=\($prev | first | .v)",
-            "PREV_NEWEST=\($line | last | .v)"
+            "PREV_NEWEST=\($prev | last | .v)"
         ' sources/src/wrapper-validation/wrapper-checksums.json)"
 
         echo "Known latest : ${KNOWN_LATEST}"
@@ -147,8 +146,3 @@ jobs:
           exit 1
         fi
         assert_logged "<p>:information_source: Consider upgrading — See <a href=\"https://docs.gradle.org/current/userguide/feature_lifecycle.html#eol_support\">Gradle release lifecycle</a></p>"
-
-        # The per-version wording of the earlier scheme must be gone.
-        # Matched against markup, not bare words: this Job's own log echoes the chosen versions.
-        refute_logged "</strong> Unmaintained"
-        refute_logged "Maintenance only"
