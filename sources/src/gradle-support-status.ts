@@ -24,21 +24,25 @@ const SIGN: Record<SupportStatus, string> = {
 
 const UPGRADE_LEGEND = `<p>${SIGN[SupportStatus.Behind]} Consider upgrading — See <a href="${FEATURE_LIFECYCLE_DOC}">Gradle release lifecycle</a></p>`
 
+/** Wording shared by the end-of-life annotation and the end-of-life section of the Job Summary. */
+const eolHeadline = (version: GradleVersion): string => `Gradle ${version.version} is end-of-life`
+const eolDetail = (version: GradleVersion): string =>
+    `The ${version.major}.x release line receives no further fixes, security fixes included. ` +
+    `Update to the latest Gradle version.`
+
 class ReleaseIndex {
     private readonly latest: GradleVersion
 
     constructor(releasedVersions: string[]) {
-        const none = new GradleVersion('0.0')
-        const latest = releasedVersions
+        const finalReleases = releasedVersions
             .map(version => new GradleVersion(version))
             .filter(version => version.isFinalRelease())
-            .reduce((max, version) => (max.compareTo(version) >= 0 ? max : version), none)
 
-        if (latest === none) {
+        if (finalReleases.length === 0) {
             throw new Error('The Gradle release data contains no final release')
         }
 
-        this.latest = latest
+        this.latest = finalReleases.reduce((max, version) => (max.compareTo(version) >= 0 ? max : version))
     }
 
     private classifyVersion(version: GradleVersion): SupportStatus {
@@ -56,7 +60,7 @@ class ReleaseIndex {
         if (version.major > this.latest.major) {
             return SupportStatus.Current // newer than the bundled data knows about
         }
-        // Same major as the latest release: only minor distance matters, patch drift inside the grace band is silent.
+        // Same major as the latest release: only the minor distance matters, so a newer patch is never reported.
         return this.latest.minor - version.minor > MINOR_GRACE ? SupportStatus.Behind : SupportStatus.Current
     }
 
@@ -96,7 +100,7 @@ export function reportSupportStatus(gradleVersions: string[]): void {
     const byStatus = RELEASES.classified(gradleVersions)
     for (const version of byStatus.get(SupportStatus.Eol) ?? []) {
         core.warning(
-            `Gradle ${version.version} is end-of-life. The ${version.major}.x release line receives no further fixes, security fixes included. Update to the latest Gradle version. If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`,
+            `${eolHeadline(version)}. ${eolDetail(version)} If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`,
             {title: 'End-of-life Gradle version'}
         )
     }
@@ -115,14 +119,14 @@ export function renderSupportStatus(gradleVersions: string[]): string {
     if ([...byStatus.keys()].some(status => status !== SupportStatus.Eol)) {
         blocks.push(UPGRADE_LEGEND)
     }
-    return blocks.length > 0 ? `${blocks.join('\n')}\n` : ''
+    // The leading blank line closes the preceding HTML block, so each rendering stands on its own.
+    return blocks.length > 0 ? `\n${blocks.join('\n')}\n` : ''
 }
 
 function renderEolFold(version: GradleVersion): string {
-    return `
-<details>
-    <summary>${SIGN[SupportStatus.Eol]} Gradle ${version.version} is end-of-life</summary>
-    <p>The ${version.major}.x release line receives no further fixes, security fixes included. Update to the latest Gradle version.</p>
+    return `<details>
+    <summary>${SIGN[SupportStatus.Eol]} ${eolHeadline(version)}</summary>
+    <p>${eolDetail(version)}</p>
     <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
 </details>`
 }

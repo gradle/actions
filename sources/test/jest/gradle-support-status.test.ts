@@ -95,7 +95,7 @@ describe('supportStatusSign', () => {
         expect(supportStatusSign(version)).toBe(NO_SIGN)
     })
 
-    it('lets the grace band silence patch drift on the current major', () => {
+    it('does not mark a version merely because a newer patch exists', () => {
         expect(supportStatusSign('9.6.0')).toBe(NO_SIGN)
         expect(supportStatusSign('9.7.0')).toBe(NO_SIGN)
     })
