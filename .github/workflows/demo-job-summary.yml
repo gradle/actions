@@ -60,8 +60,9 @@ jobs:
   # Exercises every Gradle version support status in a single Job Summary: end-of-life versions all
   # share one expandable section and are each marked with a warning sign, out-of-date versions share
   # a single info sign and legend, and the current version is left unmarked.
-  # Two 7.x versions alongside a 6.x one check that the section names each affected release line
-  # once, as "Gradle 6.x and 7.x releases".
+  # Three end-of-life versions and two out-of-date ones exercise the plural wording throughout, and
+  # the two 7.x versions alongside a 6.x one check that each affected release line is named once,
+  # as "Gradle 6.x and 7.x releases".
   # Versions are picked relative to Gradle 9.x being current; revisit once Gradle 10 is released.
   support-status-eol-and-outdated:
     needs: build-distribution
@@ -99,6 +100,14 @@ jobs:
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help
 
+    - name: Setup Gradle 8.0.2 (out of date)
+      uses: ./setup-gradle
+      with:
+        gradle-version: '8.0.2'
+    - name: Build with Gradle 8.0.2
+      working-directory: .github/workflow-samples/no-wrapper
+      run: gradle help
+
     - name: Setup Gradle 8.14.5 (out of date)
       uses: ./setup-gradle
       with:
@@ -118,33 +127,6 @@ jobs:
       with:
         gradle-version: current
     - name: Build with the current Gradle version
-      working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help
-
-  # Only out-of-date versions, so the summary shows the shared upgrade legend on its own,
-  # with no end-of-life section above it.
-  support-status-outdated-only:
-    needs: build-distribution
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-    - name: Initialize integ-test
-      uses: ./.github/actions/init-integ-test
-
-    - name: Setup Gradle 8.0.2 (out of date)
-      uses: ./setup-gradle
-      with:
-        gradle-version: '8.0.2'
-    - name: Build with Gradle 8.0.2
-      working-directory: .github/workflow-samples/no-wrapper
-      run: gradle help
-
-    - name: Setup Gradle 8.14.5 (out of date)
-      uses: ./setup-gradle
-      with:
-        gradle-version: '8.14.5'
-    - name: Build with Gradle 8.14.5
       working-directory: .github/workflow-samples/no-wrapper
       run: gradle help
 
