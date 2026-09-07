@@ -87,10 +87,9 @@ export async function complete(
         cacheOptionsFrom(cacheConfig, develocityServerUrl, cacheToken)
     )
     await jobSummary.generateJobSummary(buildResults, cacheReport, getProviderNote(cacheConfig), summaryConfig)
+    reportSupportStatus(buildResults.map(result => result.gradleVersion))
 
     markBuildResultsProcessed()
-
-    reportSupportStatus(buildResults.map(result => result.gradleVersion))
 
     core.info('Completed post-action step')
 
