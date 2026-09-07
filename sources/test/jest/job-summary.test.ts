@@ -230,7 +230,7 @@ describe('Gradle version support status', () => {
             </table>
 
             <details>
-                <summary>:warning: Gradle version is end-of-life</summary>
+                <summary>:warning: Gradle 8.0 is end-of-life</summary>
                 <p>Gradle 8.x releases receive no further fixes, security fixes included. Update to the latest Gradle version.</p>
                 <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
             </details>

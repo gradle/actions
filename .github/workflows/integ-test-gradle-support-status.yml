@@ -130,7 +130,7 @@ jobs:
         refute_logged "##[warning]Gradle ${PREV_NEWEST}"
 
         # The job summary is echoed to the log, so the rendered report can be checked directly.
-        assert_logged "<summary>:warning: Gradle version is end-of-life</summary>"
+        assert_logged "<summary>:warning: Gradle 7.6.4 is end-of-life</summary>"
         assert_logged "Update to the latest Gradle version."
         assert_logged "<a href=\"https://gradle.org/security-subscription/?utm_source=github-action\">Gradle Security Subscription</a>"
 

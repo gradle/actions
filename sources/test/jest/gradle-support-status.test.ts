@@ -188,7 +188,7 @@ describe('renderSupportStatus', () => {
     it('folds end-of-life versions under a warning sign, linking the security subscription', () => {
         const rendered = renderSupportStatus(['7.6.4'])
 
-        expect(rendered).toContain(`<summary>${END_OF_LIFE} Gradle version is end-of-life</summary>`)
+        expect(rendered).toContain(`<summary>${END_OF_LIFE} Gradle 7.6.4 is end-of-life</summary>`)
         expect(rendered).toContain(
             'Gradle 7.x releases receive no further fixes, security fixes included. Update to the latest Gradle version.'
         )
@@ -196,14 +196,22 @@ describe('renderSupportStatus', () => {
         expect(rendered).not.toContain(LEGEND)
     })
 
-    it('does not repeat the version in the summary line, which the table already marks', () => {
-        expect(renderSupportStatus(['7.6.4'])).not.toContain('Gradle 7.6.4 is end-of-life')
+    it('names every end-of-life version in the summary line, and reads as a plural', () => {
+        const rendered = renderSupportStatus(['7.6.4', '1.0', '4.10.3'])
+
+        expect(rendered).toContain(`<summary>${END_OF_LIFE} Gradle 1.0, 4.10.3 and 7.6.4 are end-of-life</summary>`)
     })
 
     it('names every affected release line when versions span more than one', () => {
         const rendered = renderSupportStatus(['7.6.4', '1.0', '4.10.3'])
 
         expect(rendered).toContain('Gradle 1.x, 4.x and 7.x releases receive no further fixes')
+    })
+
+    it('names each release line once when several versions share one', () => {
+        const rendered = renderSupportStatus(['7.6.4', '7.6.6', '1.0'])
+
+        expect(rendered).toContain('Gradle 1.x and 7.x releases receive no further fixes')
     })
 
     it('names no version outside the versions that are end-of-life', () => {
@@ -225,7 +233,7 @@ describe('renderSupportStatus', () => {
 
         expect(rendered.match(/<details>/g)).toHaveLength(1)
         expect(rendered.match(/consider upgrading/g)).toHaveLength(1)
-        expect(rendered).toContain('Gradle 1.x and 7.x releases receive no further fixes')
+        expect(rendered).toContain(`<summary>${END_OF_LIFE} Gradle 1.0 and 7.6.4 are end-of-life</summary>`)
     })
 
     it('names no version outside the fold', () => {

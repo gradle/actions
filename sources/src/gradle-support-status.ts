@@ -30,15 +30,17 @@ const UPGRADE_LEGEND =
  * Wording shared by the end-of-life annotation, which names a single version, and the end-of-life
  * section of the Job Summary, which covers every flagged version at once.
  */
-const eolHeadline = (version: GradleVersion): string => `Gradle ${version.version} is end-of-life`
+const eolHeadline = (versions: GradleVersion[]): string =>
+    versions.length === 1
+        ? `Gradle ${versions[0].version} is end-of-life`
+        : `Gradle ${andList(versions.map(version => version.version))} are end-of-life`
 const eolDetail = (versions: GradleVersion[]): string =>
-    `Gradle ${releaseLines(versions)} releases receive no further fixes, security fixes included. ` +
-    `Update to the latest Gradle version.`
+    `Gradle ${andList([...new Set(versions.map(version => `${version.major}.x`))])} releases receive ` +
+    `no further fixes, security fixes included. Update to the latest Gradle version.`
 
-/** The distinct release lines of `versions`, as '7.x' or '6.x and 7.x'. */
-function releaseLines(versions: GradleVersion[]): string {
-    const lines = [...new Set(versions.map(version => `${version.major}.x`))]
-    return lines.length === 1 ? lines[0] : `${lines.slice(0, -1).join(', ')} and ${lines[lines.length - 1]}`
+/** Joins for prose: 'a', 'a and b', 'a, b and c'. */
+function andList(items: string[]): string {
+    return items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
 }
 
 class ReleaseIndex {
@@ -111,7 +113,7 @@ export function reportSupportStatus(gradleVersions: string[]): void {
     const byStatus = RELEASES.classified(gradleVersions)
     for (const version of byStatus.get(SupportStatus.Eol) ?? []) {
         core.warning(
-            `${eolHeadline(version)}. ${eolDetail([version])} If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`,
+            `${eolHeadline([version])}. ${eolDetail([version])} If you cannot upgrade, see ${SECURITY_SUBSCRIPTION} for options`,
             {title: 'End-of-life Gradle version'}
         )
     }
@@ -143,7 +145,7 @@ export function renderSupportStatus(gradleVersions: string[]): string {
 
 function renderEolSection(versions: GradleVersion[]): string {
     return `<details>
-    <summary>${SIGN[SupportStatus.Eol]} Gradle version is end-of-life</summary>
+    <summary>${SIGN[SupportStatus.Eol]} ${eolHeadline(versions)}</summary>
     <p>${eolDetail(versions)}</p>
     <p>If you cannot upgrade, see the <a href="${SECURITY_SUBSCRIPTION}">Gradle Security Subscription</a> for options.</p>
 </details>`
