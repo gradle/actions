@@ -1040,5 +1040,19 @@ Each of the plugins is signed by Gradle, and you can simply add the following sn
       <trusting group="com.gradle"/>
       <trusting group="org.gradle"/>
    </trusted-key>
+   <trusted-key id="E2879931BCA1A42E55F2D64DD9B2DFBD9F3298BA">
+      <trusting group="org.gradle"/>
+   </trusted-key>
 </trusted-keys>
 ```
+
+Two keys are listed because Gradle has rotated its signing key, and the plugins applied by these actions
+are not all signed with the same one:
+- `E2879931BCA1A42E55F2D64DD9B2DFBD9F3298BA` is the current signing subkey. The
+  `github-dependency-graph-gradle-plugin` used for Dependency Graph generation is signed with it from
+  version `1.5.0` onward.
+- `7B79ADD11F8A779FE90FD3D0893A028475557671` is the older key, which has since been revoked. It is still
+  required: the Develocity Gradle plugin (`com.gradle`) is signed with it, as are `org.gradle` plugin
+  versions released before the rotation.
+
+Keep both entries unless you pin plugin versions and have confirmed which key each one uses.
