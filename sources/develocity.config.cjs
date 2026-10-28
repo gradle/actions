@@ -2,7 +2,7 @@ const { fromPropertiesFile, inGradleUserHome } = require('@gradle-tech/develocit
 
 module.exports = {
   server: {
-    url: 'https://ge.solutions-team.gradle.com/',
+    url: 'https://solutions.develocity.cloud/',
     accessKey: fromPropertiesFile(inGradleUserHome())
   },
 }

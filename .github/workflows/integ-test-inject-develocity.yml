@@ -48,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       DEVELOCITY_INJECTION_ENABLED: true
-      DEVELOCITY_INJECTION_URL: https://ge.solutions-team.gradle.com
+      DEVELOCITY_INJECTION_URL: https://solutions.develocity.cloud
       DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.2.1'
       ${{matrix.accessKeyEnv}}: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
@@ -84,7 +84,7 @@ jobs:
   inject-develocity-with-access-key:
     env:
       DEVELOCITY_INJECTION_ENABLED: true
-      DEVELOCITY_INJECTION_URL: 'https://ge.solutions-team.gradle.com'
+      DEVELOCITY_INJECTION_URL: 'https://solutions.develocity.cloud'
       DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.2.1'
     strategy:
@@ -217,7 +217,7 @@ jobs:
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
           gradle-version: ${{ matrix.gradle }}
           develocity-injection-enabled: true
-          develocity-url: 'https://ge.solutions-team.gradle.com'
+          develocity-url: 'https://solutions.develocity.cloud'
           develocity-plugin-version: ${{ matrix.plugin-version }}
       - name: Run Gradle build
         id: gradle
