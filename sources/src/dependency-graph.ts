@@ -218,14 +218,28 @@ async function submitDependencyGraphFile(jsonFile: string): Promise<void> {
     const octokit = getOctokit()
     const jsonContent = fs.readFileSync(jsonFile, 'utf8')
 
-    const jsonObject = JSON.parse(jsonContent)
-    jsonObject.owner = github.context.repo.owner
-    jsonObject.repo = github.context.repo.repo
-    const response = await octokit.request('POST /repos/{owner}/{repo}/dependency-graph/snapshots', jsonObject)
+    const snapshot = toSnapshotRequest(JSON.parse(jsonContent), github.context.repo.owner, github.context.repo.repo)
+    const response = await octokit.request('POST /repos/{owner}/{repo}/dependency-graph/snapshots', snapshot)
 
     const relativeJsonFile = getRelativePathFromWorkspace(jsonFile)
     core.notice(`Submitted ${relativeJsonFile}: ${response.data.message}`)
 }
+
+// Only the snapshot fields are copied into the request: the file may come from an untrusted artifact,
+// and any other key (such as 'url', 'baseUrl' or 'headers') would be interpreted as a request option.
+const SNAPSHOT_FIELDS = ['version', 'job', 'sha', 'ref', 'detector', 'metadata', 'manifests', 'scanned'] as const
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function toSnapshotRequest(jsonObject: Record<string, unknown>, owner: string, repo: string): any {
+    const snapshot: Record<string, unknown> = {owner, repo}
+    for (const field of SNAPSHOT_FIELDS) {
+        if (jsonObject[field] !== undefined) {
+            snapshot[field] = jsonObject[field]
+        }
+    }
+    return snapshot
+}
+
 function getReportDirectory(): string {
     return process.env.DEPENDENCY_GRAPH_REPORT_DIR!
 }
