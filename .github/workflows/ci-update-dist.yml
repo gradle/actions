@@ -53,7 +53,7 @@ jobs:
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
-        DEVELOCITY_URL: 'https://ge.solutions-team.gradle.com'
+        DEVELOCITY_URL: 'https://solutions.develocity.cloud'
         DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
 
     - name: Copy the generated sources/dist directory to the top-level dist
