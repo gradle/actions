@@ -36,14 +36,14 @@ jobs:
           sources/test/init-scripts/**
     - name: Setup Java
       if: steps.changes.outputs.any_changed == 'true' || github.event_name != 'pull_request'
-      uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
       with:
         distribution: temurin
         java-version: 17
     - name: Setup Gradle
       if: steps.changes.outputs.any_changed == 'true' || github.event_name != 'pull_request'
       # Use a released version to avoid breakages
-      uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       env:
         ALLOWED_GRADLE_WRAPPER_CHECKSUMS: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Invalid wrapper jar used for testing
     - name: Run integration tests
