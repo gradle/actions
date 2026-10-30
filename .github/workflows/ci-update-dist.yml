@@ -20,6 +20,7 @@ jobs:
     if: github.repository == 'gradle/actions'
     permissions:
       contents: write
+      id-token: write
     runs-on: ubuntu-latest
 
     steps:
@@ -38,13 +39,31 @@ jobs:
       run: |
         npm exec -y -- pacote extract @gradle-tech/develocity-agent@3.0.1 ~/.node_libraries/@gradle-tech/develocity-agent
 
+    - name: Get GitHub OIDC token for Develocity
+      id: develocity-oidc
+      shell: bash
+      run: |
+        if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+          echo "::warning::No GitHub OIDC token available (e.g. PR from a fork), Develocity will not be authenticated"
+          exit 0
+        fi
+        token=$(curl -sSfG -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          --data-urlencode "audience=https://solutions.develocity.cloud" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+        echo "::add-mask::$token"
+        # Exchange the OIDC token for a short-lived Develocity access token, for the Develocity npm agent that reads DEVELOCITY_ACCESS_KEY directly
+        access_token=$(curl -sSf --retry 3 -X POST -H "Authorization: Bearer $token" \
+          "https://solutions.develocity.cloud/api/auth/token?expiresInHours=2")
+        echo "::add-mask::$access_token"
+        echo "token-access-key=solutions.develocity.cloud=$access_token" >> "$GITHUB_OUTPUT"
+
     - name: Install npm dependencies
       run: |
         npm clean-install
       working-directory: sources
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
-        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
+        DEVELOCITY_ACCESS_KEY: '${{ steps.develocity-oidc.outputs.token-access-key }}'
 
     - name: Build distribution
       run: |
@@ -54,7 +73,7 @@ jobs:
       env:
         NODE_OPTIONS: '-r @gradle-tech/develocity-agent/preload'
         DEVELOCITY_URL: 'https://solutions.develocity.cloud'
-        DEVELOCITY_ACCESS_KEY: '${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}'
+        DEVELOCITY_ACCESS_KEY: '${{ steps.develocity-oidc.outputs.token-access-key }}'
 
     - name: Copy the generated sources/dist directory to the top-level dist
       run: |
