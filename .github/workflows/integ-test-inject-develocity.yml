@@ -12,9 +12,6 @@ on:
       skip-dist:
         type: boolean
         default: false
-    secrets:
-      DEVELOCITY_ACCESS_KEY:
-        required: true
 
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
@@ -46,12 +43,14 @@ jobs:
           - plugin-version: '4.6.1'
             accessKeyEnv: DEVELOCITY_ACCESS_KEY
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     env:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_INJECTION_URL: https://solutions.develocity.cloud
       DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.2.1'
-      ${{matrix.accessKeyEnv}}: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
 
     steps:
     - name: Checkout sources
@@ -60,6 +59,19 @@ jobs:
       uses: ./.github/actions/init-integ-test
       with:
         java-version: ${{ matrix.java-version }}
+    - name: Get GitHub OIDC token for Develocity
+      id: develocity-oidc
+      shell: bash
+      run: |
+        if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+          echo "::warning::No GitHub OIDC token available (e.g. PR from a fork), Develocity will not be authenticated"
+          exit 0
+        fi
+        token=$(curl -sSfG -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          --data-urlencode "audience=https://solutions.develocity.cloud" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+        echo "::add-mask::$token"
+        echo "${{ matrix.accessKeyEnv }}=solutions.develocity.cloud=$token" >> "$GITHUB_ENV"
     - name: Setup Gradle
       id: setup-gradle
       uses: ./setup-gradle
@@ -104,6 +116,9 @@ jobs:
           - gradle: '5.6.4'
             java-version: 11
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -111,13 +126,26 @@ jobs:
         uses: ./.github/actions/init-integ-test
         with:
           java-version: ${{ matrix.java-version }}
+      - name: Get GitHub OIDC token for Develocity
+        id: develocity-oidc
+        shell: bash
+        run: |
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+            echo "::warning::No GitHub OIDC token available (e.g. PR from a fork), Develocity will not be authenticated"
+            exit 0
+          fi
+          token=$(curl -sSfG -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            --data-urlencode "audience=https://solutions.develocity.cloud" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+          echo "::add-mask::$token"
+          echo "access-key=solutions.develocity.cloud=$token" >> "$GITHUB_OUTPUT"
       - name: Setup Gradle
         id: setup-gradle
         uses: ./setup-gradle
         with:
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
           gradle-version: ${{ matrix.gradle }}
-          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          develocity-access-key: ${{ steps.develocity-oidc.outputs.access-key }}
           develocity-token-expiry: 1
       - name: Run Gradle build
         id: gradle
@@ -140,9 +168,6 @@ jobs:
       DEVELOCITY_INJECTION_URL: 'https://localhost:3333/'
       DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.1'
-      # Access key also set as an env var, we want to check it does not leak
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
     strategy:
       fail-fast: false
       matrix:
@@ -160,6 +185,9 @@ jobs:
           - gradle: '5.6.4'
             java-version: 11
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -167,13 +195,29 @@ jobs:
         uses: ./.github/actions/init-integ-test
         with:
           java-version: ${{ matrix.java-version }}
+      # Access key also set as an env var, we want to check it does not leak
+      - name: Get GitHub OIDC token for Develocity
+        id: develocity-oidc
+        shell: bash
+        run: |
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+            echo "::warning::No GitHub OIDC token available (e.g. PR from a fork), Develocity will not be authenticated"
+            exit 0
+          fi
+          token=$(curl -sSfG -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            --data-urlencode "audience=https://solutions.develocity.cloud" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+          echo "::add-mask::$token"
+          echo "access-key=solutions.develocity.cloud=$token" >> "$GITHUB_OUTPUT"
+          echo "GRADLE_ENTERPRISE_ACCESS_KEY=solutions.develocity.cloud=$token" >> "$GITHUB_ENV"
+          echo "DEVELOCITY_ACCESS_KEY=solutions.develocity.cloud=$token" >> "$GITHUB_ENV"
       - name: Setup Gradle
         id: setup-gradle
         uses: ./setup-gradle
         with:
           gradle-version: ${{ matrix.gradle }}
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
-          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          develocity-access-key: ${{ steps.develocity-oidc.outputs.access-key }}
       - name: Run Gradle build
         id: gradle
         working-directory: .github/workflow-samples/no-ge
@@ -184,8 +228,9 @@ jobs:
         run: "[ \"${GRADLE_ENTERPRISE_ACCESS_KEY}\" != \"\" ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY is still supported in v3!'; exit 1)"
 
   inject-develocity-with-access-key-from-input-actions:
-    env:
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -210,6 +255,19 @@ jobs:
         uses: ./.github/actions/init-integ-test
         with:
           java-version: ${{ matrix.java-version }}
+      - name: Get GitHub OIDC token for Develocity
+        id: develocity-oidc
+        shell: bash
+        run: |
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+            echo "::warning::No GitHub OIDC token available (e.g. PR from a fork), Develocity will not be authenticated"
+            exit 0
+          fi
+          token=$(curl -sSfG -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            --data-urlencode "audience=https://solutions.develocity.cloud" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+          echo "::add-mask::$token"
+          echo "DEVELOCITY_ACCESS_KEY=solutions.develocity.cloud=$token" >> "$GITHUB_ENV"
       - name: Setup Gradle
         id: setup-gradle
         uses: ./setup-gradle
