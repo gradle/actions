@@ -12,9 +12,6 @@ on:
       skip-dist:
         type: boolean
         default: false
-    secrets:
-      DEVELOCITY_ACCESS_KEY:
-        required: true
 
 env:
   SKIP_DIST: ${{ inputs.skip-dist }}
@@ -46,12 +43,14 @@ jobs:
           - plugin-version: '4.6.1'
             accessKeyEnv: DEVELOCITY_ACCESS_KEY
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     env:
       DEVELOCITY_INJECTION_ENABLED: true
       DEVELOCITY_INJECTION_URL: https://solutions.develocity.cloud
       DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.2.1'
-      ${{matrix.accessKeyEnv}}: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
 
     steps:
     - name: Checkout sources
@@ -60,6 +59,12 @@ jobs:
       uses: ./.github/actions/init-integ-test
       with:
         java-version: ${{ matrix.java-version }}
+    # The OIDC token is set as the access key env var, setup-gradle exchanges it like a long-lived access key
+    - name: Get GitHub OIDC token for Develocity
+      id: develocity-oidc
+      uses: ./.github/actions/develocity-oidc-token
+      with:
+        access-key-env: ${{ matrix.accessKeyEnv }}
     - name: Setup Gradle
       id: setup-gradle
       uses: ./setup-gradle
@@ -80,6 +85,11 @@ jobs:
       run: "[ ${#DEVELOCITY_ACCESS_KEY} -gt 500 ] || (echo 'DEVELOCITY_ACCESS_KEY does not look like a short lived token'; exit 1)"
     - name: Check short lived token (GRADLE_ENTERPRISE_ACCESS_KEY)
       run: "[ ${#GRADLE_ENTERPRISE_ACCESS_KEY} -gt 500 ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY does not look like a short lived token'; exit 1)"
+    # The OIDC token is also longer than 500 chars, so check it was replaced by the exchanged token
+    - name: Check access key was exchanged
+      env:
+        OIDC_ACCESS_KEY: ${{ steps.develocity-oidc.outputs.access-key }}
+      run: "[ \"${DEVELOCITY_ACCESS_KEY}\" != \"${OIDC_ACCESS_KEY}\" ] && [ \"${GRADLE_ENTERPRISE_ACCESS_KEY}\" != \"${OIDC_ACCESS_KEY}\" ] || (echo 'Access key was not exchanged for a short lived token'; exit 1)"
 
   inject-develocity-with-access-key:
     env:
@@ -104,6 +114,9 @@ jobs:
           - gradle: '5.6.4'
             java-version: 11
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -111,13 +124,16 @@ jobs:
         uses: ./.github/actions/init-integ-test
         with:
           java-version: ${{ matrix.java-version }}
+      - name: Get GitHub OIDC token for Develocity
+        id: develocity-oidc
+        uses: ./.github/actions/develocity-oidc-token
       - name: Setup Gradle
         id: setup-gradle
         uses: ./setup-gradle
         with:
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
           gradle-version: ${{ matrix.gradle }}
-          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          develocity-access-key: ${{ steps.develocity-oidc.outputs.access-key }}
           develocity-token-expiry: 1
       - name: Run Gradle build
         id: gradle
@@ -127,6 +143,11 @@ jobs:
         run: "[ ${#DEVELOCITY_ACCESS_KEY} -gt 500 ] || (echo 'DEVELOCITY_ACCESS_KEY does not look like a short lived token'; exit 1)"
       - name: Check short lived token (GRADLE_ENTERPRISE_ACCESS_KEY)
         run: "[ ${#GRADLE_ENTERPRISE_ACCESS_KEY} -gt 500 ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY does not look like a short lived token'; exit 1)"
+      # The OIDC token is also longer than 500 chars, so check it was replaced by the exchanged token
+      - name: Check access key was exchanged
+        env:
+          OIDC_ACCESS_KEY: ${{ steps.develocity-oidc.outputs.access-key }}
+        run: "[ \"${DEVELOCITY_ACCESS_KEY}\" != \"${OIDC_ACCESS_KEY}\" ] && [ \"${GRADLE_ENTERPRISE_ACCESS_KEY}\" != \"${OIDC_ACCESS_KEY}\" ] || (echo 'Access key was not exchanged for a short lived token'; exit 1)"
       - name: Check Build Scan url
         if: ${{ !steps.gradle.outputs.build-scan-url }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -140,9 +161,10 @@ jobs:
       DEVELOCITY_INJECTION_URL: 'https://localhost:3333/'
       DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: ${{ matrix.plugin-version }}
       DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.1'
+      # Fake access key, so the short-lived token request fails
       # Access key also set as an env var, we want to check it does not leak
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+      GRADLE_ENTERPRISE_ACCESS_KEY: 'solutions.develocity.cloud=foo'
+      DEVELOCITY_ACCESS_KEY: 'solutions.develocity.cloud=foo'
     strategy:
       fail-fast: false
       matrix:
@@ -173,7 +195,7 @@ jobs:
         with:
           gradle-version: ${{ matrix.gradle }}
           cache-read-only: false # For testing, allow writing cache entries on non-default branches
-          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          develocity-access-key: 'solutions.develocity.cloud=foo'
       - name: Run Gradle build
         id: gradle
         working-directory: .github/workflow-samples/no-ge
@@ -184,8 +206,9 @@ jobs:
         run: "[ \"${GRADLE_ENTERPRISE_ACCESS_KEY}\" != \"\" ] || (echo 'GRADLE_ENTERPRISE_ACCESS_KEY is still supported in v3!'; exit 1)"
 
   inject-develocity-with-access-key-from-input-actions:
-    env:
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -210,6 +233,10 @@ jobs:
         uses: ./.github/actions/init-integ-test
         with:
           java-version: ${{ matrix.java-version }}
+      - name: Get GitHub OIDC token for Develocity
+        uses: ./.github/actions/develocity-oidc-token
+        with:
+          access-key-env: DEVELOCITY_ACCESS_KEY
       - name: Setup Gradle
         id: setup-gradle
         uses: ./setup-gradle
