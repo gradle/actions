@@ -16,7 +16,7 @@ export async function findWrapperJars(baseDir: string): Promise<string[]> {
 async function recursivelyListFiles(baseDir: string): Promise<string[]> {
     const childrenNames = await readdir(baseDir)
     const childrenPaths = await Promise.all(
-        childrenNames.map(async childName => {
+        childrenNames.map(async (childName): Promise<string[]> => {
             const childPath = path.resolve(baseDir, childName)
             const stat = fs.lstatSync(childPath, {throwIfNoEntry: false})
             if (stat === undefined) {
@@ -24,9 +24,11 @@ async function recursivelyListFiles(baseDir: string): Promise<string[]> {
             } else if (stat.isDirectory()) {
                 return recursivelyListFiles(childPath)
             } else {
-                return new Promise(resolve => resolve([childPath]))
+                return [childPath]
             }
         })
     )
-    return Array.prototype.concat(...childrenPaths)
+    // Do not spread into concat(): one argument per entry overflows the call stack
+    // for directories with more than ~125k entries.
+    return childrenPaths.flat()
 }
