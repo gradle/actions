@@ -48,6 +48,7 @@ jobs:
     permissions:
       contents: write
       actions: read
+      id-token: write
     needs: caching-integ-tests
     uses: ./.github/workflows/suite-integ-test-other.yml
     concurrency:
