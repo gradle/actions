@@ -136,6 +136,33 @@ inputs:
   develocity-ccud-plugin-version:
     type: string
 
+  develocity-enforce-build-cache:
+    type: boolean
+
+  develocity-remote-build-cache-enabled:
+    type: boolean
+
+  develocity-remote-build-cache-push:
+    type: boolean
+
+  develocity-remote-build-cache-server:
+    type: string
+
+  develocity-remote-build-cache-path:
+    type: string
+
+  develocity-remote-build-cache-allow-insecure-protocol:
+    type: boolean
+
+  develocity-remote-build-cache-allow-untrusted-server:
+    type: boolean
+
+  develocity-local-build-cache-enabled:
+    type: boolean
+
+  develocity-local-build-cache-push:
+    type: boolean
+
   gradle-plugin-repository-url:
     type: string
 

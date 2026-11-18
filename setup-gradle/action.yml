@@ -174,7 +174,7 @@ inputs:
     required: false
 
   develocity-enforce-url:
-    description: Enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL.
+    description: Enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL; a Develocity Build Cache connector without a server defined follows the enforced URL, but a server explicitly configured in the project's build is not changed.
     required: false
 
   develocity-plugin-version:
@@ -183,6 +183,42 @@ inputs:
 
   develocity-ccud-plugin-version:
     description: The version of the Common Custom User Data Gradle plugin to apply, if any.
+    required: false
+
+  develocity-enforce-build-cache:
+    description: Replace a remote build cache configured in the project's build with the Develocity Build Cache connector.
+    required: false
+
+  develocity-remote-build-cache-enabled:
+    description: Enables the remote build cache.
+    required: false
+
+  develocity-remote-build-cache-push:
+    description: Store task outputs in the remote build cache.
+    required: false
+
+  develocity-remote-build-cache-server:
+    description: The URL of the remote build cache server; the Develocity server is used by default.
+    required: false
+
+  develocity-remote-build-cache-path:
+    description: The path of the remote build cache on the server.
+    required: false
+
+  develocity-remote-build-cache-allow-insecure-protocol:
+    description: Allow communication with the remote build cache over plain HTTP.
+    required: false
+
+  develocity-remote-build-cache-allow-untrusted-server:
+    description: Allow communication with an untrusted remote build cache server.
+    required: false
+
+  develocity-local-build-cache-enabled:
+    description: Enables the local build cache.
+    required: false
+
+  develocity-local-build-cache-push:
+    description: Store task outputs in the local build cache.
     required: false
 
   gradle-plugin-repository-url:

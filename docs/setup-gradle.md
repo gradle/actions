@@ -431,6 +431,8 @@ As well as reducing the content that needs to be saved to the GitHub Actions cac
 this setup will ensure that your CI builds populate the remote cache and keep the cache entries fresh by reading these entries.
 Local builds can then benefit from the remote cache.
 
+If your build uses Develocity, `setup-gradle` can apply this setup for you with [Develocity injection](#configuring-the-build-cache-with-develocity-injection).
+
 ## Basic Caching
 
 Basic Caching is an open-source (MIT) alternative that uses `@actions/cache` to provide straightforward, path-based caching of Gradle dependencies. It uses the same caching strategy as `actions/setup-java` with `cache: gradle`.
@@ -979,20 +981,20 @@ This access key will be used during the action execution to get a short-lived to
 
 ### Configuring Develocity injection
 
-The `init-script` supports several additional configuration parameters that you may find useful. All configuration options (required and optional) are detailed below:
+The `init-script` supports several additional configuration parameters that you may find useful. These configuration options (required and optional) are detailed below:
 
-| Variable                             | Required | Description                                                                                                                                                             |
-|--------------------------------------| :---: |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| develocity-injection-enabled         | :white_check_mark: | enables Develocity injection                                                                                                                                            |
-| develocity-url                       | :white_check_mark: | the URL of the Develocity server                                                                                                                                        |
-| develocity-allow-untrusted-server    | | allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed certificate                                              |
-| develocity-capture-file-fingerprints | | enables capturing the paths and content hashes of each individual input file                                                                                            |
-| develocity-enforce-url               | | enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL |
-| develocity-plugin-version            | :white_check_mark: | the version of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/) to apply                                                               |
-| develocity-ccud-plugin-version       |  | the version of the [Common Custom User Data Gradle plugin](https://github.com/gradle/common-custom-user-data-gradle-plugin) to apply, if any                            |
-| gradle-plugin-repository-url         |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default                                            |
-| gradle-plugin-repository-username    |  | the username for the repository URL to use when resolving the Develocity and CCUD plugins                                                                               |
-| gradle-plugin-repository-password    |  | the password for the repository URL to use when resolving the Develocity and CCUD plugins; Consider using secrets to pass the value to this variable                    |
+| Variable                             | Required | Description                                                                                                                                                                                                                                                                                                                              |
+|--------------------------------------| :---: |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| develocity-injection-enabled         | :white_check_mark: | enables Develocity injection                                                                                                                                                                                                                                                                                                             |
+| develocity-url                       | :white_check_mark: | the URL of the Develocity server                                                                                                                                                                                                                                                                                                         |
+| develocity-allow-untrusted-server    | | allow communication with an untrusted server; set to _true_ if your Develocity instance is using a self-signed certificate                                                                                                                                                                                                               |
+| develocity-capture-file-fingerprints | | enables capturing the paths and content hashes of each individual input file                                                                                                                                                                                                                                                             |
+| develocity-enforce-url               | | enforce the configured Develocity URL over a URL configured in the project's build; set to _true_ to enforce publication of build scans to the configured Develocity URL; a Develocity Build Cache connector without a server defined follows the enforced URL, but a server explicitly configured in the project's build is not changed |
+| develocity-plugin-version            | :white_check_mark: | the version of the [Develocity Gradle plugin](https://docs.gradle.com/develocity/gradle-plugin/) to apply                                                                                                                                                                                                                                |
+| develocity-ccud-plugin-version       |  | the version of the [Common Custom User Data Gradle plugin](https://github.com/gradle/common-custom-user-data-gradle-plugin) to apply, if any                                                                                                                                                                                             |
+| gradle-plugin-repository-url         |  | the URL of the repository to use when resolving the Develocity and CCUD plugins; the Gradle Plugin Portal is used by default                                                                                                                                                                                                             |
+| gradle-plugin-repository-username    |  | the username for the repository URL to use when resolving the Develocity and CCUD plugins                                                                                                                                                                                                                                                |
+| gradle-plugin-repository-password    |  | the password for the repository URL to use when resolving the Develocity and CCUD plugins; Consider using secrets to pass the value to this variable                                                                                                                                                                                     |
 
 The input parameters can be expressed as environment variables following the relationships outlined in the table below:
 
@@ -1024,6 +1026,71 @@ Here's an example using the env vars:
         DEVELOCITY_INJECTION_ENFORCE_URL: true
         DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION: '4.0'
         DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION: '2.2.1'
+```
+
+### Configuring the build cache with Develocity injection
+
+> [!IMPORTANT]
+> Develocity injection can configure the local and remote build caches, but it cannot enable
+> the [Gradle build cache](https://docs.gradle.org/current/userguide/build_cache.html) feature
+> itself. Enable it with `org.gradle.caching=true` in `gradle.properties` or with the
+> `--build-cache` command line option. Without it, the `setup-gradle` build cache configuration
+> has no effect.
+
+Develocity injection can also configure the build cache of your build.
+The remote build cache is configured with the [Develocity Build Cache connector](https://docs.gradle.com/develocity/gradle-plugin/current/#using_build_caching), which uses the Develocity server unless another server is configured.
+The connector authenticates with the same access key the Develocity Gradle plugin uses to publish Build Scans.
+
+| Input                                                 | Description                                                                                                                 |
+|-------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| develocity-enforce-build-cache                        | set to _true_ to replace a remote build cache configured in the project's build with the Develocity Build Cache connector   |
+| develocity-remote-build-cache-enabled                 | enable the remote build cache                                                                                               |
+| develocity-remote-build-cache-push                    | store task outputs in the remote build cache                                                                                |
+| develocity-remote-build-cache-server                  | the URL of the remote build cache server; the Develocity server is used by default                                          |
+| develocity-remote-build-cache-path                    | the path of the remote build cache on the server                                                                            |
+| develocity-remote-build-cache-allow-insecure-protocol | allow communication with the remote build cache over plain HTTP                                                             |
+| develocity-remote-build-cache-allow-untrusted-server  | allow communication with an untrusted remote build cache server                                                             |
+| develocity-local-build-cache-enabled                  | enable the local build cache                                                                                                |
+| develocity-local-build-cache-push                     | store task outputs in the local build cache                                                                                 |
+
+The input parameters can be expressed as environment variables following the relationships outlined in the table below:
+
+| Input                                                 | Environment Variable                                            |
+|-------------------------------------------------------|-----------------------------------------------------------------|
+| develocity-enforce-build-cache                        | DEVELOCITY_INJECTION_ENFORCE_BUILD_CACHE                        |
+| develocity-remote-build-cache-enabled                 | DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ENABLED                 |
+| develocity-remote-build-cache-push                    | DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_PUSH                    |
+| develocity-remote-build-cache-server                  | DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_SERVER                  |
+| develocity-remote-build-cache-path                    | DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_PATH                    |
+| develocity-remote-build-cache-allow-insecure-protocol | DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ALLOW_INSECURE_PROTOCOL |
+| develocity-remote-build-cache-allow-untrusted-server  | DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ALLOW_UNTRUSTED_SERVER  |
+| develocity-local-build-cache-enabled                  | DEVELOCITY_INJECTION_LOCAL_BUILD_CACHE_ENABLED                  |
+| develocity-local-build-cache-push                     | DEVELOCITY_INJECTION_LOCAL_BUILD_CACHE_PUSH                     |
+
+The remote build cache is only configured when `develocity-remote-build-cache-enabled` is set, and the local build cache only when `develocity-local-build-cache-enabled` is set.
+If the project's build already configures a remote build cache, the existing build cache configuration is not modified unless `develocity-enforce-build-cache` is set to _true_.
+If the remote build cache cannot be configured, the local build cache is not configured either, so a build is never left with a partial build cache configuration.
+
+Build cache configuration requires Gradle 6.0 or later and the Develocity Gradle plugin 3.11 or later.
+With the configuration cache enabled, it requires Gradle 7.5.1 or later.
+Builds that do not meet these requirements keep their own build cache configuration.
+
+Here's an example that has CI builds populate the remote build cache on the Develocity server and disables the local build cache:
+
+```yaml
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v6
+      with:
+        develocity-access-key: ${{ secrets.MY_DEVELOCITY_ACCESS_KEY }}
+        develocity-injection-enabled: true
+        develocity-url: 'https://develocity.your-server.com'
+        develocity-plugin-version: '4.0'
+        develocity-remote-build-cache-enabled: true
+        develocity-remote-build-cache-push: true
+        develocity-local-build-cache-enabled: false
+
+    - name: Run a Gradle build with the Develocity remote build cache
+      run: ./gradlew build --build-cache
 ```
 
 # Dependency verification
