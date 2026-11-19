@@ -71,6 +71,22 @@ export class DependencyGraphConfig {
         return getOptionalInput('dependency-graph-include-configurations')
     }
 
+    getRuntimeExcludeProjects(): string | undefined {
+        return getOptionalInput('dependency-graph-runtime-exclude-projects')
+    }
+
+    getRuntimeIncludeProjects(): string | undefined {
+        return getOptionalInput('dependency-graph-runtime-include-projects')
+    }
+
+    getRuntimeExcludeConfigurations(): string | undefined {
+        return getOptionalInput('dependency-graph-runtime-exclude-configurations')
+    }
+
+    getRuntimeIncludeConfigurations(): string | undefined {
+        return getOptionalInput('dependency-graph-runtime-include-configurations')
+    }
+
     getPluginRepository(): PluginRepositoryConfig {
         return new PluginRepositoryConfig()
     }
