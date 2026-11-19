@@ -354,6 +354,47 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         testGradleVersion << CONFIGURATION_CACHE_VERSIONS
     }
 
+    def "configures remote and local build cache when Develocity plugin is applied by the init script"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        when:
+        def config = testConfig().withRemoteBuildCache().withLocalBuildCache(false)
+        def result = run(testGradleVersion, config)
+
+        then:
+        outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
+        outputContainsRemoteBuildCacheConfiguration(result, 'Develocity server', '<default>', true, true)
+        outputContainsLocalBuildCacheConfiguration(result, false, true)
+
+        and:
+        outputContainsBuildScanUrl(result)
+
+        where:
+        testGradleVersion << SETTINGS_PLUGIN_VERSIONS
+    }
+
+    def "enforces remote build cache in project if enforce build cache parameter is enabled"() {
+        assumeTrue testGradleVersion.compatibleWithCurrentJvm
+
+        given:
+        declareHttpBuildCache()
+
+        when:
+        def config = testConfig().withRemoteBuildCache().withRemoteBuildCacheLocation('https://build-cache-server.invalid', 'cache').withEnforceBuildCache()
+        def result = run(testGradleVersion, config)
+
+        then:
+        outputContainsDevelocityPluginApplicationViaInitScript(result, testGradleVersion.gradleVersion)
+        outputReplacesRemoteBuildCache(result)
+        outputContainsRemoteBuildCacheConfiguration(result, 'https://build-cache-server.invalid', 'cache', true, true)
+
+        and:
+        outputContainsBuildScanUrl(result)
+
+        where:
+        testGradleVersion << SETTINGS_PLUGIN_VERSIONS
+    }
+
     void outputContainsBuildScanUrl(BuildResult result) {
         def opt = ['Publishing build scan...', 'Publishing Build Scan...', 'Publishing Build Scan to Develocity...'].stream()
             .filter { result.output.contains("${it}\n${mockScansServer.address}s/$PUBLIC_BUILD_SCAN_ID") }.findFirst()
@@ -441,6 +482,24 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         assert 1 == result.output.count(enforceUrl)
     }
 
+    void outputContainsRemoteBuildCacheConfiguration(BuildResult result, String server, String path, boolean enabled, boolean push) {
+        def remoteBuildCacheInfo = "Configuring the remote build cache: $server, path: $path, enabled: $enabled, push: $push, allowInsecureProtocol: false, allowUntrustedServer: <default>"
+        assert result.output.contains(remoteBuildCacheInfo)
+        assert 1 == result.output.count(remoteBuildCacheInfo)
+    }
+
+    void outputContainsLocalBuildCacheConfiguration(BuildResult result, boolean enabled, boolean push) {
+        def localBuildCacheInfo = "Configuring the local build cache: enabled: $enabled, push: $push"
+        assert result.output.contains(localBuildCacheInfo)
+        assert 1 == result.output.count(localBuildCacheInfo)
+    }
+
+    void outputReplacesRemoteBuildCache(BuildResult result) {
+        def replaceRemoteBuildCache = "Replacing the existing remote build cache with the Develocity Build Cache connector"
+        assert result.output.contains(replaceRemoteBuildCache)
+        assert 1 == result.output.count(replaceRemoteBuildCache)
+    }
+
     private BuildResult run(TestGradleVersion testGradleVersion, TestConfig config, List<String> args = ["help"]) {
         return run(args, initScript, testGradleVersion.gradleVersion, config.jvmArgs, config.envVars)
     }
@@ -457,6 +516,12 @@ class TestDevelocityInjection extends BaseInitScriptTest {
         String pluginRepositoryUsername = null
         String pluginRepositoryPassword = null
         boolean captureFileFingerprints = false
+        boolean enforceBuildCache = false
+        Boolean remoteBuildCacheEnabled = null
+        Boolean remoteBuildCachePush = null
+        String remoteBuildCacheServer = null
+        String remoteBuildCachePath = null
+        Boolean localBuildCacheEnabled = null
         String develocityPluginVersion
 
         TestConfig(String develocityPluginVersion) {
@@ -490,6 +555,28 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             return this
         }
 
+        TestConfig withRemoteBuildCache(boolean enabled = true, boolean push = true) {
+            this.remoteBuildCacheEnabled = enabled
+            this.remoteBuildCachePush = push
+            return this
+        }
+
+        TestConfig withRemoteBuildCacheLocation(String server, String path) {
+            this.remoteBuildCacheServer = server
+            this.remoteBuildCachePath = path
+            return this
+        }
+
+        TestConfig withLocalBuildCache(boolean enabled = true) {
+            this.localBuildCacheEnabled = enabled
+            return this
+        }
+
+        TestConfig withEnforceBuildCache() {
+            this.enforceBuildCache = true
+            return this
+        }
+
         def getEnvVars() {
             Map<String, String> envVars = [
                 DEVELOCITY_INJECTION_INIT_SCRIPT_NAME         : "gradle-actions.inject-develocity.init.gradle",
@@ -507,6 +594,12 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (pluginRepositoryUrl != null) envVars.put("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL", pluginRepositoryUrl)
             if (pluginRepositoryUsername != null) envVars.put("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_USERNAME", pluginRepositoryUsername)
             if (pluginRepositoryPassword != null) envVars.put("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD", pluginRepositoryPassword)
+            if (enforceBuildCache) envVars.put("DEVELOCITY_INJECTION_ENFORCE_BUILD_CACHE", "true")
+            if (remoteBuildCacheEnabled != null) envVars.put("DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ENABLED", String.valueOf(remoteBuildCacheEnabled))
+            if (remoteBuildCachePush != null) envVars.put("DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_PUSH", String.valueOf(remoteBuildCachePush))
+            if (remoteBuildCacheServer != null) envVars.put("DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_SERVER", remoteBuildCacheServer)
+            if (remoteBuildCachePath != null) envVars.put("DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_PATH", remoteBuildCachePath)
+            if (localBuildCacheEnabled != null) envVars.put("DEVELOCITY_INJECTION_LOCAL_BUILD_CACHE_ENABLED", String.valueOf(localBuildCacheEnabled))
 
             return envVars
         }
@@ -529,6 +622,12 @@ class TestDevelocityInjection extends BaseInitScriptTest {
             if (pluginRepositoryUrl != null) jvmArgs.add("-Ddevelocity-injection.plugin-repository.url=$pluginRepositoryUrl")
             if (pluginRepositoryUsername != null) jvmArgs.add("-Ddevelocity-injection.plugin-repository.username=$pluginRepositoryUsername")
             if (pluginRepositoryPassword != null) jvmArgs.add("-Ddevelocity-injection.plugin-repository.password=$pluginRepositoryPassword")
+            if (enforceBuildCache) jvmArgs.add("-Ddevelocity-injection.enforce-build-cache=true")
+            if (remoteBuildCacheEnabled != null) jvmArgs.add("-Ddevelocity-injection.remote-build-cache.enabled=$remoteBuildCacheEnabled")
+            if (remoteBuildCachePush != null) jvmArgs.add("-Ddevelocity-injection.remote-build-cache.push=$remoteBuildCachePush")
+            if (remoteBuildCacheServer != null) jvmArgs.add("-Ddevelocity-injection.remote-build-cache.server=$remoteBuildCacheServer")
+            if (remoteBuildCachePath != null) jvmArgs.add("-Ddevelocity-injection.remote-build-cache.path=$remoteBuildCachePath")
+            if (localBuildCacheEnabled != null) jvmArgs.add("-Ddevelocity-injection.local-build-cache.enabled=$localBuildCacheEnabled")
 
             return jvmArgs.collect { it.toString() } // Convert from GStrings
         }

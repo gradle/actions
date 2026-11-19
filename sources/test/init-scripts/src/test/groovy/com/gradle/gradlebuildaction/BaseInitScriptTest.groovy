@@ -147,6 +147,16 @@ class BaseInitScriptTest extends Specification {
         buildFile.text = maybeAddPluginsToRootProject(gradleVersion, false, CCUD_PLUGIN_VERSION, serverUrl) + buildFile.text
     }
 
+    def declareHttpBuildCache() {
+        settingsFile << """
+              buildCache {
+                remote(HttpBuildCache) {
+                  url = 'https://build-cache-server.invalid/cache/'
+                }
+              }
+            """
+    }
+
     String maybeAddPluginsToSettings(GradleVersion gradleVersion, boolean legacy, String ccudPluginVersion, URI serverUri) {
         if (gradleVersion < GradleVersion.version('6.0')) {
             '' // applied in build.gradle

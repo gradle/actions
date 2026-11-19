@@ -27,6 +27,39 @@ export function setup(config: DevelocityConfig): void {
         'DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD',
         config.getPluginRepository().getPassword()
     )
+    maybeExportVariableNotEmpty('DEVELOCITY_INJECTION_ENFORCE_BUILD_CACHE', config.getDevelocityEnforceBuildCache())
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ENABLED',
+        config.getDevelocityRemoteBuildCacheEnabled()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_PUSH',
+        config.getDevelocityRemoteBuildCachePush()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_SERVER',
+        config.getDevelocityRemoteBuildCacheServer()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_PATH',
+        config.getDevelocityRemoteBuildCachePath()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ALLOW_INSECURE_PROTOCOL',
+        config.getDevelocityRemoteBuildCacheAllowInsecureProtocol()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_REMOTE_BUILD_CACHE_ALLOW_UNTRUSTED_SERVER',
+        config.getDevelocityRemoteBuildCacheAllowUntrustedServer()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_LOCAL_BUILD_CACHE_ENABLED',
+        config.getDevelocityLocalBuildCacheEnabled()
+    )
+    maybeExportVariableNotEmpty(
+        'DEVELOCITY_INJECTION_LOCAL_BUILD_CACHE_PUSH',
+        config.getDevelocityLocalBuildCachePush()
+    )
 
     // If build-scan-publish is enabled, ensure the environment variables are set
     // The DEVELOCITY_PLUGIN_VERSION and DEVELOCITY_CCUD_PLUGIN_VERSION are set to the latest versions

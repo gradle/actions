@@ -312,6 +312,42 @@ export class DevelocityConfig {
         return core.getInput('develocity-ccud-plugin-version')
     }
 
+    getDevelocityEnforceBuildCache(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-enforce-build-cache')
+    }
+
+    getDevelocityRemoteBuildCacheEnabled(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-remote-build-cache-enabled')
+    }
+
+    getDevelocityRemoteBuildCachePush(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-remote-build-cache-push')
+    }
+
+    getDevelocityRemoteBuildCacheServer(): string {
+        return core.getInput('develocity-remote-build-cache-server')
+    }
+
+    getDevelocityRemoteBuildCachePath(): string {
+        return core.getInput('develocity-remote-build-cache-path')
+    }
+
+    getDevelocityRemoteBuildCacheAllowInsecureProtocol(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-remote-build-cache-allow-insecure-protocol')
+    }
+
+    getDevelocityRemoteBuildCacheAllowUntrustedServer(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-remote-build-cache-allow-untrusted-server')
+    }
+
+    getDevelocityLocalBuildCacheEnabled(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-local-build-cache-enabled')
+    }
+
+    getDevelocityLocalBuildCachePush(): boolean | undefined {
+        return getOptionalBooleanInput('develocity-local-build-cache-push')
+    }
+
     getPluginRepository(): PluginRepositoryConfig {
         return new PluginRepositoryConfig()
     }
