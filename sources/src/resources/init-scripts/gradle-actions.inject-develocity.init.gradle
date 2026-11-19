@@ -1,6 +1,6 @@
 /*
  * Initscript for injection of Develocity into Gradle builds.
- * Version: 2.0.1
+ * Version: 2.1
  */
 
 import org.gradle.util.GradleVersion
@@ -94,6 +94,11 @@ static getInputParam(Gradle gradle, String name) {
     return System.getProperty(name) ?: gradle.startParameter.systemPropertiesArgs[name] ?: System.getenv(envVarName)
 }
 
+static Boolean getBooleanInputParam(Gradle gradle, String name, Boolean defaultValue = null) {
+    def value = getInputParam(gradle, name)
+    return value ? Boolean.parseBoolean(value) : defaultValue
+}
+
 def isTopLevelBuild = !gradle.parent
 if (!isTopLevelBuild) {
     return
@@ -102,7 +107,7 @@ if (!isTopLevelBuild) {
 def requestedInitScriptName = getInputParam(gradle, 'develocity-injection.init-script-name')
 def initScriptName = buildscript.sourceFile.name
 
-def develocityInjectionEnabled = Boolean.parseBoolean(getInputParam(gradle, "develocity-injection.enabled"))
+def develocityInjectionEnabled = getBooleanInputParam(gradle, "develocity-injection.enabled", false)
 if (develocityInjectionEnabled) {
     if (requestedInitScriptName != initScriptName) {
         logger.log(LogLevel.WARN, "Develocity injection not enabled because requested init script name was '${requestedInitScriptName}', but '${initScriptName}' was expected")
@@ -136,16 +141,26 @@ void enableDevelocityInjection() {
     def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
     def develocityUrl = getInputParam(gradle, 'develocity-injection.url')
-    def develocityAllowUntrustedServer = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.allow-untrusted-server'))
-    def develocityEnforceUrl = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.enforce-url'))
-    def buildScanUploadInBackground = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.upload-in-background'))
-    def develocityCaptureFileFingerprints = getInputParam(gradle, 'develocity-injection.capture-file-fingerprints') ? Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.capture-file-fingerprints')) : true
+    def develocityAllowUntrustedServer = getBooleanInputParam(gradle, 'develocity-injection.allow-untrusted-server', false)
+    def develocityEnforceUrl = getBooleanInputParam(gradle, 'develocity-injection.enforce-url', false)
+    def buildScanUploadInBackground = getBooleanInputParam(gradle, 'develocity-injection.upload-in-background', false)
+    def develocityCaptureFileFingerprints = getBooleanInputParam(gradle, 'develocity-injection.capture-file-fingerprints', true)
     def develocityPluginVersion = getInputParam(gradle, 'develocity-injection.develocity-plugin.version')
     def ccudPluginVersion = getInputParam(gradle, 'develocity-injection.ccud-plugin.version')
     def buildScanTermsOfUseUrl = getInputParam(gradle, 'develocity-injection.terms-of-use.url')
     def buildScanTermsOfUseAgree = getInputParam(gradle, 'develocity-injection.terms-of-use.agree')
     def ciAutoInjectionCustomValueValue = getInputParam(gradle, 'develocity-injection.custom-value')
-    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
+    def logLevel = getBooleanInputParam(gradle, 'develocity-injection.debug', false) ? LogLevel.LIFECYCLE : LogLevel.INFO
+
+    def enforceBuildCache = getBooleanInputParam(gradle, 'develocity-injection.enforce-build-cache', false)
+    def remoteBuildCacheEnabled = getBooleanInputParam(gradle, 'develocity-injection.remote-build-cache.enabled')
+    def remoteBuildCachePush = getBooleanInputParam(gradle, 'develocity-injection.remote-build-cache.push')
+    def remoteBuildCacheServer = getInputParam(gradle, 'develocity-injection.remote-build-cache.server')
+    def remoteBuildCachePath = getInputParam(gradle, 'develocity-injection.remote-build-cache.path')
+    def remoteBuildCacheAllowInsecureProtocol = getBooleanInputParam(gradle, 'develocity-injection.remote-build-cache.allow-insecure-protocol')
+    def remoteBuildCacheAllowUntrustedServer = getBooleanInputParam(gradle, 'develocity-injection.remote-build-cache.allow-untrusted-server')
+    def localBuildCacheEnabled = getBooleanInputParam(gradle, 'develocity-injection.local-build-cache.enabled')
+    def localBuildCachePush = getBooleanInputParam(gradle, 'develocity-injection.local-build-cache.push')
 
     def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
     def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -158,12 +173,102 @@ void enableDevelocityInjection() {
         return geValue instanceof Closure<?> ? geValue() : geValue
     }
 
+    def isDevelocityPluginMissing = { Settings settings ->
+        !settings.pluginManager.hasPlugin(GRADLE_ENTERPRISE_PLUGIN_ID) && !settings.pluginManager.hasPlugin(DEVELOCITY_PLUGIN_ID)
+    }
+
     def printEnforcingDevelocityUrl = {
         logger.log(logLevel, "Enforcing Develocity: $develocityUrl, allowUntrustedServer: $develocityAllowUntrustedServer")
     }
 
     def printAcceptingGradleTermsOfUse = {
         logger.log(logLevel, "Accepting Gradle Terms of Use: $buildScanTermsOfUseUrl")
+    }
+
+    def printBuildCacheSkipReason = { String reason, boolean isMisconfiguration = false ->
+        def level = isMisconfiguration ? LogLevel.WARN : logLevel
+        if (remoteBuildCacheEnabled != null) {
+            logger.log(level, "Remote build cache not configured because $reason")
+            if (localBuildCacheEnabled != null) {
+                logger.log(level, "Local build cache not configured to avoid leaving the build cache partially configured")
+            }
+        } else if (localBuildCacheEnabled != null) {
+            logger.log(level, "Local build cache not configured because $reason")
+        }
+    }
+
+    def configureLocalBuildCache = { Settings settings ->
+        settings.buildCache.local { local ->
+            local.enabled = localBuildCacheEnabled
+            if (localBuildCachePush != null) {
+                local.push = localBuildCachePush
+            }
+            logger.log(logLevel, "Configuring the local build cache: enabled: ${local.enabled}, push: ${local.push}")
+        }
+    }
+
+    def configureRemoteBuildCache = { Settings settings, Class connectorType ->
+        settings.buildCache.remote(connectorType) { remote ->
+            remote.enabled = remoteBuildCacheEnabled
+            if (remoteBuildCachePush != null) {
+                remote.push = remoteBuildCachePush
+            }
+            if (remoteBuildCacheServer) {
+                remote.server = remoteBuildCacheServer
+            }
+            if (remoteBuildCachePath) {
+                remote.path = remoteBuildCachePath
+            }
+            if (remoteBuildCacheAllowInsecureProtocol != null) {
+                remote.allowInsecureProtocol = remoteBuildCacheAllowInsecureProtocol
+            }
+            if (remoteBuildCacheAllowUntrustedServer != null) {
+                remote.allowUntrustedServer = remoteBuildCacheAllowUntrustedServer
+            }
+            logger.log(logLevel, "Configuring the remote build cache: ${remote.server ?: 'Develocity server'}, path: ${remote.path ?: '<default>'}, enabled: ${remote.enabled}, push: ${remote.push}, allowInsecureProtocol: ${remote.allowInsecureProtocol}, allowUntrustedServer: ${remote.allowUntrustedServer == null ? '<default>' : remote.allowUntrustedServer}")
+        }
+    }
+
+    def configureBuildCache = { Settings settings ->
+        // The configuration cache was first introduced in Gradle 6.6, and before 7.5.1 a build fails when it reuses an entry that uses the Develocity Build Cache connector
+        if (GradleVersion.current() >= GradleVersion.version('6.6') && GradleVersion.current() < GradleVersion.version('7.5.1') && gradle.startParameter.isConfigurationCache()) {
+            printBuildCacheSkipReason("build cache configuration via injection requires Gradle 7.5.1 or later when using the configuration cache")
+            return
+        }
+        if (isDevelocityPluginMissing(settings)) {
+            printBuildCacheSkipReason("the Develocity Gradle plugin is not applied")
+            return
+        }
+
+        def develocityExtension = getDevelocitySettingsExtension(settings)
+        if (!develocityExtension.metaClass.respondsTo(develocityExtension, 'getBuildCache')) {
+            printBuildCacheSkipReason("this version of the Develocity Gradle plugin does not support the Develocity Build Cache connector", develocityPluginVersion && isNotAtLeast(develocityPluginVersion, '3.11'))
+            return
+        }
+
+        def existingRemoteBuildCache = settings.buildCache.remote
+        if (existingRemoteBuildCache != null && !enforceBuildCache) {
+            printBuildCacheSkipReason("a remote build cache is already configured")
+            return
+        }
+
+        if (remoteBuildCacheEnabled && !remoteBuildCacheServer && !hasDevelocityServer(develocityExtension)) {
+            printBuildCacheSkipReason("no Develocity server is configured")
+            return
+        }
+
+        if (remoteBuildCacheEnabled != null) {
+            Class develocityBuildCacheConnector = develocityExtension.buildCache
+            if (existingRemoteBuildCache in develocityBuildCacheConnector) {
+                resetRemoteBuildCache(settings)
+            } else if (existingRemoteBuildCache != null) {
+                logger.log(logLevel, "Replacing the existing remote build cache with the Develocity Build Cache connector")
+            }
+            configureRemoteBuildCache(settings, develocityBuildCacheConnector)
+        }
+        if (localBuildCacheEnabled != null) {
+            configureLocalBuildCache(settings)
+        }
     }
 
     // finish early if DV plugin version is unsupported (v3.6.4 is the minimum version tested and supports back to DV 2021.1)
@@ -281,10 +386,15 @@ void enableDevelocityInjection() {
                 }
             }
         }
+
+        if (remoteBuildCacheEnabled != null || localBuildCacheEnabled != null) {
+            // The Develocity Build Cache connector is only available when the Develocity Gradle plugin is applied to settings.
+            printBuildCacheSkipReason("build cache configuration via injection requires Gradle 6.0 or later")
+        }
     } else {
         gradle.settingsEvaluated { settings ->
             if (develocityPluginVersion) {
-                if (!settings.pluginManager.hasPlugin(GRADLE_ENTERPRISE_PLUGIN_ID) && !settings.pluginManager.hasPlugin(DEVELOCITY_PLUGIN_ID)) {
+                if (isDevelocityPluginMissing(settings)) {
                     def pluginClass = dvOrGe(DEVELOCITY_PLUGIN_CLASS, GRADLE_ENTERPRISE_PLUGIN_CLASS)
                     applyPluginExternally(settings.pluginManager, pluginClass, develocityPluginVersion)
                     if (develocityUrl) {
@@ -375,12 +485,16 @@ void enableDevelocityInjection() {
                     settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
                 }
             }
+
+            if (remoteBuildCacheEnabled != null || localBuildCacheEnabled != null) {
+                configureBuildCache(settings)
+            }
         }
     }
 }
 
 void applyPluginExternally(def pluginManager, String pluginClassName, String pluginVersion) {
-    def logLevel = Boolean.parseBoolean(getInputParam(gradle, 'develocity-injection.debug')) ? LogLevel.LIFECYCLE : LogLevel.INFO
+    def logLevel = getBooleanInputParam(gradle, 'develocity-injection.debug', false) ? LogLevel.LIFECYCLE : LogLevel.INFO
     logger.log(logLevel, "Applying $pluginClassName with version $pluginVersion via init script")
 
     def externallyApplied = 'develocity.externally-applied'
@@ -428,9 +542,24 @@ static def eachDevelocitySettingsExtension(def settings, def dvAction, def geAct
 }
 
 /**
+ * Return the 'develocity' extension.
+ * If no 'develocity' extension is found, returns the 'gradleEnterprise' extension.
+ * In some versions, the Develocity Gradle plugin creates both extensions, and we want to prefer 'develocity'.
+ */
+static def getDevelocitySettingsExtension(def settings) {
+    def GRADLE_ENTERPRISE_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
+    def DEVELOCITY_CONFIGURATION_CLASS = 'com.gradle.develocity.agent.gradle.DevelocityConfiguration'
+
+    def elements = settings.extensions.extensionsSchema.elements
+    def element = elements.find { it.publicType.concreteClass.name == DEVELOCITY_CONFIGURATION_CLASS } ?:
+        elements.find { it.publicType.concreteClass.name == GRADLE_ENTERPRISE_EXTENSION_CLASS }
+    return element ? settings[element.name] : null
+}
+
+/**
  * Apply the `dvAction` to the 'develocity' extension.
  * If no 'develocity' extension is found, apply the `bsAction` to the 'buildScan' extension.
- * (The develocity plugin creates both extensions, and we want to prefer configuring 'develocity').
+ * In some versions, the Develocity Gradle plugin creates both extensions, and we want to prefer 'develocity'.
  */
 static def eachDevelocityProjectExtension(def project, def dvAction, def bsAction = dvAction) {
     def BUILD_SCAN_PLUGIN_ID = 'com.gradle.build-scan'
@@ -451,6 +580,24 @@ static def eachDevelocityProjectExtension(def project, def dvAction, def bsActio
         if (project.pluginManager.hasPlugin(BUILD_SCAN_PLUGIN_ID)) return
         configureDvOrBsExtension()
     }
+}
+
+/**
+ * The type for 'server' is Property in the 'develocity' extension, and String in the 'gradleEnterprise' extension.
+ */
+static boolean hasDevelocityServer(def develocityExtension) {
+    def server = develocityExtension.server
+    // The Provider type cannot be referenced here because the script must still compile on Gradle 3.x
+    return server && (!server.metaClass.respondsTo(server, 'isPresent') || server.isPresent())
+}
+
+/**
+ * Gradle has no API to reset a remote build cache or to replace it with a new one of the same type.
+ * A workaround for this is to temporarily switch to a remote build cache of a different type.
+ * Switching to an HttpBuildCache first makes the next Develocity Build Cache connector start from default values.
+ */
+static void resetRemoteBuildCache(Settings settings) {
+    settings.buildCache.remote(HttpBuildCache) {}
 }
 
 static boolean isAtLeast(String versionUnderTest, String referenceVersion) {
